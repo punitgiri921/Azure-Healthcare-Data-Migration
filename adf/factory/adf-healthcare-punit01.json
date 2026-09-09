@@ -1,0 +1,15 @@
+{
+	"name": "adf-healthcare-punit01",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "717f120e-0ec9-4133-825f-198d906fd8e6",
+		"tenantId": "37d6935c-10aa-4f55-9249-fc8a95b205fb"
+	}
+}
