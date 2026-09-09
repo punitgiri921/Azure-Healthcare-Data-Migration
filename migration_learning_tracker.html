@@ -58,7 +58,7 @@
 
         .header-title h1 {
             font-size: 1.5rem;
-            font-weight: 800;
+            font-weight: 700;
             letter-spacing: -0.02em;
             display: flex;
             align-items: center;
@@ -78,14 +78,14 @@
         }
 
         .badge {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            padding: 0.25rem 0.6rem;
-            border-radius: 9999px;
-            font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .badge-live {
@@ -94,13 +94,22 @@
             border: 1px solid rgba(52, 211, 153, 0.3);
         }
 
-        .badge-live::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            background: var(--success);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--success);
+        .badge-done {
+            background: rgba(52, 211, 153, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+        }
+
+        .badge-progress {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .badge-locked {
+            background: rgba(100, 116, 139, 0.15);
+            color: var(--text-muted);
+            border: 1px solid rgba(100, 116, 139, 0.25);
         }
 
         .kpi-strip {
@@ -114,64 +123,61 @@
         }
 
         .kpi-card {
-            background: var(--bg-card);
+            background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 1.25rem;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: all 0.2s ease;
         }
 
         .kpi-card:hover {
+            border-color: rgba(56, 189, 248, 0.3);
             transform: translateY(-2px);
-            border-color: rgba(56, 189, 248, 0.4);
         }
 
         .kpi-label {
             font-size: 0.75rem;
             text-transform: uppercase;
-            font-weight: 600;
             letter-spacing: 0.05em;
             color: var(--text-muted);
+            font-weight: 600;
         }
 
         .kpi-value {
             font-size: 1.75rem;
-            font-weight: 800;
+            font-weight: 700;
             color: var(--text-primary);
-            margin-top: 0.35rem;
+            margin: 0.35rem 0;
             font-family: var(--font-mono);
         }
 
         .kpi-sub {
             font-size: 0.75rem;
             color: var(--text-secondary);
-            margin-top: 0.25rem;
         }
 
-        nav.tabs-nav {
+        .tabs-nav {
             max-width: 1400px;
-            margin: 1.5rem auto 0;
+            margin: 2rem auto 0;
             padding: 0 2rem;
-            width: 100%;
             display: flex;
             gap: 0.5rem;
             border-bottom: 1px solid var(--border-color);
+            width: 100%;
             overflow-x: auto;
         }
 
         .tab-btn {
-            background: transparent;
+            background: none;
             border: none;
             color: var(--text-secondary);
-            font-family: var(--font-main);
+            padding: 0.75rem 1.25rem;
             font-size: 0.875rem;
             font-weight: 600;
-            padding: 0.75rem 1.25rem;
+            font-family: inherit;
             cursor: pointer;
             border-bottom: 2px solid transparent;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             white-space: nowrap;
         }
 
@@ -182,15 +188,14 @@
         .tab-btn.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
-            background: rgba(56, 189, 248, 0.05);
         }
 
         main {
             max-width: 1400px;
-            margin: 1.5rem auto;
-            padding: 0 2rem 3rem;
-            width: 100%;
+            margin: 2rem auto;
+            padding: 0 2rem;
             flex: 1;
+            width: 100%;
         }
 
         .tab-pane {
@@ -208,39 +213,59 @@
         }
 
         .section-card {
-            background: var(--bg-card);
+            background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 1.75rem;
+            padding: 1.5rem;
             margin-bottom: 1.5rem;
         }
 
         .section-title {
             font-size: 1.125rem;
-            font-weight: 700;
+            font-weight: 600;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
+        .code-box {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+            color: #bae6fd;
+            overflow-x: auto;
+            margin-top: 0.75rem;
+        }
+
+        /* Phase Grid */
         .phase-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
             gap: 1.25rem;
         }
 
         .phase-box {
-            background: var(--bg-elevated);
+            background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 1.25rem;
             position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .phase-box.completed {
+            border-color: rgba(52, 211, 153, 0.4);
+            background: linear-gradient(180deg, rgba(52, 211, 153, 0.05) 0%, var(--bg-card) 100%);
         }
 
         .phase-box.in-progress {
-            border-color: rgba(56, 189, 248, 0.5);
-            background: linear-gradient(180deg, rgba(56, 189, 248, 0.04) 0%, var(--bg-elevated) 100%);
+            border-color: rgba(56, 189, 248, 0.4);
+            background: linear-gradient(180deg, rgba(56, 189, 248, 0.05) 0%, var(--bg-card) 100%);
         }
 
         .phase-box.locked {
@@ -251,14 +276,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
         }
 
         .phase-num {
-            font-family: var(--font-mono);
             font-size: 0.75rem;
-            color: var(--primary);
+            font-family: var(--font-mono);
             font-weight: 700;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
 
@@ -270,40 +295,87 @@
 
         .task-list {
             list-style: none;
-            margin-top: 0.75rem;
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
         .task-item {
             font-size: 0.8125rem;
-            color: var(--text-secondary);
-            padding: 0.4rem 0;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
         }
 
-        .task-item:last-child {
-            border-bottom: none;
+        .task-item.done {
+            border-color: rgba(52, 211, 153, 0.3);
+            color: #d1fae5;
         }
 
-        .empty-placeholder {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-muted);
-            font-size: 0.875rem;
+        .task-item.active {
+            border-color: rgba(56, 189, 248, 0.4);
+            color: #e0f2fe;
         }
 
-        .code-box {
-            font-family: var(--font-mono);
-            background: #0d131f;
+        /* Concept & TQ Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .concept-card {
+            background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-            font-size: 0.8125rem;
-            color: #bae6fd;
-            overflow-x: auto;
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .concept-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .concept-tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: var(--primary-glow);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        .concept-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .concept-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .defense-box {
+            background-color: var(--bg-elevated);
+            border-left: 3px solid var(--primary);
+            padding: 0.875rem 1rem;
+            border-radius: 0 6px 6px 0;
             margin-top: 0.75rem;
+            font-size: 0.8125rem;
+            color: #e2e8f0;
+            font-style: italic;
         }
 
         footer {
@@ -325,7 +397,7 @@
                 <p>Enterprise On-Prem EMR to ADLS Gen2 Medallion Lakehouse Migration & Clinical Analytics</p>
             </div>
             <div>
-                <span class="badge badge-live">LIVE TRACKING ACTIVE</span>
+                <span class="badge badge-live">PHASE 1 COMPLETE • PHASE 2 ACTIVE</span>
             </div>
         </div>
     </header>
@@ -333,37 +405,37 @@
     <div class="kpi-strip">
         <div class="kpi-card">
             <div class="kpi-label">Overall Progress</div>
-            <div class="kpi-value" id="kpi-progress">5%</div>
-            <div class="kpi-sub">Phase 1: Cloud Provisioning</div>
+            <div class="kpi-value" id="kpi-progress">18%</div>
+            <div class="kpi-sub">Phase 1 Complete (7/7 Tasks)</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Active Milestone</div>
-            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">Phase 1 of 6</div>
-            <div class="kpi-sub">Cloud Foundation Setup</div>
+            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">Phase 2 of 6</div>
+            <div class="kpi-sub">On-Prem DB & SHIR Setup</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Azure Free Trial Budget</div>
             <div class="kpi-value">$200.00</div>
-            <div class="kpi-sub">Estimated spend: ~$15 – $25</div>
+            <div class="kpi-sub">Current burn: &lt; $0.50 (Est: ~$15–$25)</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Concepts Logged (CL)</div>
-            <div class="kpi-value" id="kpi-concepts">0</div>
-            <div class="kpi-sub">Architecture topics mastered</div>
+            <div class="kpi-value" id="kpi-concepts">4</div>
+            <div class="kpi-sub">HNS, SMI, RBAC, ADF Git</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Technical Questions (TQ)</div>
-            <div class="kpi-value" id="kpi-tq">0 / 0</div>
-            <div class="kpi-sub">Average Score: -- / 10</div>
+            <div class="kpi-value" id="kpi-tq">2 / 2</div>
+            <div class="kpi-sub">Phase 1 Gate Passed (10/10)</div>
         </div>
     </div>
 
     <nav class="tabs-nav">
-        <button class="tab-btn active" onclick="switchTab('tab-overview')">Overview & Architecture</button>
-        <button class="tab-btn" onclick="switchTab('tab-phases')">Phase Roadmap (1–6)</button>
-        <button class="tab-btn" onclick="switchTab('tab-concepts')">Concepts Learned (CL)</button>
-        <button class="tab-btn" onclick="switchTab('tab-questions')">Technical Questions (TQ)</button>
-        <button class="tab-btn" onclick="switchTab('tab-troubleshooting')">Troubleshooting & RCA</button>
+        <button class="tab-btn active" onclick="switchTab('tab-overview', event)">Overview & Architecture</button>
+        <button class="tab-btn" onclick="switchTab('tab-phases', event)">Phase Roadmap (1–6)</button>
+        <button class="tab-btn" onclick="switchTab('tab-concepts', event)">Concepts Learned (CL)</button>
+        <button class="tab-btn" onclick="switchTab('tab-questions', event)">Technical Questions (TQ)</button>
+        <button class="tab-btn" onclick="switchTab('tab-evidence', event)">Live Cloud Topology</button>
     </nav>
 
     <main>
@@ -372,23 +444,23 @@
             <div class="section-card">
                 <div class="section-title">🏛️ Project Architecture & Data Flow</div>
                 <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.875rem;">
-                    This platform implements a hybrid cloud migration architecture connecting on-premises healthcare databases to Azure via a Self-Hosted Integration Runtime, processing data across Bronze, Silver (PII Masking), and Gold (Star Schema) layers in ADLS Gen2.
+                    This platform implements a production-grade hybrid cloud data migration architecture connecting an on-premises healthcare EMR database to Azure via an outbound-only Self-Hosted Integration Runtime (SHIR), incrementally ingesting and transforming data across Bronze, Silver (PII Masking), and Gold (Star Schema) layers in ADLS Gen2.
                 </p>
                 <div class="code-box">
-[ON-PREM EMR DB] -> (Local) -> [SHIR Gateway] -> (Outbound 443 HTTPS) -> [ADF Ingestion Pipeline]
-                                                                                   │
-                                                                                   ▼
+[ON-PREM EMR DB] -> (Local Loopback) -> [SHIR Gateway] -> (Outbound 443 HTTPS) -> [ADF Ingestion Pipeline]
+                                                                                            │
+                                                                                            ▼
 [Power BI App] <- [Synapse Serverless SQL] <- [Gold Marts] <- [Silver Clean/Mask] <- [Bronze Raw Parquet]
                 </div>
             </div>
 
             <div class="section-card">
-                <div class="section-title">🔐 Enterprise Security & HIPAA Standards</div>
+                <div class="section-title">🔐 Enterprise Security & HIPAA Standards Verified</div>
                 <ul style="padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8;">
-                    <li><strong>Zero-Secret Deployment</strong>: ADF accesses Azure Key Vault and ADLS Gen2 via System-Assigned Managed Identity (SMI).</li>
-                    <li><strong>SHIR Outbound-Only</strong>: No incoming ports opened on the on-prem firewall. Gateway connects outbound to Azure on port 443.</li>
-                    <li><strong>HIPAA Safe Harbor De-Identification</strong>: SHA-256 cryptographic hashing applied to Social Security Numbers and patient names in the Silver layer.</li>
-                    <li><strong>Separation of Compute & Storage</strong>: Data sits permanently in low-cost ADLS Gen2 storage; Synapse Serverless compute spins up on-demand only when queries execute.</li>
+                    <li><strong>Zero-Secret Identity</strong>: ADF accesses Azure Key Vault and ADLS Gen2 strictly via System-Assigned Managed Identity (SMI). No connection strings or storage keys stored in configuration.</li>
+                    <li><strong>ADLS Gen2 Hierarchical Namespace (HNS)</strong>: Enabled with atomic folder renames ($O(1)$) and POSIX-compliant ACLs across `bronze`, `silver`, and `gold`.</li>
+                    <li><strong>Outbound-Only SHIR Connectivity</strong>: No incoming firewall ports opened on premise. The gateway polls Azure securely on port 443.</li>
+                    <li><strong>Git Version Control & Multi-Branch CI/CD</strong>: ADF Studio integrated directly with GitHub (`main` collaboration branch + `adf_publish` automated ARM templates).</li>
                 </ul>
             </div>
         </div>
@@ -396,97 +468,171 @@
         <!-- Tab: Phases -->
         <div id="tab-phases" class="tab-pane">
             <div class="phase-grid">
-                <div class="phase-box in-progress">
+                <!-- Phase 1 -->
+                <div class="phase-box completed">
                     <div class="phase-header">
                         <span class="phase-num">Phase 1</span>
-                        <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: var(--primary);">IN PROGRESS</span>
+                        <span class="badge badge-done">COMPLETED (7/7)</span>
                     </div>
                     <div class="phase-name">Cloud Provisioning & Zero-Secret Setup</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Establish Azure resource group, ADLS Gen2, Key Vault, and ADF with Managed Identity.</p>
                     <ul class="task-list">
-                        <li class="task-item">⏳ Create Resource Group (rg-healthcare-migration-prod)</li>
-                        <li class="task-item">⏳ Provision ADLS Gen2 with Hierarchical Namespace</li>
-                        <li class="task-item">⏳ Create containers (bronze, silver, gold)</li>
-                        <li class="task-item">⏳ Provision Azure Key Vault</li>
-                        <li class="task-item">⏳ Provision Azure Data Factory v2</li>
-                        <li class="task-item">⏳ Configure ADF Managed Identity RBAC</li>
-                        <li class="task-item">⏳ Connect ADF to GitHub repository</li>
+                        <li class="task-item done">✅ Create Resource Group (rg-healthcare-migration-prod)</li>
+                        <li class="task-item done">✅ Provision ADLS Gen2 with HNS (sthealthcarelake01)</li>
+                        <li class="task-item done">✅ Create containers (bronze, silver, gold)</li>
+                        <li class="task-item done">✅ Provision Azure Key Vault (kv-healthcare-sec01)</li>
+                        <li class="task-item done">✅ Provision Azure Data Factory (adf-healthcare-punit01)</li>
+                        <li class="task-item done">✅ Configure ADF Managed Identity RBAC (Storage & Key Vault)</li>
+                        <li class="task-item done">✅ Connect ADF to GitHub repository (Azure-Healthcare-Data-Migration)</li>
                     </ul>
                 </div>
 
-                <div class="phase-box locked">
+                <!-- Phase 2 -->
+                <div class="phase-box in-progress">
                     <div class="phase-header">
                         <span class="phase-num">Phase 2</span>
-                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                        <span class="badge badge-progress">ACTIVE / NEXT UP</span>
                     </div>
-                    <div class="phase-name">On-Prem EMR DB & SHIR Setup</div>
+                    <div class="phase-name">On-Prem EMR DB & SHIR Gateway Setup</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Set up local EMR tables, seed test data, install Self-Hosted Integration Runtime agent.</p>
+                    <ul class="task-list">
+                        <li class="task-item active">⏳ Create local PostgreSQL/SQL Server database (healthcare_emr_source)</li>
+                        <li class="task-item">⏳ Execute DDL & seed clinical data (Patients, Providers, Encounters, etc.)</li>
+                        <li class="task-item">⏳ Create etl_watermark_control table & populate initial watermarks</li>
+                        <li class="task-item">⏳ Download & install Microsoft Integration Runtime (SHIR) on Windows</li>
+                        <li class="task-item">⏳ Register SHIR with ADF authentication key & verify gateway status</li>
+                        <li class="task-item">⏳ Store database connection credentials in Azure Key Vault</li>
+                        <li class="task-item">⏳ Create Key Vault & SHIR Linked Services in ADF</li>
+                    </ul>
                 </div>
 
+                <!-- Phase 3 -->
                 <div class="phase-box locked">
                     <div class="phase-header">
                         <span class="phase-num">Phase 3</span>
-                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                        <span class="badge badge-locked">LOCKED</span>
                     </div>
                     <div class="phase-name">Metadata Watermark Ingestion (Bronze)</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Build reusable parameterized copy pipeline with high-watermark delta loading into Bronze Parquet.</p>
                 </div>
 
+                <!-- Phase 4 -->
                 <div class="phase-box locked">
                     <div class="phase-header">
                         <span class="phase-num">Phase 4</span>
-                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                        <span class="badge badge-locked">LOCKED</span>
                     </div>
                     <div class="phase-name">Medallion Data Flows & HIPAA Masking</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Mapping Data Flows: Silver cleansing & SHA-256 PII masking + Gold dimensional Star Schema.</p>
                 </div>
 
+                <!-- Phase 5 -->
                 <div class="phase-box locked">
                     <div class="phase-header">
                         <span class="phase-num">Phase 5</span>
-                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                        <span class="badge badge-locked">LOCKED</span>
                     </div>
                     <div class="phase-name">Synapse Serverless Serving & Automation</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Serverless SQL views over Gold Delta tables + ADF scheduled execution triggers.</p>
                 </div>
 
+                <!-- Phase 6 -->
                 <div class="phase-box locked">
                     <div class="phase-header">
                         <span class="phase-num">Phase 6</span>
-                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                        <span class="badge badge-locked">LOCKED</span>
                     </div>
                     <div class="phase-name">Power BI Reporting & CV Deliverables</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Executive Clinical & Financial report, comprehensive GitHub README, and interview talking points.</p>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Executive Clinical & Financial report, comprehensive GitHub README, and interview defense.</p>
                 </div>
             </div>
         </div>
 
         <!-- Tab: Concepts -->
         <div id="tab-concepts" class="tab-pane">
-            <div class="section-card">
-                <div class="section-title">🧠 Architectural Concepts Ledger (CL)</div>
-                <div class="empty-placeholder">
-                    No concepts logged yet. As you execute Phase 1, each cloud architectural concept (CL-01, CL-02, etc.) will be logged here with detailed visual cards.
+            <div class="card-grid">
+                <div class="concept-card">
+                    <span class="concept-tag">CL-01 • Lakehouse Storage</span>
+                    <div class="concept-title">Hierarchical Namespace (HNS) vs Flat Blob Storage</div>
+                    <div class="concept-desc">
+                        Flat blob storage simulates directory structures via URI string prefixes (`folder/file`). In contrast, ADLS Gen2 HNS implements a real POSIX-compliant hierarchy. Directory moves and renames execute as instant metadata updates in $O(1)$ constant time rather than copying every nested blob ($O(N)$), which is essential for Lakehouse partition write performance.
+                    </div>
+                </div>
+
+                <div class="concept-card">
+                    <span class="concept-tag">CL-02 • Cloud Security</span>
+                    <div class="concept-title">Zero-Secret Architecture via Managed Identity (SMI)</div>
+                    <div class="concept-desc">
+                        System-Assigned Managed Identity ties an Azure service's identity directly to Microsoft Entra ID. No credentials, connection strings, or master storage keys exist in code, configuration files, or pipelines. Entra ID handles token generation and automatic 4-hour key rotation behind the scenes.
+                    </div>
+                </div>
+
+                <div class="concept-card">
+                    <span class="concept-tag">CL-03 • RBAC Governance</span>
+                    <div class="concept-title">Least Privilege Data Plane vs Management Plane</div>
+                    <div class="concept-desc">
+                        Assigning <code>Storage Blob Data Contributor</code> grants ADF read/write data access to lakehouse containers without administrative rights over storage account networking or billing. Assigning <code>Key Vault Secrets User</code> grants retrieval access to passwords without permissions to modify or purge secrets.
+                    </div>
+                </div>
+
+                <div class="concept-card">
+                    <span class="concept-tag">CL-04 • DevOps / CI/CD</span>
+                    <div class="concept-title">ADF Git Integration & Multi-Branch Architecture</div>
+                    <div class="concept-desc">
+                        Connecting ADF to GitHub enables team collaboration and version control. Developer changes save as raw JSON definitions in the <code>main</code> collaboration branch under <code>/adf</code>. When clicking "Publish", ADF automatically generates and commits verified ARM deployment templates into the <code>adf_publish</code> branch.
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Tab: Technical Questions -->
         <div id="tab-questions" class="tab-pane">
-            <div class="section-card">
-                <div class="section-title">🎯 Technical Defense & Interview Questions (TQ)</div>
-                <div class="empty-placeholder">
-                    Technical interview questions will be asked at each phase gate. Your answers, scores, and the Senior Architectural Standard answers will appear here.
+            <div class="card-grid">
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-01 • Security Interview Defense</span>
+                    <div class="concept-title">Why use System-Assigned Managed Identity over Storage Account Access Keys in Healthcare?</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Senior Architect Candidate Response:</strong></p>
+                    <div class="defense-box">
+                        "In a HIPAA-regulated healthcare environment, utilizing Account Keys is an unacceptable security hazard because they offer unfettered root-level access across the entire storage account with no expiration and no granular identity audit trail. By configuring Azure Data Factory with a System-Assigned Managed Identity (SMI) and assigning the `Storage Blob Data Contributor` RBAC role, we implement a true Zero-Secret architecture. Every single data access request is attributed to the ADF service principal in Azure Monitor and diagnostic audit logs, satisfying HIPAA auditability requirements."
+                    </div>
+                </div>
+
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-02 • Storage Architecture Defense</span>
+                    <div class="concept-title">Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouse architectures?</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Senior Architect Candidate Response:</strong></p>
+                    <div class="defense-box">
+                        "In flat Blob storage, directories do not physically exist; they are simply character prefixes in the object URL. In a Medallion Lakehouse where data flows write atomic partitioned batches (e.g., `bronze/encounters/year=2026/month=09/`), moving or renaming a folder in flat storage forces the engine to issue individual copy-and-delete operations for every single blob (O(N) operations). ADLS Gen2 with Hierarchical Namespace (HNS) provides a true POSIX filesystem where directory renames are atomic metadata updates executed in O(1) constant time, drastically reducing pipeline duration and compute costs."
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tab: Troubleshooting -->
-        <div id="tab-troubleshooting" class="tab-pane">
+        <!-- Tab: Evidence -->
+        <div id="tab-evidence" class="tab-pane">
             <div class="section-card">
-                <div class="section-title">🛠️ Troubleshooting Playbooks & Root Cause Analysis</div>
-                <div class="empty-placeholder">
-                    Real-world issues (e.g., SHIR connectivity failures, Key Vault permission errors, Data Flow schema drift) will be logged here with root cause analysis and resolution scripts.
+                <div class="section-title">☁️ Live Cloud Topology Configuration</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Resource Group</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">rg-healthcare-migration-prod</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Region: Central India</div>
+                    </div>
+                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">ADLS Gen2 Storage</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">sthealthcarelake01</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Containers: bronze, silver, gold</div>
+                    </div>
+                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Azure Key Vault</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">kv-healthcare-sec01</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Permission Model: Azure RBAC</div>
+                    </div>
+                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Azure Data Factory</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">adf-healthcare-punit01</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Git: punitgiri921/Azure-Healthcare-Data-Migration</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -497,12 +643,15 @@
     </footer>
 
     <script>
-        function switchTab(tabId) {
+        function switchTab(tabId, ev) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
             
-            event.currentTarget.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
+            if (ev && ev.currentTarget) {
+                ev.currentTarget.classList.add('active');
+            }
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
         }
     </script>
 </body>

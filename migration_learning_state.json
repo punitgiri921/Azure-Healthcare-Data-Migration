@@ -1,58 +1,94 @@
 {
   "project_name": "Azure Healthcare Data Migration & Medallion Lakehouse",
   "budget_credit_usd": 200,
-  "current_phase": 1,
-  "current_phase_name": "Phase 1: Cloud Provisioning & Zero-Secret Setup",
-  "overall_progress_percent": 5,
+  "current_phase": 2,
+  "current_phase_name": "Phase 2: On-Prem Database & SHIR Gateway Setup",
+  "overall_progress_percent": 18,
   "last_updated": "2026-09-09",
   "phases": [
     {
       "phase_id": 1,
       "title": "Cloud Provisioning & Zero-Secret Setup",
-      "status": "IN_PROGRESS",
+      "status": "COMPLETED",
       "tasks": [
         {
           "task_id": "P1-T1",
           "name": "Create Resource Group (rg-healthcare-migration-prod)",
-          "status": "PENDING"
+          "status": "COMPLETED"
         },
         {
           "task_id": "P1-T2",
-          "name": "Provision ADLS Gen2 (sthealthcaredatalake) with Hierarchical Namespace",
-          "status": "PENDING"
+          "name": "Provision ADLS Gen2 (sthealthcarelake01 - Central India) with Hierarchical Namespace",
+          "status": "COMPLETED"
         },
         {
           "task_id": "P1-T3",
           "name": "Create containers (bronze, silver, gold)",
-          "status": "PENDING"
+          "status": "COMPLETED"
         },
         {
           "task_id": "P1-T4",
-          "name": "Provision Azure Key Vault (kv-healthcare-secrets-01)",
-          "status": "PENDING"
+          "name": "Provision Azure Key Vault (kv-healthcare-sec01)",
+          "status": "COMPLETED"
         },
         {
           "task_id": "P1-T5",
-          "name": "Provision Azure Data Factory (adf-healthcare-migration-01)",
-          "status": "PENDING"
+          "name": "Provision Azure Data Factory (adf-healthcare-punit01)",
+          "status": "COMPLETED"
         },
         {
           "task_id": "P1-T6",
           "name": "Configure ADF Managed Identity & RBAC permissions",
-          "status": "PENDING"
+          "status": "COMPLETED"
         },
         {
           "task_id": "P1-T7",
-          "name": "Link ADF to GitHub repository",
-          "status": "PENDING"
+          "name": "Link ADF to GitHub repository (punitgiri921/Azure-Healthcare-Data-Migration)",
+          "status": "COMPLETED"
         }
       ]
     },
     {
       "phase_id": 2,
       "title": "On-Prem Database & SHIR Gateway Setup",
-      "status": "LOCKED",
-      "tasks": []
+      "status": "IN_PROGRESS",
+      "tasks": [
+        {
+          "task_id": "P2-T1",
+          "name": "Create local PostgreSQL/SQL Server database (healthcare_emr_source)",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P2-T2",
+          "name": "Execute DDL & seed clinical data (Patients, Providers, Encounters, Diagnoses, Claims)",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P2-T3",
+          "name": "Create etl_watermark_control table & seed initial watermarks",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P2-T4",
+          "name": "Download & install Microsoft Integration Runtime (SHIR) on Windows",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P2-T5",
+          "name": "Register SHIR with ADF authentication key & verify gateway status",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P2-T6",
+          "name": "Store database connection credentials in Azure Key Vault",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P2-T7",
+          "name": "Create Key Vault & SHIR Linked Services in ADF",
+          "status": "PENDING"
+        }
+      ]
     },
     {
       "phase_id": 3,
@@ -79,6 +115,38 @@
       "tasks": []
     }
   ],
-  "concepts_learned": [],
-  "technical_questions": []
+  "concepts_learned": [
+    {
+      "id": "CL-01",
+      "title": "ADLS Gen2 Hierarchical Namespace (HNS) vs Flat Blob Storage",
+      "summary": "HNS organizes objects into a true file system hierarchy with atomic directory operations and POSIX-compliant ACLs, replacing flat blob prefix simulation for lakehouse workloads."
+    },
+    {
+      "id": "CL-02",
+      "title": "Zero-Secret Architecture via Azure System-Assigned Managed Identity",
+      "summary": "Eliminates credentials in code by tying identity directly to Azure Entra ID lifecycle. ADF authenticates to ADLS Gen2 and Key Vault with auto-rotated enterprise tokens."
+    },
+    {
+      "id": "CL-03",
+      "title": "Azure RBAC Data Plane vs Management Plane & Least Privilege",
+      "summary": "Storage Blob Data Contributor and Key Vault Secrets User grant granular data-plane access without exposing administrative control or secret deletion privileges."
+    },
+    {
+      "id": "CL-04",
+      "title": "ADF Git Integration & Enterprise Branching Strategy",
+      "summary": "Links ADF Studio to GitHub repo with collaboration branch (main), root directory (/adf), and automated ARM template publishing branch (adf_publish) for CI/CD."
+    }
+  ],
+  "technical_questions": [
+    {
+      "id": "TQ-01",
+      "question": "Why use System-Assigned Managed Identity over Storage Account Access Keys or SAS tokens in enterprise healthcare migrations?",
+      "core_rationale": "Storage keys provide root-level administrative access to all data with no expiration or identity audit trail, violating HIPAA security guidelines. Managed Identity provides token-based, auditable, zero-secret access governed strictly by Entra ID RBAC."
+    },
+    {
+      "id": "TQ-02",
+      "question": "Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouse architectures instead of standard Blob Storage?",
+      "core_rationale": "Without HNS, renaming or moving a directory requires copying every single blob individually (O(N) operations), which destroys pipeline performance at scale. HNS enables atomic metadata renames (O(1)) and granular POSIX directory ACLs."
+    }
+  ]
 }
