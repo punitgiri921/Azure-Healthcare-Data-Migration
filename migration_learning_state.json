@@ -1,0 +1,84 @@
+{
+  "project_name": "Azure Healthcare Data Migration & Medallion Lakehouse",
+  "budget_credit_usd": 200,
+  "current_phase": 1,
+  "current_phase_name": "Phase 1: Cloud Provisioning & Zero-Secret Setup",
+  "overall_progress_percent": 5,
+  "last_updated": "2026-09-09",
+  "phases": [
+    {
+      "phase_id": 1,
+      "title": "Cloud Provisioning & Zero-Secret Setup",
+      "status": "IN_PROGRESS",
+      "tasks": [
+        {
+          "task_id": "P1-T1",
+          "name": "Create Resource Group (rg-healthcare-migration-prod)",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P1-T2",
+          "name": "Provision ADLS Gen2 (sthealthcaredatalake) with Hierarchical Namespace",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P1-T3",
+          "name": "Create containers (bronze, silver, gold)",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P1-T4",
+          "name": "Provision Azure Key Vault (kv-healthcare-secrets-01)",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P1-T5",
+          "name": "Provision Azure Data Factory (adf-healthcare-migration-01)",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P1-T6",
+          "name": "Configure ADF Managed Identity & RBAC permissions",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P1-T7",
+          "name": "Link ADF to GitHub repository",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "phase_id": 2,
+      "title": "On-Prem Database & SHIR Gateway Setup",
+      "status": "LOCKED",
+      "tasks": []
+    },
+    {
+      "phase_id": 3,
+      "title": "Metadata-Driven Watermark Ingestion (Bronze)",
+      "status": "LOCKED",
+      "tasks": []
+    },
+    {
+      "phase_id": 4,
+      "title": "Medallion Transformations & HIPAA Compliance (Silver & Gold)",
+      "status": "LOCKED",
+      "tasks": []
+    },
+    {
+      "phase_id": 5,
+      "title": "Synapse Serverless Serving & Trigger Automation",
+      "status": "LOCKED",
+      "tasks": []
+    },
+    {
+      "phase_id": 6,
+      "title": "Power BI Reporting & CV Portfolio Deliverables",
+      "status": "LOCKED",
+      "tasks": []
+    }
+  ],
+  "concepts_learned": [],
+  "technical_questions": []
+}
