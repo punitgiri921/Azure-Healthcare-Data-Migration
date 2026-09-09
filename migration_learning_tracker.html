@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure Healthcare Data Migration — Master Engineering Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0e17;
+            --bg-card: #121826;
+            --bg-elevated: #1a2234;
+            --border-color: #232f45;
+            --text-primary: #f0f4fc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.15);
+            --accent: #818cf8;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(180deg, #101726 0%, var(--bg-base) 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.75rem 2rem;
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-title h1 span {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .badge {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .badge-live {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .badge-live::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .kpi-strip {
+            max-width: 1400px;
+            margin: 1.5rem auto 0;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .kpi-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-top: 0.35rem;
+            font-family: var(--font-mono);
+        }
+
+        .kpi-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        nav.tabs-nav {
+            max-width: 1400px;
+            margin: 1.5rem auto 0;
+            padding: 0 2rem;
+            width: 100%;
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-main);
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        main {
+            max-width: 1400px;
+            margin: 1.5rem auto;
+            padding: 0 2rem 3rem;
+            width: 100%;
+            flex: 1;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .phase-box {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+            position: relative;
+        }
+
+        .phase-box.in-progress {
+            border-color: rgba(56, 189, 248, 0.5);
+            background: linear-gradient(180deg, rgba(56, 189, 248, 0.04) 0%, var(--bg-elevated) 100%);
+        }
+
+        .phase-box.locked {
+            opacity: 0.65;
+        }
+
+        .phase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .phase-num {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .phase-name {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-list {
+            list-style: none;
+            margin-top: 0.75rem;
+        }
+
+        .task-item {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            padding: 0.4rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .empty-placeholder {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .code-box {
+            font-family: var(--font-mono);
+            background: #0d131f;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.8125rem;
+            color: #bae6fd;
+            overflow-x: auto;
+            margin-top: 0.75rem;
+        }
+
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <div class="header-title">
+                <h1>🏥 <span>Apex Health Lakehouse</span> — Azure Migration Engine</h1>
+                <p>Enterprise On-Prem EMR to ADLS Gen2 Medallion Lakehouse Migration & Clinical Analytics</p>
+            </div>
+            <div>
+                <span class="badge badge-live">LIVE TRACKING ACTIVE</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="kpi-strip">
+        <div class="kpi-card">
+            <div class="kpi-label">Overall Progress</div>
+            <div class="kpi-value" id="kpi-progress">5%</div>
+            <div class="kpi-sub">Phase 1: Cloud Provisioning</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Active Milestone</div>
+            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">Phase 1 of 6</div>
+            <div class="kpi-sub">Cloud Foundation Setup</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Azure Free Trial Budget</div>
+            <div class="kpi-value">$200.00</div>
+            <div class="kpi-sub">Estimated spend: ~$15 – $25</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Concepts Logged (CL)</div>
+            <div class="kpi-value" id="kpi-concepts">0</div>
+            <div class="kpi-sub">Architecture topics mastered</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Technical Questions (TQ)</div>
+            <div class="kpi-value" id="kpi-tq">0 / 0</div>
+            <div class="kpi-sub">Average Score: -- / 10</div>
+        </div>
+    </div>
+
+    <nav class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('tab-overview')">Overview & Architecture</button>
+        <button class="tab-btn" onclick="switchTab('tab-phases')">Phase Roadmap (1–6)</button>
+        <button class="tab-btn" onclick="switchTab('tab-concepts')">Concepts Learned (CL)</button>
+        <button class="tab-btn" onclick="switchTab('tab-questions')">Technical Questions (TQ)</button>
+        <button class="tab-btn" onclick="switchTab('tab-troubleshooting')">Troubleshooting & RCA</button>
+    </nav>
+
+    <main>
+        <!-- Tab: Overview -->
+        <div id="tab-overview" class="tab-pane active">
+            <div class="section-card">
+                <div class="section-title">🏛️ Project Architecture & Data Flow</div>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.875rem;">
+                    This platform implements a hybrid cloud migration architecture connecting on-premises healthcare databases to Azure via a Self-Hosted Integration Runtime, processing data across Bronze, Silver (PII Masking), and Gold (Star Schema) layers in ADLS Gen2.
+                </p>
+                <div class="code-box">
+[ON-PREM EMR DB] -> (Local) -> [SHIR Gateway] -> (Outbound 443 HTTPS) -> [ADF Ingestion Pipeline]
+                                                                                   │
+                                                                                   ▼
+[Power BI App] <- [Synapse Serverless SQL] <- [Gold Marts] <- [Silver Clean/Mask] <- [Bronze Raw Parquet]
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">🔐 Enterprise Security & HIPAA Standards</div>
+                <ul style="padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8;">
+                    <li><strong>Zero-Secret Deployment</strong>: ADF accesses Azure Key Vault and ADLS Gen2 via System-Assigned Managed Identity (SMI).</li>
+                    <li><strong>SHIR Outbound-Only</strong>: No incoming ports opened on the on-prem firewall. Gateway connects outbound to Azure on port 443.</li>
+                    <li><strong>HIPAA Safe Harbor De-Identification</strong>: SHA-256 cryptographic hashing applied to Social Security Numbers and patient names in the Silver layer.</li>
+                    <li><strong>Separation of Compute & Storage</strong>: Data sits permanently in low-cost ADLS Gen2 storage; Synapse Serverless compute spins up on-demand only when queries execute.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Tab: Phases -->
+        <div id="tab-phases" class="tab-pane">
+            <div class="phase-grid">
+                <div class="phase-box in-progress">
+                    <div class="phase-header">
+                        <span class="phase-num">Phase 1</span>
+                        <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: var(--primary);">IN PROGRESS</span>
+                    </div>
+                    <div class="phase-name">Cloud Provisioning & Zero-Secret Setup</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Establish Azure resource group, ADLS Gen2, Key Vault, and ADF with Managed Identity.</p>
+                    <ul class="task-list">
+                        <li class="task-item">⏳ Create Resource Group (rg-healthcare-migration-prod)</li>
+                        <li class="task-item">⏳ Provision ADLS Gen2 with Hierarchical Namespace</li>
+                        <li class="task-item">⏳ Create containers (bronze, silver, gold)</li>
+                        <li class="task-item">⏳ Provision Azure Key Vault</li>
+                        <li class="task-item">⏳ Provision Azure Data Factory v2</li>
+                        <li class="task-item">⏳ Configure ADF Managed Identity RBAC</li>
+                        <li class="task-item">⏳ Connect ADF to GitHub repository</li>
+                    </ul>
+                </div>
+
+                <div class="phase-box locked">
+                    <div class="phase-header">
+                        <span class="phase-num">Phase 2</span>
+                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                    </div>
+                    <div class="phase-name">On-Prem EMR DB & SHIR Setup</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Set up local EMR tables, seed test data, install Self-Hosted Integration Runtime agent.</p>
+                </div>
+
+                <div class="phase-box locked">
+                    <div class="phase-header">
+                        <span class="phase-num">Phase 3</span>
+                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                    </div>
+                    <div class="phase-name">Metadata Watermark Ingestion (Bronze)</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Build reusable parameterized copy pipeline with high-watermark delta loading into Bronze Parquet.</p>
+                </div>
+
+                <div class="phase-box locked">
+                    <div class="phase-header">
+                        <span class="phase-num">Phase 4</span>
+                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                    </div>
+                    <div class="phase-name">Medallion Data Flows & HIPAA Masking</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Mapping Data Flows: Silver cleansing & SHA-256 PII masking + Gold dimensional Star Schema.</p>
+                </div>
+
+                <div class="phase-box locked">
+                    <div class="phase-header">
+                        <span class="phase-num">Phase 5</span>
+                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                    </div>
+                    <div class="phase-name">Synapse Serverless Serving & Automation</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Serverless SQL views over Gold Delta tables + ADF scheduled execution triggers.</p>
+                </div>
+
+                <div class="phase-box locked">
+                    <div class="phase-header">
+                        <span class="phase-num">Phase 6</span>
+                        <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted);">LOCKED</span>
+                    </div>
+                    <div class="phase-name">Power BI Reporting & CV Deliverables</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Executive Clinical & Financial report, comprehensive GitHub README, and interview talking points.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Concepts -->
+        <div id="tab-concepts" class="tab-pane">
+            <div class="section-card">
+                <div class="section-title">🧠 Architectural Concepts Ledger (CL)</div>
+                <div class="empty-placeholder">
+                    No concepts logged yet. As you execute Phase 1, each cloud architectural concept (CL-01, CL-02, etc.) will be logged here with detailed visual cards.
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Technical Questions -->
+        <div id="tab-questions" class="tab-pane">
+            <div class="section-card">
+                <div class="section-title">🎯 Technical Defense & Interview Questions (TQ)</div>
+                <div class="empty-placeholder">
+                    Technical interview questions will be asked at each phase gate. Your answers, scores, and the Senior Architectural Standard answers will appear here.
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Troubleshooting -->
+        <div id="tab-troubleshooting" class="tab-pane">
+            <div class="section-card">
+                <div class="section-title">🛠️ Troubleshooting Playbooks & Root Cause Analysis</div>
+                <div class="empty-placeholder">
+                    Real-world issues (e.g., SHIR connectivity failures, Key Vault permission errors, Data Flow schema drift) will be logged here with root cause analysis and resolution scripts.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        Azure Healthcare Data Migration & Medallion Lakehouse — Engineered by Punit Giri
+    </footer>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
