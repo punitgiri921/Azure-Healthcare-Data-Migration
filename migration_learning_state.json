@@ -4,48 +4,171 @@
   "current_phase": 3,
   "current_phase_name": "Phase 3: Metadata-Driven Watermark Ingestion (Bronze)",
   "overall_progress_percent": 38,
-  "last_updated": "2026-09-10",
+  "last_updated": "2026-09-11",
+  "phase_gate_status": {
+    "current_phase_id": 3,
+    "current_step": "EXPLAIN_BACK",
+    "step_number": 2,
+    "total_steps": 11,
+    "steps_flow": [
+      "1. UNDERSTAND",
+      "2. EXPLAIN BACK",
+      "3. PLAN",
+      "4. YOU EXECUTE",
+      "5. PROVIDE EVIDENCE",
+      "6. TECHNICAL QUESTIONS",
+      "7. EVALUATION",
+      "8. FIX GAPS",
+      "9. ARCHITECTURE RECAP",
+      "10. PHASE COMPLETE",
+      "11. UNLOCK NEXT PHASE"
+    ],
+    "gate_requirement": "User must explain the core watermark extraction mechanism and failure recovery before planning the Copy pipeline build."
+  },
+  "next_task": {
+    "task_id": "P3-T1",
+    "name": "Phase 3 Ingestion Architecture & Explain-Back Checkpoint",
+    "target_pipeline": "pl_ingest_incremental_bronze",
+    "description": "Establish the 8-step formula (Problem -> Why -> What -> How -> Example -> Architecture -> Trade-off -> Explain Back) for incremental ingestion."
+  },
+  "current_azure_resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "name": "rg-healthcare-migration-prod",
+      "location": "Central India",
+      "status": "PROVISIONED"
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "sthealthcarelake01",
+      "sku": "Standard_LRS",
+      "hns_enabled": true,
+      "containers": ["bronze", "silver", "gold"],
+      "status": "PROVISIONED"
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "name": "kv-healthcare-sec01",
+      "permission_model": "Azure RBAC",
+      "secrets": ["sql-onprem-password"],
+      "status": "PROVISIONED"
+    },
+    {
+      "type": "Microsoft.DataFactory/factories",
+      "name": "adf-healthcare-punit01",
+      "identity": "SystemAssigned",
+      "git_repo": "punitgiri921/Azure-Healthcare-Data-Migration",
+      "git_branch": "main",
+      "git_root": "/adf",
+      "status": "PROVISIONED"
+    },
+    {
+      "type": "Microsoft.DataFactory/factories/integrationRuntimes",
+      "name": "shir-onprem-gateway-01",
+      "runtime_type": "Self-Hosted",
+      "node_name": "DESKTOP-H5RKB3H",
+      "status": "ONLINE"
+    },
+    {
+      "type": "Microsoft.DataFactory/factories/linkedServices",
+      "name": "ls_keyvault_healthcare",
+      "target": "kv-healthcare-sec01",
+      "status": "VERIFIED"
+    },
+    {
+      "type": "Microsoft.DataFactory/factories/linkedServices",
+      "name": "ls_sqlserver_onprem",
+      "target": "localhost:1433 / healthcare_emr_source",
+      "status": "VERIFIED"
+    }
+  ],
+  "architecture_decisions": [
+    {
+      "decision_id": "AD-01",
+      "component": "ADLS Gen2 Storage",
+      "chosen_approach": "Hierarchical Namespace (HNS) Enabled",
+      "alternative_considered": "Standard Flat Blob Storage",
+      "justification": "Lakehouse partitioned write and rename operations execute in O(1) constant time instead of O(N) copy-delete operations, preventing pipeline compute timeouts."
+    },
+    {
+      "decision_id": "AD-02",
+      "component": "ADF Authentication",
+      "chosen_approach": "System-Assigned Managed Identity (SMI) with Azure RBAC",
+      "alternative_considered": "Storage Account Shared Keys & Connection Strings",
+      "justification": "HIPAA compliance strictly forbids static unrotated keys in application configs. SMI eliminates credential theft risk and maintains full Entra ID audit trails."
+    },
+    {
+      "decision_id": "AD-03",
+      "component": "Hybrid On-Prem Connectivity",
+      "chosen_approach": "Self-Hosted Integration Runtime (SHIR) via Outbound HTTPS 443",
+      "alternative_considered": "Opening Inbound Firewall Ports or Site-to-Site VPN",
+      "justification": "Zero inbound firewall ports opened into private clinical LAN. Polling model over TLS 1.3 eliminates external attack vectors."
+    },
+    {
+      "decision_id": "AD-04",
+      "component": "State Management",
+      "chosen_approach": "High-Watermark Control Table (dbo.etl_watermark_control)",
+      "alternative_considered": "Daily Full Table Reloads or Database Change Tracking",
+      "justification": "Allows idempotent, light-touch incremental loads without altering vendor EMR database schema with triggers or expensive CDC transaction logs."
+    }
+  ],
+  "evidence_provided": [
+    {
+      "phase_id": 1,
+      "item": "Azure Portal Resource Group Blade screenshot showing rg-healthcare-migration-prod, storage, key vault, and ADF",
+      "verified": true
+    },
+    {
+      "phase_id": 1,
+      "item": "ADF Git integration connected to punitgiri921/Azure-Healthcare-Data-Migration on branch main with root /adf",
+      "verified": true
+    },
+    {
+      "phase_id": 2,
+      "item": "Local SQL Server 2022 Express instance with healthcare_emr_source database and 5 seeded clinical tables (87 rows)",
+      "verified": true
+    },
+    {
+      "phase_id": 2,
+      "item": "SHIR Configuration Manager screenshot showing 'shir-onprem-gateway-01' registered and Connected to cloud service",
+      "verified": true
+    },
+    {
+      "phase_id": 2,
+      "item": "ADF Studio Linked Service connection tests successfully passed for ls_keyvault_healthcare and ls_sqlserver_onprem",
+      "verified": true
+    },
+    {
+      "phase_id": 2,
+      "item": "Git commit c353daf containing JSON manifests for linked services and integration runtime pushed to GitHub main branch",
+      "verified": true
+    }
+  ],
+  "concepts_understood": [
+    "CL-01: ADLS Gen2 Hierarchical Namespace (HNS) vs Flat Blob Storage",
+    "CL-02: Zero-Secret Architecture via Azure System-Assigned Managed Identity",
+    "CL-03: Azure RBAC Data Plane vs Management Plane & Least Privilege",
+    "CL-04: ADF Git Integration & Multi-Branch Enterprise CI/CD",
+    "CL-05: High-Watermark Metadata Pattern & State Management",
+    "CL-06: Hybrid Cloud Connectivity via Self-Hosted Integration Runtime (SHIR)"
+  ],
+  "concepts_requiring_reinforcement": [
+    "Distinction between CDC / Change Tracking vs Timestamp Watermarks (especially handling hard deletes)",
+    "Idempotent sink behavior in Bronze if Copy Activity fails halfway through"
+  ],
   "phases": [
     {
       "phase_id": 1,
       "title": "Cloud Provisioning & Zero-Secret Setup",
       "status": "COMPLETED",
       "tasks": [
-        {
-          "task_id": "P1-T1",
-          "name": "Create Resource Group (rg-healthcare-migration-prod)",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P1-T2",
-          "name": "Provision ADLS Gen2 (sthealthcarelake01 - Central India) with Hierarchical Namespace",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P1-T3",
-          "name": "Create containers (bronze, silver, gold)",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P1-T4",
-          "name": "Provision Azure Key Vault (kv-healthcare-sec01)",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P1-T5",
-          "name": "Provision Azure Data Factory (adf-healthcare-punit01)",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P1-T6",
-          "name": "Configure ADF Managed Identity & RBAC permissions",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P1-T7",
-          "name": "Link ADF to GitHub repository (punitgiri921/Azure-Healthcare-Data-Migration)",
-          "status": "COMPLETED"
-        }
+        { "task_id": "P1-T1", "name": "Create Resource Group (rg-healthcare-migration-prod)", "status": "COMPLETED" },
+        { "task_id": "P1-T2", "name": "Provision ADLS Gen2 (sthealthcarelake01) with Hierarchical Namespace", "status": "COMPLETED" },
+        { "task_id": "P1-T3", "name": "Create containers (bronze, silver, gold)", "status": "COMPLETED" },
+        { "task_id": "P1-T4", "name": "Provision Azure Key Vault (kv-healthcare-sec01)", "status": "COMPLETED" },
+        { "task_id": "P1-T5", "name": "Provision Azure Data Factory (adf-healthcare-punit01)", "status": "COMPLETED" },
+        { "task_id": "P1-T6", "name": "Configure ADF Managed Identity & RBAC permissions", "status": "COMPLETED" },
+        { "task_id": "P1-T7", "name": "Link ADF to GitHub repository (punitgiri921/Azure-Healthcare-Data-Migration)", "status": "COMPLETED" }
       ]
     },
     {
@@ -53,41 +176,13 @@
       "title": "On-Prem Database & SHIR Gateway Setup",
       "status": "COMPLETED",
       "tasks": [
-        {
-          "task_id": "P2-T1",
-          "name": "Create local PostgreSQL/SQL Server database (healthcare_emr_source)",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P2-T2",
-          "name": "Execute DDL & seed clinical data (Patients, Providers, Encounters, Diagnoses, Claims)",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P2-T3",
-          "name": "Create etl_watermark_control table & seed initial watermarks",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P2-T4",
-          "name": "Download & install Microsoft Integration Runtime (SHIR) on Windows",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P2-T5",
-          "name": "Register SHIR with ADF authentication key & verify gateway status",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P2-T6",
-          "name": "Store database connection credentials in Azure Key Vault",
-          "status": "COMPLETED"
-        },
-        {
-          "task_id": "P2-T7",
-          "name": "Create Key Vault & SHIR Linked Services in ADF",
-          "status": "COMPLETED"
-        }
+        { "task_id": "P2-T1", "name": "Create local SQL Server database (healthcare_emr_source)", "status": "COMPLETED" },
+        { "task_id": "P2-T2", "name": "Execute DDL & seed clinical data (Patients, Providers, Encounters, Diagnoses, Claims)", "status": "COMPLETED" },
+        { "task_id": "P2-T3", "name": "Create etl_watermark_control table & seed initial watermarks", "status": "COMPLETED" },
+        { "task_id": "P2-T4", "name": "Download & install Microsoft Integration Runtime (SHIR) on Windows", "status": "COMPLETED" },
+        { "task_id": "P2-T5", "name": "Register SHIR with ADF authentication key & verify gateway status", "status": "COMPLETED" },
+        { "task_id": "P2-T6", "name": "Store database connection credentials in Azure Key Vault", "status": "COMPLETED" },
+        { "task_id": "P2-T7", "name": "Create Key Vault & SHIR Linked Services in ADF", "status": "COMPLETED" }
       ]
     },
     {
@@ -95,41 +190,14 @@
       "title": "Metadata-Driven Watermark Ingestion (Bronze)",
       "status": "IN_PROGRESS",
       "tasks": [
-        {
-          "task_id": "P3-T1",
-          "name": "Create ADF Pipeline: pl_ingest_incremental_bronze",
-          "status": "PENDING"
-        },
-        {
-          "task_id": "P3-T2",
-          "name": "Implement Lookup activity on etl_watermark_control",
-          "status": "PENDING"
-        },
-        {
-          "task_id": "P3-T3",
-          "name": "Implement Lookup activity for current max source timestamp",
-          "status": "PENDING"
-        },
-        {
-          "task_id": "P3-T4",
-          "name": "Build dynamic Copy Activity with parameterized SQL query",
-          "status": "PENDING"
-        },
-        {
-          "task_id": "P3-T5",
-          "name": "Sink data to ADLS Gen2 bronze/ container as Parquet",
-          "status": "PENDING"
-        },
-        {
-          "task_id": "P3-T6",
-          "name": "Add Script/Stored Procedure activity to advance high-watermark timestamp",
-          "status": "PENDING"
-        },
-        {
-          "task_id": "P3-T7",
-          "name": "Test baseline full load and simulate incremental clinical updates",
-          "status": "PENDING"
-        }
+        { "task_id": "P3-T1", "name": "Phase 3 Ingestion Architecture & Explain-Back Checkpoint", "status": "PENDING" },
+        { "task_id": "P3-T2", "name": "Create ADF Pipeline: pl_ingest_incremental_bronze", "status": "PENDING" },
+        { "task_id": "P3-T3", "name": "Implement Lookup activity on etl_watermark_control", "status": "PENDING" },
+        { "task_id": "P3-T4", "name": "Implement Lookup activity for current max source timestamp", "status": "PENDING" },
+        { "task_id": "P3-T5", "name": "Build dynamic Copy Activity with parameterized SQL query", "status": "PENDING" },
+        { "task_id": "P3-T6", "name": "Sink data to ADLS Gen2 bronze/ container as Parquet", "status": "PENDING" },
+        { "task_id": "P3-T7", "name": "Add Stored Procedure activity to advance high-watermark timestamp", "status": "PENDING" },
+        { "task_id": "P3-T8", "name": "Test baseline full load and simulate incremental clinical updates", "status": "PENDING" }
       ]
     },
     {
@@ -151,57 +219,29 @@
       "tasks": []
     }
   ],
-  "concepts_learned": [
-    {
-      "id": "CL-01",
-      "title": "ADLS Gen2 Hierarchical Namespace (HNS) vs Flat Blob Storage",
-      "summary": "HNS organizes objects into a true file system hierarchy with atomic directory operations and POSIX-compliant ACLs, replacing flat blob prefix simulation for lakehouse workloads."
-    },
-    {
-      "id": "CL-02",
-      "title": "Zero-Secret Architecture via Azure System-Assigned Managed Identity",
-      "summary": "Eliminates credentials in code by tying identity directly to Azure Entra ID lifecycle. ADF authenticates to ADLS Gen2 and Key Vault with auto-rotated enterprise tokens."
-    },
-    {
-      "id": "CL-03",
-      "title": "Azure RBAC Data Plane vs Management Plane & Least Privilege",
-      "summary": "Storage Blob Data Contributor and Key Vault Secrets User grant granular data-plane access without exposing administrative control or secret deletion privileges."
-    },
-    {
-      "id": "CL-04",
-      "title": "ADF Git Integration & Enterprise Branching Strategy",
-      "summary": "Links ADF Studio to GitHub repo with collaboration branch (main), root directory (/adf), and automated ARM template publishing branch (adf_publish) for CI/CD."
-    },
-    {
-      "id": "CL-05",
-      "title": "High-Watermark Metadata Pattern & State Management",
-      "summary": "Dedicated control table etl_watermark_control tracks high-watermark timestamp per entity. Updates occur strictly upon Copy success, preventing silent data loss."
-    },
-    {
-      "id": "CL-06",
-      "title": "Hybrid Cloud Connectivity via Self-Hosted Integration Runtime (SHIR)",
-      "summary": "Outbound-only polling model on port 443 over TLS 1.3 extracts data securely from internal relational databases without public IPs or inbound firewall rules."
-    }
-  ],
   "technical_questions": [
     {
       "id": "TQ-01",
       "question": "Why use System-Assigned Managed Identity over Storage Account Access Keys or SAS tokens in enterprise healthcare migrations?",
+      "evaluation": "Correct",
       "core_rationale": "Storage keys provide root-level administrative access to all data with no expiration or identity audit trail, violating HIPAA security guidelines. Managed Identity provides token-based, auditable, zero-secret access governed strictly by Entra ID RBAC."
     },
     {
       "id": "TQ-02",
       "question": "Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouse architectures instead of standard Blob Storage?",
+      "evaluation": "Correct",
       "core_rationale": "Without HNS, renaming or moving a directory requires copying every single blob individually (O(N) operations), which destroys pipeline performance at scale. HNS enables atomic metadata renames (O(1)) and granular POSIX directory ACLs."
     },
     {
       "id": "TQ-03",
       "question": "How does a Self-Hosted Integration Runtime (SHIR) securely bridge on-premise databases without opening inbound firewall ports?",
+      "evaluation": "Correct",
       "core_rationale": "SHIR uses an outbound-only polling architecture over HTTPS port 443 with TLS 1.3. It never listens for inbound internet traffic, keeping the internal healthcare network completely secluded from external attacks."
     },
     {
       "id": "TQ-04",
       "question": "How do you prevent data loss or duplicate ingestion if an incremental pipeline fails halfway through a run?",
+      "evaluation": "Correct",
       "core_rationale": "Through a two-phase watermark architecture where the watermark control table is only updated upon successful execution of the Copy Activity. If a failure occurs mid-batch, the old watermark remains, ensuring no records are skipped."
     }
   ]

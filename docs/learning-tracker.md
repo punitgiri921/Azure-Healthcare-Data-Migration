@@ -1,88 +1,128 @@
-# Azure Healthcare Data Migration: Master Learning & Technical Tracker
+# Azure Healthcare Data Migration: Master Engineering & Learning Tracker
 
-Welcome to the authoritative engineering ledger for the **Azure Healthcare Data Migration & Medallion Lakehouse** platform. This document tracks all architectural concepts learned, technical interview question defenses, hands-on lab evidence, and troubleshooting playbooks.
+Welcome to the authoritative engineering ledger for the **Azure Healthcare Data Migration & Medallion Lakehouse** platform. This document tracks all architectural concepts learned, technical interview question defenses, hands-on lab evidence, and troubleshooting playbooks in strict accordance with our **Permanent Learning Rules**.
 
 ---
 
 ## 1. Project Health & Progress Matrix
 
-| Phase ID | Phase Name | Status | Tasks Complete | Score |
-| :--- | :--- | :--- | :--- | :--- |
-| **Phase 1** | **Cloud Provisioning & Zero-Secret Setup** | 🟢 **COMPLETED** | **7 / 7** | **10 / 10** |
-| **Phase 2** | **On-Prem Database & SHIR Gateway Setup** | 🟢 **COMPLETED** | **7 / 7** | **10 / 10** |
-| **Phase 3** | **Metadata-Driven Watermark Ingestion (Bronze)** | 🟡 **IN PROGRESS** | **0 / 7** | -- / 10 |
-| **Phase 4** | **Medallion Transformations & HIPAA (Silver & Gold)** | 🔒 Locked | 0 / 7 | -- / 10 |
-| **Phase 5** | **Synapse Serverless Serving & Trigger Automation** | 🔒 Locked | 0 / 5 | -- / 10 |
-| **Phase 6** | **Power BI Reporting & CV Deliverables** | 🔒 Locked | 0 / 5 | -- / 10 |
+| Phase ID | Phase Name | Status | Tasks Complete | Phase Gate Stage (11 Steps) | Score |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Phase 1** | **Cloud Provisioning & Zero-Secret Setup** | 🟢 **COMPLETED** | **7 / 7** | **10. PHASE COMPLETE** | **10 / 10** |
+| **Phase 2** | **On-Prem Database & SHIR Gateway Setup** | 🟢 **COMPLETED** | **7 / 7** | **10. PHASE COMPLETE** | **10 / 10** |
+| **Phase 3** | **Metadata-Driven Watermark Ingestion (Bronze)** | 🟡 **IN PROGRESS** | **0 / 8** | **2. EXPLAIN BACK** | -- / 10 |
+| **Phase 4** | **Medallion Transformations & HIPAA (Silver & Gold)** | 🔒 Locked | 0 / 7 | Locked | -- / 10 |
+| **Phase 5** | **Synapse Serverless Serving & Trigger Automation** | 🔒 Locked | 0 / 5 | Locked | -- / 10 |
+| **Phase 6** | **Power BI Reporting & CV Deliverables** | 🔒 Locked | 0 / 5 | Locked | -- / 10 |
+
+```text
+11-STEP PHASE GATE PIPELINE:
+UNDERSTAND -> [EXPLAIN BACK (Phase 3 Active)] -> PLAN -> YOU EXECUTE -> PROVIDE EVIDENCE 
+           -> TECH QUESTIONS -> EVALUATION -> FIX GAPS -> ARCH RECAP -> PHASE COMPLETE -> UNLOCK NEXT
+```
 
 ---
 
-## 2. Architectural Concepts Ledger (CL)
+## 2. Final "AHA!" Breakthrough Principles (Rule 26)
+
+1. **SHIR is the secure bridge** between my private SQL Server and Azure. It polls outbound on port 443; no ports are ever opened inbound.
+2. **ADF orchestrates the pipeline**; it manages the schedule and coordinates data movement, but it is NOT the database or compute warehouse.
+3. **Key Vault protects secrets**; it secures database credentials, but it never holds or transfers healthcare data rows.
+4. **Managed Identity lets Azure talk to Azure** without storing passwords or storage access keys in code or pipeline JSON.
+5. **Git tracks pipeline definitions and code changes**, while data-history mechanisms (Watermarks / CDC) track changes to the actual healthcare data rows.
+
+---
+
+## 3. "Why We Built This" Enterprise Architecture Matrix (Rule 18 & 9)
+
+| Component | Real-World Problem | Why We Need It | What It Technically Does | What Happens Without It? (Negative Analysis) |
+| :--- | :--- | :--- | :--- | :--- |
+| **SQL Server** | Hospital clinical records reside on private internal database servers. | Simulate production hospital EMR environment. | Houses transactional tables (Patients, Encounters, Diagnoses, Claims). | ❌ No source dataset to migrate or simulate enterprise workloads. |
+| **SHIR Gateway** | Azure cannot directly reach internal private IP addresses or corporate LANs. | Provide secure, outbound-only enterprise bridge without exposing firewall. | Runs Windows daemon (`DIAHostService`), polls ADF for tasks, queries SQL locally. | ❌ Would force opening inbound firewall ports to public internet (fatal HIPAA violation). |
+| **Key Vault** | Database passwords stored in configuration or code leak into GitHub. | Centralized, hardware-grade secret management with access audit logs. | Stores `sql-onprem-password` as an encrypted secret, read dynamically at runtime. | ❌ Database credentials stored in plaintext in git-tracked JSON files. |
+| **Managed Identity** | Services authenticating to cloud storage require managing shared keys or certificates. | Enforce Zero-Secret enterprise architecture with automatic token rotation. | ADF service principal authenticates directly against Microsoft Entra ID. | ❌ Must use root Storage Account Keys; compromises entire lakehouse if leaked. |
+| **ADF** | Data movement from on-prem to cloud needs automated scheduling, retry logic, and monitoring. | Serverless enterprise ETL/ELT pipeline orchestration. | Executes Lookup, Copy, and Stored Procedure activities across hybrid environments. | ❌ Manual Python scripts running on cron with no retry, telemetry, or monitoring. |
+| **Watermark Control** | Extracting entire multi-million row tables daily causes huge egress bills and CPU spikes. | Enable idempotent incremental delta loading. | Tracks `last_watermark_timestamp` in `dbo.etl_watermark_control`. | ❌ ADF re-extracts 100% of rows every run; exploding compute, storage, and egress bills. |
+| **ADLS Gen2 (HNS)** | Standard cloud storage performs poorly when renaming or partitioning massive directories. | Scalable, POSIX-compliant lakehouse storage layer. | Enables atomic $O(1)$ directory moves and fine-grained security ACLs. | ❌ Slow $O(N)$ blob copy operations on directory moves, blocking lakehouse pipeline writes. |
+| **Bronze Container** | Transformed data can be corrupted by faulty business logic or schema changes. | Immutable raw data landing zone for disaster recovery and audits. | Stores raw uncompressed/Parquet payloads exactly as extracted from source. | ❌ Cannot replay or reprocess historical raw data if downstream cleansing logic bugs out. |
+| **Silver Container** | Raw clinical data contains patient PII (SSN, Phone, Email) violating HIPAA. | Cleanse, standardize, deduplicate, and mask sensitive health identifiers. | Stores SHA-256 masked identities with normalized clinical lookup codes. | ❌ Data analysts and data scientists have direct access to plaintext patient PII (HIPAA fine). |
+| **Gold Container** | Normalized 3NF relational schemas result in slow, complex analytical queries in BI. | Deliver high-speed Star Schema dimensional models for executive reporting. | Houses `Fact_Clinical_Encounters` and conforming dimension tables. | ❌ Power BI reports must execute complex multi-table joins across raw layers, stalling dashboards. |
+| **GitHub Integration** | Pipeline changes made directly in cloud UI risk untracked outages or collisions. | Infrastructure-as-Code (IaC), peer review, and automated CI/CD deployment. | Commits pipeline JSONs to `main` and exports ARM templates to `adf_publish`. | ❌ No version history, no rollback capability, accidental edits deployed immediately to prod. |
+
+---
+
+## 4. Concept Disambiguation Matrix (Rule 11)
+
+| Construct | Primary Responsibility | What It NEVER Does |
+| :--- | :--- | :--- |
+| **GitHub** | Tracks and versions **pipeline JSON definitions, linked services, and ARM templates**. | Never holds, processes, or versions clinical data rows. |
+| **Watermark Control** | Tracks **state of data extraction** (`last_watermark_timestamp`). | Does not track row-level deletions or individual column mutation history. |
+| **CDC / Change Tracking** | Logs **row-level DML mutations** (INSERT, UPDATE, DELETE) inside the SQL database engine. | Does not orchestrate data movement or move files to the cloud. |
+| **Bronze / Silver / Gold** | Progressive **cleansing, de-identification (HIPAA), and dimensional modeling** of analytical data. | Does not replace source transactional OLTP databases. |
+
+---
+
+## 5. Architectural Concepts Ledger (CL) — 3-Tier Depth (Rule 5)
 
 ### [CL-01] ADLS Gen2 Hierarchical Namespace (HNS) vs Flat Blob Storage
-- **Concept**: Azure Data Lake Storage Gen2 integrates the scalability of Blob storage with a true hierarchical file system.
-- **Mechanism**:
-  - In standard Blob Storage, "directories" are merely virtual key prefixes (`folder/subfolder/file.parquet`). Renaming a directory requires iterating over and copying every nested blob ($O(N)$ operations).
-  - With **HNS enabled**, directories are first-class filesystem objects. Renaming or moving a directory is an atomic metadata operation ($O(1)$ constant time), regardless of directory size.
-- **Lakehouse Impact**: Critical for ACID operations, Spark/Data Factory partitioning (`year=yyyy/month=MM/`), and Medallion directory maintenance without latency spikes.
-- **Security**: Enables POSIX-compliant Access Control Lists (ACLs) down to directory and file levels in addition to Azure RBAC.
+- **Level 1 — Simple Intuition**: Flat storage pretends folders exist by putting slashes in file names. HNS creates real physical file cabinets and directories.
+- **Level 2 — Technical Mechanics**: ADLS Gen2 HNS implements POSIX-compliant directory trees. Renaming a directory updates an internal inode pointer in constant time $O(1)$ rather than copying thousands of individual blobs ($O(N)$).
+- **Level 3 — Senior Enterprise Architecture**: Critical for Spark/Data Flow partition commits (`year=yyyy/month=MM/`). Without HNS, distributed writes experience massive latency and partial file write risks during folder commit phases. Enables POSIX-compliant ACLs down to directory and file levels in addition to Azure RBAC.
 
 ### [CL-02] Zero-Secret Architecture via Azure System-Assigned Managed Identity (SMI)
-- **Concept**: Direct authentication between cloud services without secrets, passwords, or connection strings in code or configuration.
-- **Mechanism**:
-  - Enabling SMI on Azure Data Factory (`adf-healthcare-punit01`) creates a corresponding Service Principal inside Microsoft Entra ID (Azure AD).
-  - Azure handles the underlying identity token lifecycle, automatic 4-hour key rotation, and cryptographic verification invisibly behind the scenes.
-- **Healthcare / HIPAA Compliance**: Eliminates credential exposure risks, credential stuffing vulnerabilities, and accidental Git leaks of storage keys.
+- **Level 1 — Simple Intuition**: Instead of giving ADF a physical password or API key to Azure Storage, Azure recognizes ADF by its own facial recognition / passport.
+- **Level 2 — Technical Mechanics**: Enabling SMI on Azure Data Factory (`adf-healthcare-punit01`) creates a corresponding Service Principal inside Microsoft Entra ID (Azure AD). Azure handles the underlying identity token lifecycle, automatic 4-hour key rotation, and cryptographic verification invisibly behind the scenes.
+- **Level 3 — Senior Enterprise Architecture**: Complies with HIPAA § 164.312(d). Eliminates credential exposure risks, credential stuffing vulnerabilities, and accidental Git leaks of storage keys. Logs individual service principal IDs in Azure Monitor for non-repudiation audits.
 
 ### [CL-03] Azure RBAC Data Plane vs Management Plane & Least Privilege
-- **Concept**: Fine-grained role delegation dividing cloud management capabilities from data access capabilities.
-- **Roles Applied**:
+- **Level 1 — Simple Intuition**: Separating the keys to the front door of the building (management) from the keys to read documents in the filing cabinet (data plane).
+- **Level 2 — Technical Mechanics**: 
   - `Storage Blob Data Contributor`: Grants read, write, and delete permissions to blob data containers (`bronze`, `silver`, `gold`) without granting permission to alter storage account firewall settings or access keys.
   - `Key Vault Secrets User`: Grants ADF permission to read secret values (`secrets/get`, `secrets/list`) without allowing creation, editing, or deletion of keys and certificates.
+- **Level 3 — Senior Enterprise Architecture**: Adheres to zero-trust least-privilege architecture. Even if an ADF pipeline identity is somehow hijacked, the attacker cannot delete the storage account or change firewall rules.
 
 ### [CL-04] ADF Git Integration & Multi-Branch Enterprise CI/CD
-- **Concept**: Direct source control linking between Data Factory Studio and GitHub repository `Azure-Healthcare-Data-Migration`.
-- **Architecture**:
-  - **Collaboration Branch (`main`)**: Stores live pipeline, dataset, and linked service JSON manifests under the root folder `/adf`.
-  - **Publish Branch (`adf_publish`)**: ADF Studio automatically builds and commits fully parameterized ARM (Azure Resource Manager) templates here upon clicking "Publish".
-  - **Benefits**: Enables pull request reviews, feature branching, code history rollbacks, and automated deployment pipelines via GitHub Actions or Azure DevOps.
+- **Level 1 — Simple Intuition**: A shared notebook where developers make rough drafts on one page, and an editor only prints the clean final version to the official book when approved.
+- **Level 2 — Technical Mechanics**: Linking ADF Studio to GitHub repo with collaboration branch (`main`), root directory (`/adf`), and automated ARM template publishing branch (`adf_publish`).
+- **Level 3 — Senior Enterprise Architecture**: Enables pull request reviews, feature branching, code history rollbacks, and automated deployment pipelines via GitHub Actions or Azure DevOps without manual portal configuration in production environments.
 
 ### [CL-05] High-Watermark Metadata Pattern & State Management
-- **Concept**: Incremental extraction pattern that pulls only new or modified rows since the previous execution without modifying source tables with database triggers.
-- **Mechanism**:
-  - Dedicated control table `etl_watermark_control` persists `table_name`, `watermark_column`, `last_watermark_value`, and execution metadata.
-  - Pipeline extracts rows satisfying: `WHERE updated_at > @{activity('LookupOldWatermark').output.firstRow.last_watermark_value} AND updated_at <= @{activity('LookupNewWatermark').output.firstRow.max_timestamp}`.
-  - Watermark table is strictly updated **after** the Copy Activity succeeds, ensuring idempotent failure recovery.
+- **Level 1 — Simple Intuition**: Bookmarking where you stopped reading so tomorrow you only read new pages instead of starting from page 1 every single morning.
+- **Level 2 — Technical Mechanics**: Dedicated control table `etl_watermark_control` tracks `table_name`, `watermark_column`, `last_watermark_value`. Pipeline extracts rows `WHERE updated_at > LastWatermark AND updated_at <= MaxSourceTimestamp` and updates the watermark only upon successful Copy completion.
+- **Level 3 — Senior Enterprise Architecture**: Guarantees pipeline idempotency. If network drops mid-stream during a 50GB extract, the watermark never updates. The next run gracefully retries the exact same window with zero silent record drop.
 
 ### [CL-06] Hybrid Cloud Connectivity via Self-Hosted Integration Runtime (SHIR)
-- **Concept**: Secure bidirectional compute gateway bridging on-premise relational databases to Azure without public IPs or inbound firewall rules.
-- **Mechanism**:
-  - The SHIR agent installed on premise establishes an outbound-only, TLS 1.3 encrypted HTTPS connection over port 443 to Azure Data Factory service bus queues.
-  - When ADF initiates a Copy pipeline, it queues an extraction task. The SHIR agent polls for work, queries the local database over loopback/LAN, compresses the data into Parquet, and streams it outbound to ADLS Gen2.
+- **Level 1 — Simple Intuition**: Instead of letting outsiders knock on your hospital door, a dedicated courier inside steps outside to check the cloud mailbox for work orders.
+- **Level 2 — Technical Mechanics**: Windows daemon `DIAHostService` initiates outbound HTTPS calls on TCP port 443 over TLS 1.3 to ADF service bus queues. It pulls the query instruction, queries `localhost:1433`, compresses data into Parquet, and streams it straight to ADLS Gen2.
+- **Level 3 — Senior Enterprise Architecture**: Zero attack surface on enterprise firewalls. Eliminates costly dedicated ExpressRoute VPN requirements for initial data migration batches while maintaining strict network perimeter isolation.
 
 ---
 
-## 3. Technical Question & Defense Ledger (TQ)
+## 6. Technical Question & Defense Ledger (TQ) — Evaluated Rubric (Rule 14 & 15)
 
 ### [TQ-01] Why use System-Assigned Managed Identity over Storage Account Access Keys or SAS tokens in enterprise healthcare migrations?
+- **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
   > *"In a HIPAA-regulated healthcare environment, utilizing Account Keys is an unacceptable security hazard because they offer unfettered root-level access across the entire storage account with no expiration and no granular identity audit trail. SAS tokens, while time-limited, still require application-level secret management and manual rotation cycles.*
   > 
   > *By configuring Azure Data Factory with a System-Assigned Managed Identity (SMI) and assigning the `Storage Blob Data Contributor` RBAC role, we implement a true Zero-Secret architecture. Entra ID manages token acquisition, rotation, and lifecycle tied directly to the resource itself. Every single data access request is attributed to the ADF service principal in Azure Monitor and diagnostic audit logs, satisfying HIPAA auditability requirements."*
 
 ### [TQ-02] Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouse architectures instead of standard Blob Storage?
+- **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
   > *"In a standard Azure Blob storage container, directories do not physically exist; they are simply character prefixes in the object URL. In a Medallion Lakehouse where data flows write atomic partitioned batches (e.g., `bronze/encounters/year=2026/month=09/`), moving or renaming a folder in flat storage forces the engine to issue individual copy-and-delete operations for every single blob ($O(N)$ operations).*
   > 
   > *ADLS Gen2 with Hierarchical Namespace (HNS) provides a true POSIX filesystem. Directory renames are atomic metadata updates executed in $O(1)$ constant time, drastically reducing pipeline duration and compute costs. Furthermore, HNS allows fine-grained POSIX access control lists (ACLs) to be inherited down folder hierarchies, enabling defense-in-depth access governance."*
 
 ### [TQ-03] How does a Self-Hosted Integration Runtime (SHIR) securely bridge on-premise databases without opening inbound firewall ports?
+- **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
   > *"Corporate infosec and HIPAA compliance strictly forbid opening inbound ports through enterprise firewalls into on-premise clinical networks. Microsoft SHIR overcomes this by operating entirely on an **outbound-only polling model**.*
   > 
   > *The SHIR daemon initiates outbound HTTPS connections on port 443 over TLS 1.3 to Azure Data Factory. When a pipeline runs, ADF posts an execution payload to a private control queue. The on-premise agent pulls the task, queries the internal SQL Server over local LAN, packages the payload into Parquet, and streams it directly to ADLS Gen2 over outbound HTTPS. At no point is the local network reachable from the public internet."*
 
 ### [TQ-04] How do you prevent data loss or duplicate ingestion if an incremental pipeline fails halfway through a run?
+- **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
   > *"We enforce strict pipeline idempotency through a two-phase watermark pattern. In the first phase, we capture the static maximum source timestamp into an ADF pipeline variable before starting the copy. In the second phase, the Copy Activity sinks the data to partitioned Bronze storage.*
   > 
@@ -90,24 +130,27 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 
 ---
 
-## 4. Troubleshooting Playbooks & Incident RCA
+## 7. Failure Engineering & Resilience Scenarios (Rule 19)
 
-| Incident ID | Phase | Problem Encountered | Root Cause | Resolution |
+| Scenario | What Detects It? | What Fails? | What Data Is Affected? | Recovery Blueprint |
 | :--- | :--- | :--- | :--- | :--- |
-| **INC-01** | Phase 2 | `sys.server_logins` invalid object during service user creation | SQL Server system view is `sys.server_principals` | Updated DDL script to check `sys.server_principals` and re-executed idempotently. |
+| **SHIR Service Stops / Reboots** | ADF Pipeline Monitor throws heartbeat timeout (>3 min). | Copy activities fail immediately with connection refused. | None. Source SQL transaction closes cleanly; no partial files committed. | Run PowerShell: `Start-Service DIAHostService`. Configure Windows service recovery to auto-restart. |
+| **Pipeline Fails Mid-Stream (e.g. at 600K of 1M rows)** | Copy Activity throws `SocketTimeoutException` in ADF Monitor. | Downstream Stored Procedure activity does NOT execute. | Orphaned partial Parquet partition in Bronze. Watermark table remains at old timestamp. | Sinking with partition overwrite or date folder wipes partials; re-run automatically re-evaluates the full delta window safely. |
+| **Database Password Rotated on SQL Server** | SHIR throws SQL Login Failed (Error 18456) when testing Linked Service. | All pipelines referencing `ls_sqlserver_onprem`. | Ingestion halts; source data remains intact in SQL Server. | Add new version of secret `sql-onprem-password` in Key Vault. Zero ADF pipeline code change required! |
+| **Watermark Table Set Ahead of Source Data (e.g. Year 2099)** | Pipeline runs succeed in 2 seconds but 0 rows read / 0 rows written. | Silent delta ingestion gap; new clinical encounters are ignored. | Bronze stops receiving any updates. | Execute manual `UPDATE dbo.etl_watermark_control` to reset timestamp back to last verified load date. |
 
 ---
 
-## 5. Lab Evidence & Configuration Artifacts
+## 8. Lab Evidence & Configuration Artifacts
 
 ### Phase 1 Provisioned Resources (Active Cloud Topology)
-- **Subscription**: Azure Sponsorship / Free Trial
+- **Subscription**: Azure Free Trial / Sponsorship
 - **Resource Group**: `rg-healthcare-migration-prod` (Central India)
 - **Storage Account**: `sthealthcarelake01` (StorageV2, Hierarchical Namespace Enabled)
   - Containers: `bronze`, `silver`, `gold`
 - **Key Vault**: `kv-healthcare-sec01` (Azure RBAC Permission Model)
 - **Data Factory**: `adf-healthcare-punit01` (Version 2)
-  - Managed Identity Principal ID: Assigned
+  - Managed Identity: Assigned
   - Role Assignment 1: `Storage Blob Data Contributor` on `sthealthcarelake01`
   - Role Assignment 2: `Key Vault Secrets User` on `kv-healthcare-sec01`
   - Git Integration: Connected to `punitgiri921/Azure-Healthcare-Data-Migration` (Root: `/adf`, Collaboration Branch: `main`, Publish Branch: `adf_publish`)
@@ -123,3 +166,7 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
   - `dbo.claims`: 15 rows (billing, denial codes, settlements)
 - **Watermark Control**: `dbo.etl_watermark_control` (5 entities initialized to `1970-01-01 00:00:00`)
 - **Service Account**: `adf_svc_user` created with `db_datareader` and `db_datawriter` roles.
+- **SHIR Registered**: `shir-onprem-gateway-01` (Node: `DESKTOP-H5RKB3H`, Daemon: `DIAHostService`, Status: Online)
+- **ADF Linked Services**:
+  - `ls_keyvault_healthcare`: Connected to `kv-healthcare-sec01`
+  - `ls_sqlserver_onprem`: Connected to `healthcare_emr_source` via SHIR using password from Key Vault
