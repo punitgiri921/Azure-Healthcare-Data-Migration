@@ -3,8 +3,8 @@
   "budget_credit_usd": 200,
   "current_phase": 2,
   "current_phase_name": "Phase 2: On-Prem Database & SHIR Gateway Setup",
-  "overall_progress_percent": 18,
-  "last_updated": "2026-09-09",
+  "overall_progress_percent": 26,
+  "last_updated": "2026-09-10",
   "phases": [
     {
       "phase_id": 1,
@@ -56,22 +56,22 @@
         {
           "task_id": "P2-T1",
           "name": "Create local PostgreSQL/SQL Server database (healthcare_emr_source)",
-          "status": "PENDING"
+          "status": "COMPLETED"
         },
         {
           "task_id": "P2-T2",
           "name": "Execute DDL & seed clinical data (Patients, Providers, Encounters, Diagnoses, Claims)",
-          "status": "PENDING"
+          "status": "COMPLETED"
         },
         {
           "task_id": "P2-T3",
           "name": "Create etl_watermark_control table & seed initial watermarks",
-          "status": "PENDING"
+          "status": "COMPLETED"
         },
         {
           "task_id": "P2-T4",
           "name": "Download & install Microsoft Integration Runtime (SHIR) on Windows",
-          "status": "PENDING"
+          "status": "IN_PROGRESS"
         },
         {
           "task_id": "P2-T5",

@@ -9,7 +9,7 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 | Phase ID | Phase Name | Status | Tasks Complete | Score |
 | :--- | :--- | :--- | :--- | :--- |
 | **Phase 1** | **Cloud Provisioning & Zero-Secret Setup** | 🟢 **COMPLETED** | **7 / 7** | **10 / 10** |
-| **Phase 2** | **On-Prem Database & SHIR Gateway Setup** | 🟡 **IN PROGRESS** | **0 / 7** | -- / 10 |
+| **Phase 2** | **On-Prem Database & SHIR Gateway Setup** | 🟡 **IN PROGRESS** | **3 / 7** | -- / 10 |
 | **Phase 3** | **Metadata-Driven Watermark Ingestion (Bronze)** | 🔒 Locked | 0 / 7 | -- / 10 |
 | **Phase 4** | **Medallion Transformations & HIPAA (Silver & Gold)** | 🔒 Locked | 0 / 7 | -- / 10 |
 | **Phase 5** | **Synapse Serverless Serving & Trigger Automation** | 🔒 Locked | 0 / 5 | -- / 10 |
@@ -47,6 +47,19 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
   - **Publish Branch (`adf_publish`)**: ADF Studio automatically builds and commits fully parameterized ARM (Azure Resource Manager) templates here upon clicking "Publish".
   - **Benefits**: Enables pull request reviews, feature branching, code history rollbacks, and automated deployment pipelines via GitHub Actions or Azure DevOps.
 
+### [CL-05] High-Watermark Metadata Pattern & State Management
+- **Concept**: Incremental extraction pattern that pulls only new or modified rows since the previous execution without modifying source tables with database triggers.
+- **Mechanism**:
+  - Dedicated control table `etl_watermark_control` persists `table_name`, `watermark_column`, `last_watermark_value`, and execution metadata.
+  - Pipeline extracts rows satisfying: `WHERE updated_at > @{activity('LookupOldWatermark').output.firstRow.last_watermark_value} AND updated_at <= @{activity('LookupNewWatermark').output.firstRow.max_timestamp}`.
+  - Watermark table is strictly updated **after** the Copy Activity succeeds, ensuring idempotent failure recovery.
+
+### [CL-06] Hybrid Cloud Connectivity via Self-Hosted Integration Runtime (SHIR)
+- **Concept**: Secure bidirectional compute gateway bridging on-premise relational databases to Azure without public IPs or inbound firewall rules.
+- **Mechanism**:
+  - The SHIR agent installed on premise establishes an outbound-only, TLS 1.3 encrypted HTTPS connection over port 443 to Azure Data Factory service bus queues.
+  - When ADF initiates a Copy pipeline, it queues an extraction task. The SHIR agent polls for work, queries the local database over loopback/LAN, compresses the data into Parquet, and streams it outbound to ADLS Gen2.
+
 ---
 
 ## 3. Technical Question & Defense Ledger (TQ)
@@ -63,13 +76,25 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
   > 
   > *ADLS Gen2 with Hierarchical Namespace (HNS) provides a true POSIX filesystem. Directory renames are atomic metadata updates executed in $O(1)$ constant time, drastically reducing pipeline duration and compute costs. Furthermore, HNS allows fine-grained POSIX access control lists (ACLs) to be inherited down folder hierarchies, enabling defense-in-depth access governance."*
 
+### [TQ-03] How does a Self-Hosted Integration Runtime (SHIR) securely bridge on-premise databases without opening inbound firewall ports?
+- **Candidate Defense**:
+  > *"Corporate infosec and HIPAA compliance strictly forbid opening inbound ports through enterprise firewalls into on-premise clinical networks. Microsoft SHIR overcomes this by operating entirely on an **outbound-only polling model**.*
+  > 
+  > *The SHIR daemon initiates outbound HTTPS connections on port 443 over TLS 1.3 to Azure Data Factory. When a pipeline runs, ADF posts an execution payload to a private control queue. The on-premise agent pulls the task, queries the internal SQL Server over local LAN, packages the payload into Parquet, and streams it directly to ADLS Gen2 over outbound HTTPS. At no point is the local network reachable from the public internet."*
+
+### [TQ-04] How do you prevent data loss or duplicate ingestion if an incremental pipeline fails halfway through a run?
+- **Candidate Defense**:
+  > *"We enforce strict pipeline idempotency through a two-phase watermark pattern. In the first phase, we capture the static maximum source timestamp into an ADF pipeline variable before starting the copy. In the second phase, the Copy Activity sinks the data to partitioned Bronze storage.*
+  > 
+  > *Crucially, the stored procedure that updates `etl_watermark_control` runs **only upon successful completion** of the Copy Activity. If the pipeline crashes mid-stream, the watermark in the database remains unchanged. The subsequent run re-evaluates the same delta window, avoiding silent data loss. Any overlapping records are seamlessly deduplicated in the Silver transformation layer."*
+
 ---
 
 ## 4. Troubleshooting Playbooks & Incident RCA
 
 | Incident ID | Phase | Problem Encountered | Root Cause | Resolution |
 | :--- | :--- | :--- | :--- | :--- |
-| *Pending* | Phase 2 | *Will be populated as local SHIR and database connectivity are configured.* | -- | -- |
+| **INC-01** | Phase 2 | `sys.server_logins` invalid object during service user creation | SQL Server system view is `sys.server_principals` | Updated DDL script to check `sys.server_principals` and re-executed idempotently. |
 
 ---
 
@@ -86,3 +111,15 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
   - Role Assignment 1: `Storage Blob Data Contributor` on `sthealthcarelake01`
   - Role Assignment 2: `Key Vault Secrets User` on `kv-healthcare-sec01`
   - Git Integration: Connected to `punitgiri921/Azure-Healthcare-Data-Migration` (Root: `/adf`, Collaboration Branch: `main`, Publish Branch: `adf_publish`)
+
+### Phase 2 Provisioned Local Source Artifacts
+- **Database Engine**: Microsoft SQL Server 2022 Express (`.\SQLEXPRESS`)
+- **Database Name**: `healthcare_emr_source`
+- **Clinical & Financial Tables Created**:
+  - `dbo.providers`: 10 rows
+  - `dbo.patients`: 20 rows (synthetic PII for Silver masking)
+  - `dbo.encounters`: 15 rows
+  - `dbo.diagnoses`: 17 rows (ICD-10 clinical diagnoses)
+  - `dbo.claims`: 15 rows (billing, denial codes, settlements)
+- **Watermark Control**: `dbo.etl_watermark_control` (5 entities initialized to `1970-01-01 00:00:00`)
+- **Service Account**: `adf_svc_user` created with `db_datareader` and `db_datawriter` roles.

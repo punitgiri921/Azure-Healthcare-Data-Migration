@@ -320,6 +320,7 @@
         .task-item.active {
             border-color: rgba(56, 189, 248, 0.4);
             color: #e0f2fe;
+            background: rgba(56, 189, 248, 0.1);
         }
 
         /* Concept & TQ Cards */
@@ -397,7 +398,7 @@
                 <p>Enterprise On-Prem EMR to ADLS Gen2 Medallion Lakehouse Migration & Clinical Analytics</p>
             </div>
             <div>
-                <span class="badge badge-live">PHASE 1 COMPLETE • PHASE 2 ACTIVE</span>
+                <span class="badge badge-live">PHASE 2 IN PROGRESS • LOCAL DB SEEDED</span>
             </div>
         </div>
     </header>
@@ -405,13 +406,13 @@
     <div class="kpi-strip">
         <div class="kpi-card">
             <div class="kpi-label">Overall Progress</div>
-            <div class="kpi-value" id="kpi-progress">18%</div>
-            <div class="kpi-sub">Phase 1 Complete (7/7 Tasks)</div>
+            <div class="kpi-value" id="kpi-progress">26%</div>
+            <div class="kpi-sub">10 of 38 Total Tasks Complete</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Active Milestone</div>
             <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">Phase 2 of 6</div>
-            <div class="kpi-sub">On-Prem DB & SHIR Setup</div>
+            <div class="kpi-sub">SHIR Gateway & Key Vault Secrets</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Azure Free Trial Budget</div>
@@ -420,13 +421,13 @@
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Concepts Logged (CL)</div>
-            <div class="kpi-value" id="kpi-concepts">4</div>
-            <div class="kpi-sub">HNS, SMI, RBAC, ADF Git</div>
+            <div class="kpi-value" id="kpi-concepts">6</div>
+            <div class="kpi-sub">HNS, SMI, RBAC, Git, Watermark, SHIR</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Technical Questions (TQ)</div>
-            <div class="kpi-value" id="kpi-tq">2 / 2</div>
-            <div class="kpi-sub">Phase 1 Gate Passed (10/10)</div>
+            <div class="kpi-value" id="kpi-tq">4 / 4</div>
+            <div class="kpi-sub">Senior Architecture Defenses Logged</div>
         </div>
     </div>
 
@@ -435,7 +436,7 @@
         <button class="tab-btn" onclick="switchTab('tab-phases', event)">Phase Roadmap (1–6)</button>
         <button class="tab-btn" onclick="switchTab('tab-concepts', event)">Concepts Learned (CL)</button>
         <button class="tab-btn" onclick="switchTab('tab-questions', event)">Technical Questions (TQ)</button>
-        <button class="tab-btn" onclick="switchTab('tab-evidence', event)">Live Cloud Topology</button>
+        <button class="tab-btn" onclick="switchTab('tab-evidence', event)">Live Cloud & Local Topology</button>
     </nav>
 
     <main>
@@ -447,9 +448,9 @@
                     This platform implements a production-grade hybrid cloud data migration architecture connecting an on-premises healthcare EMR database to Azure via an outbound-only Self-Hosted Integration Runtime (SHIR), incrementally ingesting and transforming data across Bronze, Silver (PII Masking), and Gold (Star Schema) layers in ADLS Gen2.
                 </p>
                 <div class="code-box">
-[ON-PREM EMR DB] -> (Local Loopback) -> [SHIR Gateway] -> (Outbound 443 HTTPS) -> [ADF Ingestion Pipeline]
-                                                                                            │
-                                                                                            ▼
+[ON-PREM SQL SERVER: healthcare_emr_source] -> (Local Loopback) -> [SHIR Gateway: 443 Outbound] -> [ADF Ingestion Pipeline]
+                                                                                                            │
+                                                                                                            ▼
 [Power BI App] <- [Synapse Serverless SQL] <- [Gold Marts] <- [Silver Clean/Mask] <- [Bronze Raw Parquet]
                 </div>
             </div>
@@ -457,10 +458,10 @@
             <div class="section-card">
                 <div class="section-title">🔐 Enterprise Security & HIPAA Standards Verified</div>
                 <ul style="padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8;">
-                    <li><strong>Zero-Secret Identity</strong>: ADF accesses Azure Key Vault and ADLS Gen2 strictly via System-Assigned Managed Identity (SMI). No connection strings or storage keys stored in configuration.</li>
-                    <li><strong>ADLS Gen2 Hierarchical Namespace (HNS)</strong>: Enabled with atomic folder renames ($O(1)$) and POSIX-compliant ACLs across `bronze`, `silver`, and `gold`.</li>
-                    <li><strong>Outbound-Only SHIR Connectivity</strong>: No incoming firewall ports opened on premise. The gateway polls Azure securely on port 443.</li>
-                    <li><strong>Git Version Control & Multi-Branch CI/CD</strong>: ADF Studio integrated directly with GitHub (`main` collaboration branch + `adf_publish` automated ARM templates).</li>
+                    <li><strong>Zero-Secret Identity</strong>: ADF accesses Azure Key Vault and ADLS Gen2 strictly via System-Assigned Managed Identity (SMI).</li>
+                    <li><strong>Outbound-Only SHIR Connectivity</strong>: No incoming firewall ports opened on premise. The gateway polls Azure securely on port 443 over TLS 1.3.</li>
+                    <li><strong>High-Watermark Idempotency</strong>: Dedicated <code>etl_watermark_control</code> table guarantees failure-safe incremental loads without duplicate records.</li>
+                    <li><strong>ADLS Gen2 Hierarchical Namespace (HNS)</strong>: Atomic $O(1)$ folder renames and POSIX-compliant ACLs across <code>bronze</code>, <code>silver</code>, and <code>gold</code>.</li>
                 </ul>
             </div>
         </div>
@@ -491,15 +492,15 @@
                 <div class="phase-box in-progress">
                     <div class="phase-header">
                         <span class="phase-num">Phase 2</span>
-                        <span class="badge badge-progress">ACTIVE / NEXT UP</span>
+                        <span class="badge badge-progress">IN PROGRESS (3/7)</span>
                     </div>
                     <div class="phase-name">On-Prem EMR DB & SHIR Gateway Setup</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Set up local EMR tables, seed test data, install Self-Hosted Integration Runtime agent.</p>
                     <ul class="task-list">
-                        <li class="task-item active">⏳ Create local PostgreSQL/SQL Server database (healthcare_emr_source)</li>
-                        <li class="task-item">⏳ Execute DDL & seed clinical data (Patients, Providers, Encounters, etc.)</li>
-                        <li class="task-item">⏳ Create etl_watermark_control table & populate initial watermarks</li>
-                        <li class="task-item">⏳ Download & install Microsoft Integration Runtime (SHIR) on Windows</li>
+                        <li class="task-item done">✅ Create local SQL Server database (healthcare_emr_source)</li>
+                        <li class="task-item done">✅ Execute DDL & seed clinical data (Patients, Providers, Encounters, etc.)</li>
+                        <li class="task-item done">✅ Create etl_watermark_control table & seed initial watermarks</li>
+                        <li class="task-item active">⏳ Download & install Microsoft Integration Runtime (SHIR) on Windows</li>
                         <li class="task-item">⏳ Register SHIR with ADF authentication key & verify gateway status</li>
                         <li class="task-item">⏳ Store database connection credentials in Azure Key Vault</li>
                         <li class="task-item">⏳ Create Key Vault & SHIR Linked Services in ADF</li>
@@ -555,7 +556,7 @@
                     <span class="concept-tag">CL-01 • Lakehouse Storage</span>
                     <div class="concept-title">Hierarchical Namespace (HNS) vs Flat Blob Storage</div>
                     <div class="concept-desc">
-                        Flat blob storage simulates directory structures via URI string prefixes (`folder/file`). In contrast, ADLS Gen2 HNS implements a real POSIX-compliant hierarchy. Directory moves and renames execute as instant metadata updates in $O(1)$ constant time rather than copying every nested blob ($O(N)$), which is essential for Lakehouse partition write performance.
+                        ADLS Gen2 HNS implements a real POSIX-compliant hierarchy. Directory moves and renames execute as instant metadata updates in $O(1)$ constant time rather than copying every nested blob ($O(N)$), which is essential for Lakehouse partition write performance.
                     </div>
                 </div>
 
@@ -563,7 +564,7 @@
                     <span class="concept-tag">CL-02 • Cloud Security</span>
                     <div class="concept-title">Zero-Secret Architecture via Managed Identity (SMI)</div>
                     <div class="concept-desc">
-                        System-Assigned Managed Identity ties an Azure service's identity directly to Microsoft Entra ID. No credentials, connection strings, or master storage keys exist in code, configuration files, or pipelines. Entra ID handles token generation and automatic 4-hour key rotation behind the scenes.
+                        System-Assigned Managed Identity ties an Azure service's identity directly to Microsoft Entra ID. No credentials, connection strings, or master storage keys exist in code. Entra ID handles token generation and automatic 4-hour key rotation behind the scenes.
                     </div>
                 </div>
 
@@ -571,7 +572,7 @@
                     <span class="concept-tag">CL-03 • RBAC Governance</span>
                     <div class="concept-title">Least Privilege Data Plane vs Management Plane</div>
                     <div class="concept-desc">
-                        Assigning <code>Storage Blob Data Contributor</code> grants ADF read/write data access to lakehouse containers without administrative rights over storage account networking or billing. Assigning <code>Key Vault Secrets User</code> grants retrieval access to passwords without permissions to modify or purge secrets.
+                        Assigning <code>Storage Blob Data Contributor</code> grants ADF read/write data access to lakehouse containers without administrative rights over storage networking or billing. Assigning <code>Key Vault Secrets User</code> grants retrieval access without permissions to modify or purge secrets.
                     </div>
                 </div>
 
@@ -579,7 +580,23 @@
                     <span class="concept-tag">CL-04 • DevOps / CI/CD</span>
                     <div class="concept-title">ADF Git Integration & Multi-Branch Architecture</div>
                     <div class="concept-desc">
-                        Connecting ADF to GitHub enables team collaboration and version control. Developer changes save as raw JSON definitions in the <code>main</code> collaboration branch under <code>/adf</code>. When clicking "Publish", ADF automatically generates and commits verified ARM deployment templates into the <code>adf_publish</code> branch.
+                        Connecting ADF to GitHub enables version control. Developer changes save as raw JSON definitions in the <code>main</code> collaboration branch under <code>/adf</code>. When clicking "Publish", ADF automatically generates and commits verified ARM deployment templates into <code>adf_publish</code>.
+                    </div>
+                </div>
+
+                <div class="concept-card">
+                    <span class="concept-tag">CL-05 • Incremental Architecture</span>
+                    <div class="concept-title">High-Watermark Metadata Pattern & Idempotency</div>
+                    <div class="concept-desc">
+                        Dedicated control table <code>etl_watermark_control</code> tracks the high-watermark timestamp for each source entity. Pipeline extracts <code>WHERE updated_at &gt; LastWatermark AND updated_at &lt;= CurrentMax</code> and updates the watermark only upon successful Copy completion, preventing silent data loss.
+                    </div>
+                </div>
+
+                <div class="concept-card">
+                    <span class="concept-tag">CL-06 • Hybrid Connectivity</span>
+                    <div class="concept-title">Outbound-Only Self-Hosted Integration Runtime (SHIR)</div>
+                    <div class="concept-desc">
+                        The SHIR agent establishes outbound HTTPS connections over port 443 with TLS 1.3 to Azure Data Factory service queues. It pulls execution tasks, queries internal on-prem databases over LAN, compresses data into Parquet, and streams it to ADLS Gen2 with zero inbound firewall holes.
                     </div>
                 </div>
             </div>
@@ -602,7 +619,25 @@
                     <div class="concept-title">Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouse architectures?</div>
                     <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Senior Architect Candidate Response:</strong></p>
                     <div class="defense-box">
-                        "In flat Blob storage, directories do not physically exist; they are simply character prefixes in the object URL. In a Medallion Lakehouse where data flows write atomic partitioned batches (e.g., `bronze/encounters/year=2026/month=09/`), moving or renaming a folder in flat storage forces the engine to issue individual copy-and-delete operations for every single blob (O(N) operations). ADLS Gen2 with Hierarchical Namespace (HNS) provides a true POSIX filesystem where directory renames are atomic metadata updates executed in O(1) constant time, drastically reducing pipeline duration and compute costs."
+                        "In flat Blob storage, directories do not physically exist; they are simply character prefixes in the object URL. In a Medallion Lakehouse where data flows write atomic partitioned batches, moving or renaming a folder in flat storage forces the engine to issue individual copy-and-delete operations for every single blob (O(N) operations). ADLS Gen2 with Hierarchical Namespace (HNS) provides a true POSIX filesystem where directory renames are atomic metadata updates executed in O(1) constant time, drastically reducing pipeline duration and compute costs."
+                    </div>
+                </div>
+
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-03 • Network Security Defense</span>
+                    <div class="concept-title">How does a SHIR bridge on-premise databases without opening inbound firewall ports?</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Senior Architect Candidate Response:</strong></p>
+                    <div class="defense-box">
+                        "Corporate infosec and HIPAA compliance strictly forbid opening inbound ports through enterprise firewalls into on-premise clinical networks. Microsoft SHIR overcomes this by operating entirely on an outbound-only polling model. The SHIR daemon initiates outbound HTTPS connections on port 443 over TLS 1.3 to Azure Data Factory, pulling copy tasks from private queues, extracting data locally, and streaming it out directly to ADLS Gen2. The on-premise network is never exposed to inbound public internet traffic."
+                    </div>
+                </div>
+
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-04 • Pipeline Resilience Defense</span>
+                    <div class="concept-title">How do you prevent data loss or duplicate ingestion if an incremental pipeline fails mid-stream?</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Senior Architect Candidate Response:</strong></p>
+                    <div class="defense-box">
+                        "We enforce strict pipeline idempotency through a two-phase watermark pattern. In the first phase, we capture the static maximum source timestamp into an ADF pipeline variable before starting the copy. In the second phase, the Copy Activity sinks the data to partitioned Bronze storage. Crucially, the stored procedure that updates etl_watermark_control executes only upon successful completion of the Copy Activity. If the pipeline crashes mid-stream, the watermark remains unchanged and the subsequent run re-evaluates the same delta window, eliminating silent data loss."
                     </div>
                 </div>
             </div>
@@ -611,8 +646,8 @@
         <!-- Tab: Evidence -->
         <div id="tab-evidence" class="tab-pane">
             <div class="section-card">
-                <div class="section-title">☁️ Live Cloud Topology Configuration</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <div class="section-title">☁️ Live Cloud Topology (Azure Prod)</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
                     <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
                         <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Resource Group</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">rg-healthcare-migration-prod</div>
@@ -632,6 +667,32 @@
                         <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Azure Data Factory</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">adf-healthcare-punit01</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Git: punitgiri921/Azure-Healthcare-Data-Migration</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">🏥 Local On-Premises EMR Topology (Source)</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Database Engine & Instance</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">SQL Server 2022 (.\SQLEXPRESS)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Database: healthcare_emr_source</div>
+                    </div>
+                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Clinical & Billing Tables</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">5 Seeded Tables (87 Total Rows)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Providers, Patients, Encounters, Diagnoses, Claims</div>
+                    </div>
+                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Watermark Control Engine</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">dbo.etl_watermark_control</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">5 Entities Initialized (1970-01-01 Baseline)</div>
+                    </div>
+                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Service Principal Account</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">adf_svc_user</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Roles: db_datareader, db_datawriter</div>
                     </div>
                 </div>
             </div>
