@@ -1,0 +1,6 @@
+{
+	"name": "shir-onprem-gateway-01",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}
