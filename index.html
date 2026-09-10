@@ -3,22 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Azure Healthcare Data Migration — Master Engineering Dashboard</title>
+    <title>Azure Healthcare Data Migration — Master Engineering & Learning Tracker</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #0a0e17;
-            --bg-card: #121826;
-            --bg-elevated: #1a2234;
-            --border-color: #232f45;
-            --text-primary: #f0f4fc;
+            --bg-base: #090d16;
+            --bg-card: #111726;
+            --bg-elevated: #182236;
+            --bg-hover: #1e2b45;
+            --border-color: #243049;
+            --border-accent: rgba(56, 189, 248, 0.3);
+            --text-primary: #f1f5f9;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
             --primary: #38bdf8;
             --primary-glow: rgba(56, 189, 248, 0.15);
             --accent: #818cf8;
+            --accent-glow: rgba(129, 140, 248, 0.15);
             --success: #34d399;
+            --success-glow: rgba(52, 211, 153, 0.15);
             --warning: #fbbf24;
+            --warning-glow: rgba(251, 191, 36, 0.15);
             --danger: #f87171;
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
@@ -41,24 +46,24 @@
         }
 
         header {
-            background: linear-gradient(180deg, #101726 0%, var(--bg-base) 100%);
+            background: linear-gradient(180deg, #101828 0%, var(--bg-base) 100%);
             border-bottom: 1px solid var(--border-color);
-            padding: 1.75rem 2rem;
+            padding: 1.5rem 2rem;
         }
 
         .header-container {
-            max-width: 1400px;
+            max-width: 1440px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
 
         .header-title h1 {
             font-size: 1.5rem;
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: -0.02em;
             display: flex;
             align-items: center;
@@ -66,14 +71,14 @@
         }
 
         .header-title h1 span {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-fill-color: transparent;
         }
 
         .header-title p {
             color: var(--text-secondary);
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             margin-top: 0.25rem;
         }
 
@@ -83,7 +88,7 @@
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 0.05em;
             text-transform: uppercase;
         }
@@ -91,7 +96,7 @@
         .badge-live {
             background: rgba(52, 211, 153, 0.15);
             color: var(--success);
-            border: 1px solid rgba(52, 211, 153, 0.3);
+            border: 1px solid rgba(52, 211, 153, 0.35);
         }
 
         .badge-done {
@@ -103,7 +108,7 @@
         .badge-progress {
             background: rgba(56, 189, 248, 0.15);
             color: var(--primary);
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            border: 1px solid rgba(56, 189, 248, 0.35);
         }
 
         .badge-locked {
@@ -112,12 +117,19 @@
             border: 1px solid rgba(100, 116, 139, 0.25);
         }
 
+        .badge-warning {
+            background: rgba(251, 191, 36, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(251, 191, 36, 0.35);
+        }
+
+        /* KPI Strip */
         .kpi-strip {
-            max-width: 1400px;
-            margin: 1.5rem auto 0;
+            max-width: 1440px;
+            margin: 1.25rem auto 0;
             padding: 0 2rem;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
             gap: 1rem;
             width: 100%;
         }
@@ -126,28 +138,28 @@
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 1.25rem;
+            padding: 1.15rem 1.25rem;
             transition: all 0.2s ease;
         }
 
         .kpi-card:hover {
-            border-color: rgba(56, 189, 248, 0.3);
+            border-color: var(--primary);
             transform: translateY(-2px);
         }
 
         .kpi-label {
-            font-size: 0.75rem;
+            font-size: 0.725rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .kpi-value {
-            font-size: 1.75rem;
-            font-weight: 700;
+            font-size: 1.65rem;
+            font-weight: 800;
             color: var(--text-primary);
-            margin: 0.35rem 0;
+            margin: 0.3rem 0;
             font-family: var(--font-mono);
         }
 
@@ -156,9 +168,10 @@
             color: var(--text-secondary);
         }
 
+        /* Navigation Tabs */
         .tabs-nav {
-            max-width: 1400px;
-            margin: 2rem auto 0;
+            max-width: 1440px;
+            margin: 1.5rem auto 0;
             padding: 0 2rem;
             display: flex;
             gap: 0.5rem;
@@ -171,7 +184,7 @@
             background: none;
             border: none;
             color: var(--text-secondary);
-            padding: 0.75rem 1.25rem;
+            padding: 0.8rem 1.25rem;
             font-size: 0.875rem;
             font-weight: 600;
             font-family: inherit;
@@ -179,6 +192,9 @@
             border-bottom: 2px solid transparent;
             transition: all 0.2s ease;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .tab-btn:hover {
@@ -190,9 +206,10 @@
             border-bottom-color: var(--primary);
         }
 
+        /* Main Container */
         main {
-            max-width: 1400px;
-            margin: 2rem auto;
+            max-width: 1440px;
+            margin: 1.75rem auto 3rem;
             padding: 0 2rem;
             flex: 1;
             width: 100%;
@@ -204,7 +221,7 @@
 
         .tab-pane.active {
             display: block;
-            animation: fadeIn 0.25s ease-in-out;
+            animation: fadeIn 0.2s ease-in-out;
         }
 
         @keyframes fadeIn {
@@ -212,6 +229,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Cards & Components */
         .section-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -221,24 +239,159 @@
         }
 
         .section-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
+            color: var(--text-primary);
         }
 
         .code-box {
-            background-color: var(--bg-base);
+            background-color: #060911;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 1rem;
+            padding: 1rem 1.25rem;
             font-family: var(--font-mono);
-            font-size: 0.8125rem;
+            font-size: 0.825rem;
             color: #bae6fd;
             overflow-x: auto;
-            margin-top: 0.75rem;
+            line-height: 1.6;
+        }
+
+        /* Aha Principles Banner */
+        .aha-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .aha-card {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(129, 140, 248, 0.05) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 10px;
+            padding: 1.1rem;
+            position: relative;
+        }
+
+        .aha-card strong {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--primary);
+            margin-bottom: 0.35rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .aha-card p {
+            font-size: 0.875rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        /* Phase Gate Step Tracker */
+        .gate-flow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #060911;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+        }
+
+        .gate-step {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-muted);
+        }
+
+        .gate-step.completed {
+            background: rgba(52, 211, 153, 0.15);
+            border-color: rgba(52, 211, 153, 0.35);
+            color: var(--success);
+        }
+
+        .gate-step.active {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: var(--primary);
+            color: #bae6fd;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .gate-arrow {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Table Styling for Why We Built This */
+        .styled-table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-top: 1rem;
+        }
+
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        .styled-table th {
+            background-color: var(--bg-elevated);
+            color: var(--text-secondary);
+            font-weight: 700;
+            padding: 0.9rem 1.15rem;
+            text-transform: uppercase;
+            font-size: 0.725rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .styled-table td {
+            padding: 0.9rem 1.15rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: top;
+        }
+
+        .styled-table tr:hover td {
+            background-color: rgba(56, 189, 248, 0.03);
+        }
+
+        .comp-code {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--primary);
+            background: var(--primary-glow);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .without-bad {
+            color: #fca5a5;
+            font-size: 0.8rem;
+            margin-top: 0.35rem;
+            display: block;
         }
 
         /* Phase Grid */
@@ -252,31 +405,32 @@
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 1.25rem;
-            position: relative;
+            padding: 1.35rem;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         .phase-box.completed {
             border-color: rgba(52, 211, 153, 0.4);
-            background: linear-gradient(180deg, rgba(52, 211, 153, 0.05) 0%, var(--bg-card) 100%);
+            background: linear-gradient(180deg, rgba(52, 211, 153, 0.04) 0%, var(--bg-card) 100%);
         }
 
         .phase-box.in-progress {
-            border-color: rgba(56, 189, 248, 0.4);
+            border-color: rgba(56, 189, 248, 0.5);
             background: linear-gradient(180deg, rgba(56, 189, 248, 0.05) 0%, var(--bg-card) 100%);
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.08);
         }
 
         .phase-box.locked {
-            opacity: 0.65;
+            opacity: 0.6;
         }
 
         .phase-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.6rem;
         }
 
         .phase-num {
@@ -288,9 +442,9 @@
         }
 
         .phase-name {
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.35rem;
         }
 
         .task-list {
@@ -303,7 +457,7 @@
 
         .task-item {
             font-size: 0.8125rem;
-            padding: 0.5rem 0.75rem;
+            padding: 0.55rem 0.8rem;
             border-radius: 6px;
             background-color: var(--bg-elevated);
             border: 1px solid var(--border-color);
@@ -313,20 +467,20 @@
         }
 
         .task-item.done {
-            border-color: rgba(52, 211, 153, 0.3);
+            border-color: rgba(52, 211, 153, 0.35);
             color: #d1fae5;
         }
 
         .task-item.active {
-            border-color: rgba(56, 189, 248, 0.4);
+            border-color: rgba(56, 189, 248, 0.45);
             color: #e0f2fe;
-            background: rgba(56, 189, 248, 0.1);
+            background: rgba(56, 189, 248, 0.12);
         }
 
-        /* Concept & TQ Cards */
+        /* Card Grids for Concepts & TQ */
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(430px, 1fr));
             gap: 1.25rem;
         }
 
@@ -334,7 +488,7 @@
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 1.25rem;
+            padding: 1.35rem;
             transition: all 0.2s ease;
         }
 
@@ -345,38 +499,162 @@
 
         .concept-tag {
             font-family: var(--font-mono);
-            font-size: 0.75rem;
+            font-size: 0.725rem;
             font-weight: 700;
             color: var(--primary);
             background: var(--primary-glow);
-            padding: 0.2rem 0.5rem;
+            padding: 0.25rem 0.6rem;
             border-radius: 4px;
             display: inline-block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.6rem;
         }
 
         .concept-title {
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
             color: var(--text-primary);
         }
 
-        .concept-desc {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
+        .levels-container {
+            margin-top: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .level-box {
+            padding: 0.65rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            border-left: 3px solid transparent;
+        }
+
+        .level-1 {
+            background: rgba(56, 189, 248, 0.06);
+            border-left-color: var(--primary);
+        }
+
+        .level-2 {
+            background: rgba(129, 140, 248, 0.06);
+            border-left-color: var(--accent);
+        }
+
+        .level-3 {
+            background: rgba(52, 211, 153, 0.06);
+            border-left-color: var(--success);
+        }
+
+        .level-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.2rem;
+            display: block;
         }
 
         .defense-box {
             background-color: var(--bg-elevated);
             border-left: 3px solid var(--primary);
-            padding: 0.875rem 1rem;
-            border-radius: 0 6px 6px 0;
-            margin-top: 0.75rem;
-            font-size: 0.8125rem;
+            padding: 0.9rem 1.1rem;
+            border-radius: 0 8px 8px 0;
+            margin-top: 0.85rem;
+            font-size: 0.825rem;
             color: #e2e8f0;
-            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .defense-breakdown {
+            margin-top: 0.75rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .defense-pill {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            padding: 0.35rem 0.6rem;
+            border-radius: 4px;
+            color: var(--text-secondary);
+        }
+
+        .defense-pill strong {
+            color: var(--primary);
+            font-family: var(--font-mono);
+        }
+
+        /* Failure Scenarios */
+        .failure-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.35rem;
+            border-left: 4px solid var(--danger);
+        }
+
+        .failure-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fca5a5;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .failure-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .failure-step {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            padding: 0.65rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.785rem;
+        }
+
+        .failure-step strong {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.2rem;
+            font-family: var(--font-mono);
+        }
+
+        /* Disambiguation Grid */
+        .disambig-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .disambig-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+
+        .disambig-card h4 {
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            color: var(--primary);
+            margin-bottom: 0.4rem;
+        }
+
+        .disambig-card p {
+            font-size: 0.825rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
         }
 
         footer {
@@ -397,12 +675,14 @@
                 <h1>🏥 <span>Apex Health Lakehouse</span> — Azure Migration Engine</h1>
                 <p>Enterprise On-Prem EMR to ADLS Gen2 Medallion Lakehouse Migration & Clinical Analytics</p>
             </div>
-            <div>
-                <span class="badge badge-live">PHASE 2 COMPLETE • PHASE 3 READY</span>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <span class="badge badge-done">PHASE 1 & 2 VERIFIED</span>
+                <span class="badge badge-progress">PHASE 3 ACTIVE • INGESTION</span>
             </div>
         </div>
     </header>
 
+    <!-- KPI Strip -->
     <div class="kpi-strip">
         <div class="kpi-card">
             <div class="kpi-label">Overall Progress</div>
@@ -410,64 +690,261 @@
             <div class="kpi-sub">Phases 1 & 2 Complete (14/38 Tasks)</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-label">Active Milestone</div>
-            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">Phase 3 of 6</div>
-            <div class="kpi-sub">Incremental Watermark Ingestion (Bronze)</div>
+            <div class="kpi-label">Active Phase Gate</div>
+            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">UNDERSTAND / PLAN</div>
+            <div class="kpi-sub">Phase 3 Gate: pl_ingest_incremental_bronze</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-label">Azure Free Trial Budget</div>
+            <div class="kpi-label">Azure Free Budget</div>
             <div class="kpi-value">$200.00</div>
-            <div class="kpi-sub">Current burn: &lt; $0.50 (Est: ~$15–$25)</div>
+            <div class="kpi-sub">Current burn: &lt; $0.50 (Est total: ~$18)</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-label">Concepts Logged (CL)</div>
-            <div class="kpi-value" id="kpi-concepts">6</div>
-            <div class="kpi-sub">HNS, SMI, RBAC, Git, Watermark, SHIR</div>
+            <div class="kpi-label">Components Active</div>
+            <div class="kpi-value" id="kpi-concepts">7</div>
+            <div class="kpi-sub">SQL Express, SHIR, Key Vault, SMI, ADF, ADLS, Git</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Technical Questions (TQ)</div>
             <div class="kpi-value" id="kpi-tq">4 / 4</div>
-            <div class="kpi-sub">Phases 1 & 2 Gate Passed (10/10)</div>
+            <div class="kpi-sub">Rated: 100% Correct (Interview-Grade)</div>
         </div>
     </div>
 
+    <!-- Tab Bar -->
     <nav class="tabs-nav">
-        <button class="tab-btn active" onclick="switchTab('tab-overview', event)">Overview & Architecture</button>
-        <button class="tab-btn" onclick="switchTab('tab-phases', event)">Phase Roadmap (1–6)</button>
-        <button class="tab-btn" onclick="switchTab('tab-concepts', event)">Concepts Learned (CL)</button>
-        <button class="tab-btn" onclick="switchTab('tab-questions', event)">Technical Questions (TQ)</button>
-        <button class="tab-btn" onclick="switchTab('tab-evidence', event)">Live Cloud & Local Topology</button>
+        <button class="tab-btn active" onclick="switchTab('tab-overview', event)">🏛️ Architecture & Principles</button>
+        <button class="tab-btn" onclick="switchTab('tab-matrix', event)">📊 "Why We Built This" Matrix</button>
+        <button class="tab-btn" onclick="switchTab('tab-phases', event)">🗺️ Phase Roadmap & Gates</button>
+        <button class="tab-btn" onclick="switchTab('tab-concepts', event)">🧠 Concepts (3-Tier Depth)</button>
+        <button class="tab-btn" onclick="switchTab('tab-questions', event)">🎯 Technical Questions & Defense</button>
+        <button class="tab-btn" onclick="switchTab('tab-failure', event)">⚠️ Failure Scenarios & Recovery</button>
+        <button class="tab-btn" onclick="switchTab('tab-topology', event)">☁️ Live Topology</button>
     </nav>
 
     <main>
-        <!-- Tab: Overview -->
+        <!-- Tab 1: Architecture & Principles -->
         <div id="tab-overview" class="tab-pane active">
+            
             <div class="section-card">
-                <div class="section-title">🏛️ Project Architecture & Data Flow</div>
-                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.875rem;">
-                    This platform implements a production-grade hybrid cloud data migration architecture connecting an on-premises healthcare EMR database to Azure via an outbound-only Self-Hosted Integration Runtime (SHIR), incrementally ingesting and transforming data across Bronze, Silver (PII Masking), and Gold (Star Schema) layers in ADLS Gen2.
-                </p>
-                <div class="code-box">
-[ON-PREM SQL SERVER: healthcare_emr_source] -> (Local Loopback) -> [SHIR Gateway: 443 Outbound] -> [ADF Ingestion Pipeline]
-                                                                                                            │
-                                                                                                            ▼
-[Power BI App] <- [Synapse Serverless SQL] <- [Gold Marts] <- [Silver Clean/Mask] <- [Bronze Raw Parquet]
+                <div class="section-title">💡 Final "AHA!" Permanent Learning Principles (Rule 26)</div>
+                <div class="aha-grid">
+                    <div class="aha-card">
+                        <strong>Rule #1 • SHIR Boundary</strong>
+                        <p><strong>SHIR is the secure bridge</strong> between my private SQL Server and Azure. It polls outbound; nothing penetrates inbound.</p>
+                    </div>
+                    <div class="aha-card">
+                        <strong>Rule #2 • ADF Orchestration</strong>
+                        <p><strong>ADF orchestrates the pipeline</strong>; it coordinates the data movement, but it is NOT the database or compute warehouse.</p>
+                    </div>
+                    <div class="aha-card">
+                        <strong>Rule #3 • Key Vault Isolation</strong>
+                        <p><strong>Key Vault protects secrets</strong>; it guards connection credentials, but it never holds or transfers clinical records.</p>
+                    </div>
+                    <div class="aha-card">
+                        <strong>Rule #4 • Zero-Secret SMI</strong>
+                        <p><strong>Managed Identity lets Azure talk to Azure</strong> without storing hardcoded tokens or connection strings in pipeline JSONs.</p>
+                    </div>
+                    <div class="aha-card">
+                        <strong>Rule #5 • Git vs Data History</strong>
+                        <p><strong>Git tracks pipeline code changes</strong>; Watermarks & CDC track changes to the actual healthcare data rows.</p>
+                    </div>
                 </div>
             </div>
 
             <div class="section-card">
-                <div class="section-title">🔐 Enterprise Security & HIPAA Standards Verified</div>
-                <ul style="padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8;">
-                    <li><strong>Zero-Secret Identity</strong>: ADF accesses Azure Key Vault and ADLS Gen2 strictly via System-Assigned Managed Identity (SMI). Database password retrieved dynamically from Key Vault.</li>
-                    <li><strong>Outbound-Only SHIR Connectivity</strong>: No incoming firewall ports opened on premise. The gateway polls Azure securely on port 443 over TLS 1.3.</li>
-                    <li><strong>High-Watermark Idempotency</strong>: Dedicated <code>etl_watermark_control</code> table guarantees failure-safe incremental loads without duplicate records.</li>
-                    <li><strong>ADLS Gen2 Hierarchical Namespace (HNS)</strong>: Atomic $O(1)$ folder renames and POSIX-compliant ACLs across <code>bronze</code>, <code>silver</code>, and <code>gold</code>.</li>
-                </ul>
+                <div class="section-title">🏛️ End-to-End Enterprise Data Flow</div>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.85rem;">
+                    Full architectural journey from private local EMR database to public cloud analytics mart, following least-privilege RBAC and HIPAA zero-secret guidelines.
+                </p>
+                <div class="code-box">
+PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFORM (Central India)
+┌───────────────────────────────┐                       ┌─────────────────────────────────────────────────────────────┐
+│ Microsoft SQL Server 2022     │                       │ Azure Key Vault: kv-healthcare-sec01 (RBAC Secrets)        │
+│ DB: healthcare_emr_source     │                       │   └─ Secret: sql-onprem-password                            │
+│ Port: 1433 (Local Only)       │                       └──────────────────────▲──────────────────────────────────────┘
+└───────────────┬───────────────┘                                              │ (Managed Identity Token)
+                │ (Local LAN Loopback)                                         │
+┌───────────────▼───────────────┐                       ┌──────────────────────┴──────────────────────────────────────┐
+│ Self-Hosted Gateway (SHIR)    │──── Port 443 Outbound ┼─► Azure Data Factory: adf-healthcare-punit01                │
+│ Host: DESKTOP-H5RKB3H         │     TLS 1.3 Encrypted │     ├─ Integration Runtime: shir-onprem-gateway-01          │
+│ Daemon: DIAHostService        │                       │     ├─ Linked Service: ls_keyvault_healthcare               │
+│ (ZERO Inbound Ports Opened!)  │                       │     ├─ Linked Service: ls_sqlserver_onprem                  │
+└───────────────────────────────┘                       │     └─ Pipeline: pl_ingest_incremental_bronze (Phase 3)     │
+                                                        └──────────────────────┬──────────────────────────────────────┘
+                                                                               │ Stream Parquet (Managed Identity)
+                                                        ┌──────────────────────▼──────────────────────────────────────┐
+                                                        │ ADLS Gen2 Data Lakehouse: sthealthcarelake01 (HNS Enabled)  │
+                                                        │   ├─ bronze/   [Raw Immutable Parquet + Watermark Metadata] │
+                                                        │   ├─ silver/   [Cleaned, Deduplicated, SHA-256 PII Masked]  │
+                                                        │   └─ gold/     [Dimensional Star Schema Marts for Power BI] │
+                                                        └─────────────────────────────────────────────────────────────┘
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">⚖️ Concept Disambiguation Matrix (Rule 11)</div>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.85rem;">
+                    Strict distinction between distinct architectural constructs to prevent conceptual conflation:
+                </p>
+                <div class="disambig-grid">
+                    <div class="disambig-card">
+                        <h4>1. GitHub Version Control</h4>
+                        <p>Tracks and versions <strong>pipeline JSON definitions, linked services, and ARM templates</strong>. Never holds, processes, or versions clinical data rows.</p>
+                    </div>
+                    <div class="disambig-card">
+                        <h4>2. Watermark Control Table</h4>
+                        <p>Tracks <strong>state of data extraction</strong> (`last_watermark_timestamp`). Dictates the start timestamp of the delta extraction query.</p>
+                    </div>
+                    <div class="disambig-card">
+                        <h4>3. CDC / Change Tracking</h4>
+                        <p>SQL Server engine feature that logs <strong>row-level DML mutations</strong> (INSERT, UPDATE, DELETE). Captures hard deletes that timestamp watermarks miss.</p>
+                    </div>
+                    <div class="disambig-card">
+                        <h4>4. ADLS Medallion Layers</h4>
+                        <p><strong>Bronze:</strong> Raw landing audit copy.<br><strong>Silver:</strong> De-identified PII & quality cleansed.<br><strong>Gold:</strong> Aggregated dimensional Star Schema.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Tab: Phases -->
+        <!-- Tab 2: "Why We Built This" Matrix -->
+        <div id="tab-matrix" class="tab-pane">
+            <div class="section-card">
+                <div class="section-title">📋 "Why We Built This" Enterprise Architectural Matrix (Rule 18)</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                    Every single Azure and on-premise resource mapped to the concrete business problem it solves and what happens if it is omitted.
+                </p>
+                <div class="styled-table-wrapper">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Real-World Problem</th>
+                                <th>Why We Need It</th>
+                                <th>What It Technically Does</th>
+                                <th>What Happens Without It? (Rule 9)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="comp-code">SQL Server</span></td>
+                                <td>Hospital legacy records reside on private internal clinical servers.</td>
+                                <td>Simulate production EMR with patients, encounters, diagnoses, claims.</td>
+                                <td>Stores transactional source tables with <code>updated_at</code> timestamps.</td>
+                                <td><span class="without-bad">❌ No source dataset to migrate or simulate enterprise workloads.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">SHIR Gateway</span></td>
+                                <td>Azure cannot directly reach internal private IP addresses or corporate LANs.</td>
+                                <td>Provide secure, outbound-only enterprise bridge without exposing firewall.</td>
+                                <td>Runs Windows service (<code>DIAHostService</code>), polls ADF for tasks, queries SQL locally.</td>
+                                <td><span class="without-bad">❌ Would force opening inbound firewall ports to public internet (fatal HIPAA violation).</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Key Vault</span></td>
+                                <td>Database passwords stored in configuration or code leak into GitHub.</td>
+                                <td>Centralized, hardware-grade secret management with access audit logs.</td>
+                                <td>Stores <code>sql-onprem-password</code> as an encrypted secret, read dynamically at runtime.</td>
+                                <td><span class="without-bad">❌ Database credentials stored in plaintext in git-tracked JSON files.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Managed Identity</span></td>
+                                <td>Services authenticating to cloud storage require managing shared keys or certificates.</td>
+                                <td>Enforce Zero-Secret enterprise architecture with automatic token rotation.</td>
+                                <td>ADF service principal authenticates directly against Microsoft Entra ID.</td>
+                                <td><span class="without-bad">❌ Must use root Storage Account Keys; compromises entire lakehouse if leaked.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">ADF</span></td>
+                                <td>Data movement from on-prem to cloud needs automated scheduling, retry logic, and monitoring.</td>
+                                <td>Serverless enterprise ETL/ELT pipeline orchestration.</td>
+                                <td>Executes Lookup, Copy, and Stored Procedure activities across hybrid environments.</td>
+                                <td><span class="without-bad">❌ Manual Python scripts running on cron with no retry, telemetry, or monitoring.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Watermark Control</span></td>
+                                <td>Extracting entire multi-million row tables daily causes huge egress bills and CPU spikes.</td>
+                                <td>Enable idempotent incremental delta loading.</td>
+                                <td>Tracks <code>last_watermark_timestamp</code> in <code>dbo.etl_watermark_control</code>.</td>
+                                <td><span class="without-bad">❌ ADF re-extracts 100% of rows every run; exploding compute, storage, and egress bills.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">ADLS Gen2 (HNS)</span></td>
+                                <td>Standard cloud storage performs poorly when renaming or partitioning massive directories.</td>
+                                <td>Scalable, POSIX-compliant lakehouse storage layer.</td>
+                                <td>Enables atomic O(1) directory moves and fine-grained security ACLs.</td>
+                                <td><span class="without-bad">❌ Slow O(N) blob copy operations on directory moves, blocking lakehouse pipeline writes.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Bronze Container</span></td>
+                                <td>Transformed data can be corrupted by faulty business logic or schema changes.</td>
+                                <td>Immutable raw data landing zone for disaster recovery and audits.</td>
+                                <td>Stores raw uncompressed/Parquet payloads exactly as extracted from source.</td>
+                                <td><span class="without-bad">❌ Cannot replay or reprocess historical raw data if downstream cleansing logic bugs out.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Silver Container</span></td>
+                                <td>Raw clinical data contains patient PII (SSN, Phone, Email) violating HIPAA.</td>
+                                <td>Cleanse, standardize, deduplicate, and mask sensitive health identifiers.</td>
+                                <td>Stores SHA-256 masked identities with normalized clinical lookup codes.</td>
+                                <td><span class="without-bad">❌ Data analysts and data scientists have direct access to plaintext patient PII (HIPAA fine).</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Gold Container</span></td>
+                                <td>Normalized 3NF relational schemas result in slow, complex analytical queries in BI.</td>
+                                <td>Deliver high-speed Star Schema dimensional models for executive reporting.</td>
+                                <td>Houses <code>Fact_Clinical_Encounters</code> and conforming dimension tables.</td>
+                                <td><span class="without-bad">❌ Power BI reports must execute complex multi-table joins across raw layers, stalling dashboards.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">GitHub Integration</span></td>
+                                <td>Pipeline changes made directly in cloud UI risk untracked outages or collisions.</td>
+                                <td>Infrastructure-as-Code (IaC), peer review, and automated CI/CD deployment.</td>
+                                <td>Commits pipeline JSONs to <code>main</code> and exports ARM templates to <code>adf_publish</code>.</td>
+                                <td><span class="without-bad">❌ No version history, no rollback capability, accidental edits deployed immediately to prod.</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Phase Roadmap & Gates -->
         <div id="tab-phases" class="tab-pane">
+            <div class="section-card">
+                <div class="section-title">🚪 Rigorous 11-Step Phase Gate System (Rule 12)</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                    No phase is completed simply because cloud resources exist. Understanding, explain-back defense, and verification evidence are strictly required.
+                </p>
+                <div class="gate-flow">
+                    <div class="gate-step completed">1. UNDERSTAND</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step active">2. EXPLAIN BACK</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step">3. PLAN</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step">4. YOU EXECUTE</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step">5. PROVIDE EVIDENCE</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step">6. TECH QUESTIONS</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step">7. EVALUATION</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step">8. FIX GAPS</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step">9. ARCH RECAP</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step">10. COMPLETE</div>
+                    <div class="gate-arrow">→</div>
+                    <div class="gate-step">11. UNLOCK NEXT</div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;">
+                    📍 <strong>Current Phase 3 Gate Position:</strong> Stage 2 (Explain Back checkpoint before ADF Copy Activity build).
+                </div>
+            </div>
+
             <div class="phase-grid">
                 <!-- Phase 1 -->
                 <div class="phase-box completed">
@@ -475,16 +952,16 @@
                         <span class="phase-num">Phase 1</span>
                         <span class="badge badge-done">COMPLETED (7/7)</span>
                     </div>
-                    <div class="phase-name">Cloud Provisioning & Zero-Secret Setup</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Establish Azure resource group, ADLS Gen2, Key Vault, and ADF with Managed Identity.</p>
+                    <div class="phase-name">Cloud Infrastructure & Zero-Secret Setup</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Provisioned Azure resource group, ADLS Gen2 with HNS, Key Vault with RBAC, and ADF linked to GitHub.</p>
                     <ul class="task-list">
-                        <li class="task-item done">✅ Create Resource Group (rg-healthcare-migration-prod)</li>
-                        <li class="task-item done">✅ Provision ADLS Gen2 with HNS (sthealthcarelake01)</li>
-                        <li class="task-item done">✅ Create containers (bronze, silver, gold)</li>
-                        <li class="task-item done">✅ Provision Azure Key Vault (kv-healthcare-sec01)</li>
-                        <li class="task-item done">✅ Provision Azure Data Factory (adf-healthcare-punit01)</li>
-                        <li class="task-item done">✅ Configure ADF Managed Identity RBAC (Storage & Key Vault)</li>
-                        <li class="task-item done">✅ Connect ADF to GitHub repository (Azure-Healthcare-Data-Migration)</li>
+                        <li class="task-item done">✅ Resource Group (rg-healthcare-migration-prod)</li>
+                        <li class="task-item done">✅ ADLS Gen2 with HNS (sthealthcarelake01)</li>
+                        <li class="task-item done">✅ Lakehouse containers (bronze, silver, gold)</li>
+                        <li class="task-item done">✅ Azure Key Vault (kv-healthcare-sec01)</li>
+                        <li class="task-item done">✅ Azure Data Factory (adf-healthcare-punit01)</li>
+                        <li class="task-item done">✅ ADF Managed Identity RBAC assignments</li>
+                        <li class="task-item done">✅ Git integration configured on main branch</li>
                     </ul>
                 </div>
 
@@ -495,15 +972,15 @@
                         <span class="badge badge-done">COMPLETED (7/7)</span>
                     </div>
                     <div class="phase-name">On-Prem EMR DB & SHIR Gateway Setup</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Set up local EMR tables, seed test data, install Self-Hosted Integration Runtime agent.</p>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Local SQL Server created, clinical tables seeded, SHIR agent registered, and linked services verified.</p>
                     <ul class="task-list">
-                        <li class="task-item done">✅ Create local SQL Server database (healthcare_emr_source)</li>
-                        <li class="task-item done">✅ Execute DDL & seed clinical data (Patients, Providers, Encounters, etc.)</li>
-                        <li class="task-item done">✅ Create etl_watermark_control table & seed initial watermarks</li>
-                        <li class="task-item done">✅ Download & install Microsoft Integration Runtime (SHIR) on Windows</li>
-                        <li class="task-item done">✅ Register SHIR with ADF authentication key & verify gateway status</li>
-                        <li class="task-item done">✅ Store database connection credentials in Azure Key Vault</li>
-                        <li class="task-item done">✅ Create Key Vault & SHIR Linked Services in ADF</li>
+                        <li class="task-item done">✅ Local SQL Server DB (healthcare_emr_source)</li>
+                        <li class="task-item done">✅ Seeded clinical tables (5 tables, 87 rows)</li>
+                        <li class="task-item done">✅ Created etl_watermark_control table</li>
+                        <li class="task-item done">✅ Installed & verified SHIR (shir-onprem-gateway-01)</li>
+                        <li class="task-item done">✅ Configured TCP/IP 1433 and Mixed Mode Auth</li>
+                        <li class="task-item done">✅ Stored sql-onprem-password secret in Key Vault</li>
+                        <li class="task-item done">✅ Linked services: ls_keyvault & ls_sqlserver</li>
                     </ul>
                 </div>
 
@@ -511,18 +988,18 @@
                 <div class="phase-box in-progress">
                     <div class="phase-header">
                         <span class="phase-num">Phase 3</span>
-                        <span class="badge badge-progress">ACTIVE / NEXT UP</span>
+                        <span class="badge badge-progress">ACTIVE / CURRENT</span>
                     </div>
                     <div class="phase-name">Metadata Watermark Ingestion (Bronze)</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Build reusable parameterized copy pipeline with high-watermark delta loading into Bronze Parquet.</p>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Parameterized incremental ingestion pipeline extracting delta records to partitioned Bronze Parquet.</p>
                     <ul class="task-list">
-                        <li class="task-item active">⏳ Create ADF Pipeline: pl_ingest_incremental_bronze</li>
-                        <li class="task-item">⏳ Implement Lookup activity on etl_watermark_control</li>
-                        <li class="task-item">⏳ Implement Lookup activity for current max source timestamp</li>
-                        <li class="task-item">⏳ Build dynamic Copy Activity with parameterized SQL query</li>
-                        <li class="task-item">⏳ Sink data to ADLS Gen2 bronze/ container as Parquet</li>
-                        <li class="task-item">⏳ Add Stored Procedure activity to advance high-watermark timestamp</li>
-                        <li class="task-item">⏳ Test baseline full load and simulate incremental clinical updates</li>
+                        <li class="task-item active">⏳ Pipeline Architecture & Explain-Back Checkpoint</li>
+                        <li class="task-item">⏳ Create ADF Pipeline: pl_ingest_incremental_bronze</li>
+                        <li class="task-item">⏳ Lookup Last Watermark from etl_watermark_control</li>
+                        <li class="task-item">⏳ Lookup Current Max Source updated_at timestamp</li>
+                        <li class="task-item">⏳ Copy Activity: Parameterized delta query to Bronze Parquet</li>
+                        <li class="task-item">⏳ Stored Procedure Activity: Advance high-watermark</li>
+                        <li class="task-item">⏳ End-to-end incremental load simulation test</li>
                     </ul>
                 </div>
 
@@ -532,7 +1009,7 @@
                         <span class="phase-num">Phase 4</span>
                         <span class="badge badge-locked">LOCKED</span>
                     </div>
-                    <div class="phase-name">Medallion Data Flows & HIPAA Masking</div>
+                    <div class="phase-name">Medallion Transformations & HIPAA Masking</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Mapping Data Flows: Silver cleansing & SHA-256 PII masking + Gold dimensional Star Schema.</p>
                 </div>
 
@@ -552,130 +1029,252 @@
                         <span class="phase-num">Phase 6</span>
                         <span class="badge badge-locked">LOCKED</span>
                     </div>
-                    <div class="phase-name">Power BI Reporting & CV Deliverables</div>
+                    <div class="phase-name">Power BI Reporting & CV Portfolio Deliverables</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Executive Clinical & Financial report, comprehensive GitHub README, and interview defense.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Tab: Concepts -->
+        <!-- Tab 4: Concepts (3-Tier Depth) -->
         <div id="tab-concepts" class="tab-pane">
+            <div class="section-card">
+                <div class="section-title">🧠 Concepts Learned Through Progressive 3-Tier Depth (Rule 5)</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                    Every architectural mechanism explained across three progressive depths: Level 1 (Simple intuition) → Level 2 (Technical Azure mechanics) → Level 3 (Senior enterprise architecture & trade-offs).
+                </p>
+            </div>
+
             <div class="card-grid">
+                <!-- CL-01 -->
                 <div class="concept-card">
                     <span class="concept-tag">CL-01 • Lakehouse Storage</span>
                     <div class="concept-title">Hierarchical Namespace (HNS) vs Flat Blob Storage</div>
-                    <div class="concept-desc">
-                        ADLS Gen2 HNS implements a real POSIX-compliant hierarchy. Directory moves and renames execute as instant metadata updates in $O(1)$ constant time rather than copying every nested blob ($O(N)$), which is essential for Lakehouse partition write performance.
+                    <div class="levels-container">
+                        <div class="level-box level-1">
+                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            Flat storage pretends folders exist by putting slashes in file names. HNS creates real physical file cabinets and directories.
+                        </div>
+                        <div class="level-box level-2">
+                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            ADLS Gen2 HNS implements POSIX-compliant directory trees. Renaming a directory updates an internal inode pointer in constant time $O(1)$ rather than copying thousands of individual blobs ($O(N)$).
+                        </div>
+                        <div class="level-box level-3">
+                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            Essential for Spark/Data Flow partition commits. Without HNS, distributed writes experience massive latency and partial file write risks during folder commit phases.
+                        </div>
                     </div>
                 </div>
 
+                <!-- CL-02 -->
                 <div class="concept-card">
                     <span class="concept-tag">CL-02 • Cloud Security</span>
                     <div class="concept-title">Zero-Secret Architecture via Managed Identity (SMI)</div>
-                    <div class="concept-desc">
-                        System-Assigned Managed Identity ties an Azure service's identity directly to Microsoft Entra ID. No credentials, connection strings, or master storage keys exist in code. Entra ID handles token generation and automatic 4-hour key rotation behind the scenes.
+                    <div class="levels-container">
+                        <div class="level-box level-1">
+                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            Instead of giving ADF a physical password or API key to Azure Storage, Azure recognizes ADF by its own facial recognition / passport.
+                        </div>
+                        <div class="level-box level-2">
+                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            System-Assigned Managed Identity generates a Service Principal in Microsoft Entra ID. Azure acquires internal OAuth 2.0 bearer tokens on behalf of ADF that auto-rotate every few hours.
+                        </div>
+                        <div class="level-box level-3">
+                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            Complies with HIPAA § 164.312(d). Eliminates credential theft attack vectors from git leaks, removes key rotation operational overhead, and logs individual service principal IDs in Azure Monitor.
+                        </div>
                     </div>
                 </div>
 
+                <!-- CL-03 -->
                 <div class="concept-card">
-                    <span class="concept-tag">CL-03 • RBAC Governance</span>
-                    <div class="concept-title">Least Privilege Data Plane vs Management Plane</div>
-                    <div class="concept-desc">
-                        Assigning <code>Storage Blob Data Contributor</code> grants ADF read/write data access to lakehouse containers without administrative rights over storage networking or billing. Assigning <code>Key Vault Secrets User</code> grants retrieval access without permissions to modify or purge secrets.
-                    </div>
-                </div>
-
-                <div class="concept-card">
-                    <span class="concept-tag">CL-04 • DevOps / CI/CD</span>
-                    <div class="concept-title">ADF Git Integration & Multi-Branch Architecture</div>
-                    <div class="concept-desc">
-                        Connecting ADF to GitHub enables version control. Developer changes save as raw JSON definitions in the <code>main</code> collaboration branch under <code>/adf</code>. When clicking "Publish", ADF automatically generates and commits verified ARM deployment templates into <code>adf_publish</code>.
-                    </div>
-                </div>
-
-                <div class="concept-card">
-                    <span class="concept-tag">CL-05 • Incremental Architecture</span>
-                    <div class="concept-title">High-Watermark Metadata Pattern & Idempotency</div>
-                    <div class="concept-desc">
-                        Dedicated control table <code>etl_watermark_control</code> tracks the high-watermark timestamp for each source entity. Pipeline extracts <code>WHERE updated_at &gt; LastWatermark AND updated_at &lt;= CurrentMax</code> and updates the watermark only upon successful Copy completion, preventing silent data loss.
-                    </div>
-                </div>
-
-                <div class="concept-card">
-                    <span class="concept-tag">CL-06 • Hybrid Connectivity</span>
+                    <span class="concept-tag">CL-03 • Hybrid Connectivity</span>
                     <div class="concept-title">Outbound-Only Self-Hosted Integration Runtime (SHIR)</div>
-                    <div class="concept-desc">
-                        The SHIR agent establishes outbound HTTPS connections over port 443 with TLS 1.3 to Azure Data Factory service queues. It pulls execution tasks, queries internal on-prem databases over LAN, compresses data into Parquet, and streams it to ADLS Gen2 with zero inbound firewall holes.
+                    <div class="levels-container">
+                        <div class="level-box level-1">
+                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            Instead of letting outsiders knock on your hospital door, a dedicated courier inside steps outside to check the cloud mailbox for work orders.
+                        </div>
+                        <div class="level-box level-2">
+                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            Windows daemon <code>DIAHostService</code> initiates outbound HTTPS calls on TCP port 443 over TLS 1.3 to ADF service bus queues. It pulls the query instruction, queries <code>localhost:1433</code>, compresses data into Parquet, and streams it straight to ADLS.
+                        </div>
+                        <div class="level-box level-3">
+                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            Zero attack surface on enterprise firewalls. Eliminates costly dedicated ExpressRoute VPN requirements for initial data migration batches while maintaining strict network perimeter isolation.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CL-04 -->
+                <div class="concept-card">
+                    <span class="concept-tag">CL-04 • Pipeline Resilience</span>
+                    <div class="concept-title">Two-Phase High-Watermark Incremental Ingestion</div>
+                    <div class="levels-container">
+                        <div class="level-box level-1">
+                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            Bookmarking where you stopped reading so tomorrow you only read new pages instead of starting from page 1 every single morning.
+                        </div>
+                        <div class="level-box level-2">
+                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            Lookup reads `last_watermark_timestamp` from `etl_watermark_control`. A second lookup gets `MAX(updated_at)` from source. Copy extracts `WHERE updated_at > Last AND updated_at <= Max`. Watermark table updates strictly upon Copy success.
+                        </div>
+                        <div class="level-box level-3">
+                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            Guarantees idempotency. If network drops mid-stream during a 50GB extract, the watermark never updates. The next run gracefully retries the exact same window with zero silent record drop.
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tab: Technical Questions -->
+        <!-- Tab 5: Technical Questions & Defense -->
         <div id="tab-questions" class="tab-pane">
+            <div class="section-card">
+                <div class="section-title">🎯 Senior Interview Defense & 7-Part Answer Rubric (Rule 15)</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                    Answers evaluated under the 4-tier rubric (<code>Correct</code>, <code>Partially Correct</code>, <code>Incorrect</code>, <code>Needs Improvement</code>) following the senior architectural 7-part defense structure.
+                </p>
+            </div>
+
             <div class="card-grid">
+                <!-- TQ-01 -->
                 <div class="concept-card">
-                    <span class="concept-tag">TQ-01 • Security Interview Defense</span>
+                    <span class="concept-tag">TQ-01 • Security Architecture • Evaluated: Correct</span>
                     <div class="concept-title">Why use System-Assigned Managed Identity over Storage Account Access Keys in Healthcare?</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Senior Architect Candidate Response:</strong></p>
                     <div class="defense-box">
                         "In a HIPAA-regulated healthcare environment, utilizing Account Keys is an unacceptable security hazard because they offer unfettered root-level access across the entire storage account with no expiration and no granular identity audit trail. By configuring Azure Data Factory with a System-Assigned Managed Identity (SMI) and assigning the `Storage Blob Data Contributor` RBAC role, we implement a true Zero-Secret architecture. Every single data access request is attributed to the ADF service principal in Azure Monitor and diagnostic audit logs, satisfying HIPAA auditability requirements."
                     </div>
+                    <div class="defense-breakdown">
+                        <div class="defense-pill"><strong>Structure:</strong> Direct + Security Impact</div>
+                        <div class="defense-pill"><strong>Trade-off:</strong> SMI vs Master Keys</div>
+                    </div>
                 </div>
 
+                <!-- TQ-02 -->
                 <div class="concept-card">
-                    <span class="concept-tag">TQ-02 • Storage Architecture Defense</span>
-                    <div class="concept-title">Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouse architectures?</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Senior Architect Candidate Response:</strong></p>
+                    <span class="concept-tag">TQ-02 • Storage Performance • Evaluated: Correct</span>
+                    <div class="concept-title">Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouses?</div>
                     <div class="defense-box">
                         "In flat Blob storage, directories do not physically exist; they are simply character prefixes in the object URL. In a Medallion Lakehouse where data flows write atomic partitioned batches, moving or renaming a folder in flat storage forces the engine to issue individual copy-and-delete operations for every single blob (O(N) operations). ADLS Gen2 with Hierarchical Namespace (HNS) provides a true POSIX filesystem where directory renames are atomic metadata updates executed in O(1) constant time, drastically reducing pipeline duration and compute costs."
                     </div>
-                </div>
-
-                <div class="concept-card">
-                    <span class="concept-tag">TQ-03 • Network Security Defense</span>
-                    <div class="concept-title">How does a SHIR bridge on-premise databases without opening inbound firewall ports?</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Senior Architect Candidate Response:</strong></p>
-                    <div class="defense-box">
-                        "Corporate infosec and HIPAA compliance strictly forbid opening inbound ports through enterprise firewalls into on-premise clinical networks. Microsoft SHIR overcomes this by operating entirely on an outbound-only polling model. The SHIR daemon initiates outbound HTTPS connections on port 443 over TLS 1.3 to Azure Data Factory, pulling copy tasks from private queues, extracting data locally, and streaming it out directly to ADLS Gen2. The on-premise network is never exposed to inbound public internet traffic."
+                    <div class="defense-breakdown">
+                        <div class="defense-pill"><strong>Mechanism:</strong> O(1) vs O(N) Complexity</div>
+                        <div class="defense-pill"><strong>Cost:</strong> Prevents compute run timeouts</div>
                     </div>
                 </div>
 
+                <!-- TQ-03 -->
                 <div class="concept-card">
-                    <span class="concept-tag">TQ-04 • Pipeline Resilience Defense</span>
+                    <span class="concept-tag">TQ-03 • Network Security • Evaluated: Correct</span>
+                    <div class="concept-title">How does a SHIR bridge on-premise databases without opening inbound firewall ports?</div>
+                    <div class="defense-box">
+                        "Corporate infosec and HIPAA compliance strictly forbid opening inbound ports through enterprise firewalls into on-premise clinical networks. Microsoft SHIR overcomes this by operating entirely on an outbound-only polling model. The SHIR daemon initiates outbound HTTPS connections on port 443 over TLS 1.3 to Azure Data Factory, pulling copy tasks from private queues, extracting data locally, and streaming it out directly to ADLS Gen2. The on-premise network is never exposed to inbound public internet traffic."
+                    </div>
+                    <div class="defense-breakdown">
+                        <div class="defense-pill"><strong>Network:</strong> Port 443 Outbound TLS 1.3</div>
+                        <div class="defense-pill"><strong>Zero-Inbound:</strong> Attack surface eliminated</div>
+                    </div>
+                </div>
+
+                <!-- TQ-04 -->
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-04 • Pipeline Resilience • Evaluated: Correct</span>
                     <div class="concept-title">How do you prevent data loss or duplicate ingestion if an incremental pipeline fails mid-stream?</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Senior Architect Candidate Response:</strong></p>
                     <div class="defense-box">
                         "We enforce strict pipeline idempotency through a two-phase watermark pattern. In the first phase, we capture the static maximum source timestamp into an ADF pipeline variable before starting the copy. In the second phase, the Copy Activity sinks the data to partitioned Bronze storage. Crucially, the stored procedure that updates etl_watermark_control executes only upon successful completion of the Copy Activity. If the pipeline crashes mid-stream, the watermark remains unchanged and the subsequent run re-evaluates the same delta window, eliminating silent data loss."
+                    </div>
+                    <div class="defense-breakdown">
+                        <div class="defense-pill"><strong>Pattern:</strong> 2-Phase Watermark commit</div>
+                        <div class="defense-pill"><strong>Resilience:</strong> Idempotent retry guarantee</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tab: Evidence -->
-        <div id="tab-evidence" class="tab-pane">
+        <!-- Tab 6: Failure Scenarios & Recovery -->
+        <div id="tab-failure" class="tab-pane">
             <div class="section-card">
-                <div class="section-title">☁️ Live Cloud Topology (Azure Prod)</div>
+                <div class="section-title">⚠️ Enterprise Failure Modes & Recovery Engineering (Rule 19)</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                    Engineering beyond the "Happy Path": Systematic failure detection, blast radius assessment, and recovery blueprints.
+                </p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <!-- Failure 1 -->
+                <div class="failure-card">
+                    <div class="failure-title">🚨 Failure 1: SHIR Windows Service Crashes or Stops</div>
+                    <p style="font-size: 0.825rem; color: var(--text-secondary);">The host machine reboots or the <code>DIAHostService</code> stops unexpectedly.</p>
+                    <div class="failure-flow">
+                        <div class="failure-step"><strong>What Detects It?</strong> ADF Pipeline Monitor marks Linked Service as Unavailable (Heartbeat timeout > 3 min).</div>
+                        <div class="failure-step"><strong>What Fails?</strong> Pipeline queue stalls; Copy activities fail immediately with connection refused.</div>
+                        <div class="failure-step"><strong>Data Affected?</strong> None. Transactions on source DB abort cleanly; no partial files committed.</div>
+                        <div class="failure-step"><strong>Recovery Action:</strong> Restart service via PowerShell: <code>Start-Service DIAHostService</code>. Set service recovery to "Restart on Failure".</div>
+                    </div>
+                </div>
+
+                <!-- Failure 2 -->
+                <div class="failure-card">
+                    <div class="failure-title">🚨 Failure 2: Pipeline Fails Mid-Stream During 1-Million Row Copy</div>
+                    <p style="font-size: 0.825rem; color: var(--text-secondary);">Network drops after copying 600,000 of 1,000,000 records from on-prem to ADLS Gen2.</p>
+                    <div class="failure-flow">
+                        <div class="failure-step"><strong>What Detects It?</strong> Copy Activity throws SocketTimeoutException in ADF Monitor.</div>
+                        <div class="failure-step"><strong>What Fails?</strong> Copy Activity transitions to Failed; downstream Stored Procedure does NOT execute.</div>
+                        <div class="failure-step"><strong>Data Affected?</strong> Orphaned partial Parquet partition in Bronze. Watermark table remains at old timestamp.</div>
+                        <div class="failure-step"><strong>Recovery Action:</strong> Automatic ADF retry or rerun. Sinking with partition overwrite or date folder wipes partials; re-extracts full window safely.</div>
+                    </div>
+                </div>
+
+                <!-- Failure 3 -->
+                <div class="failure-card">
+                    <div class="failure-title">🚨 Failure 3: Database Password Changed in SQL Server</div>
+                    <p style="font-size: 0.825rem; color: var(--text-secondary);">DBA rotates <code>adf_svc_user</code> password on SQL Server without updating Azure.</p>
+                    <div class="failure-flow">
+                        <div class="failure-step"><strong>What Detects It?</strong> SHIR throws SQL Login Failed (Error 18456) when testing Linked Service.</div>
+                        <div class="failure-step"><strong>What Fails?</strong> All pipelines attempting to connect to <code>ls_sqlserver_onprem</code>.</div>
+                        <div class="failure-step"><strong>Data Affected?</strong> Ingestion halts; source data remains safely in SQL Server.</div>
+                        <div class="failure-step"><strong>Recovery Action:</strong> Create new version of secret <code>sql-onprem-password</code> in Azure Key Vault. Zero ADF pipeline code change required!</div>
+                    </div>
+                </div>
+
+                <!-- Failure 4 -->
+                <div class="failure-card">
+                    <div class="failure-title">🚨 Failure 4: Watermark Table Accidentally Advances Ahead of Source</div>
+                    <p style="font-size: 0.825rem; color: var(--text-secondary);">Manual SQL query accidentally sets <code>last_watermark_timestamp</code> to a future date (e.g. 2099-01-01).</p>
+                    <div class="failure-flow">
+                        <div class="failure-step"><strong>What Detects It?</strong> Pipeline runs succeed in 2 seconds but 0 rows are read and 0 rows written.</div>
+                        <div class="failure-step"><strong>What Fails?</strong> Silent delta ingestion gap; new clinical encounters are completely ignored.</div>
+                        <div class="failure-step"><strong>Data Affected?</strong> Bronze stops receiving any updates.</div>
+                        <div class="failure-step"><strong>Recovery Action:</strong> Issue manual UPDATE on <code>etl_watermark_control</code> to reset timestamp back to the last known verified load date.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 7: Live Topology -->
+        <div id="tab-topology" class="tab-pane">
+            <div class="section-card">
+                <div class="section-title">☁️ Live Cloud Topology (Azure Production)</div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Resource Group</div>
+                    <div style="background: var(--bg-elevated); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Resource Group</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">rg-healthcare-migration-prod</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Region: Central India</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Location: Central India (Prod)</div>
                     </div>
-                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">ADLS Gen2 Storage</div>
+                    <div style="background: var(--bg-elevated); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">ADLS Gen2 Storage</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">sthealthcarelake01</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Containers: bronze, silver, gold</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Containers: bronze, silver, gold (HNS: ON)</div>
                     </div>
-                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Azure Key Vault</div>
+                    <div style="background: var(--bg-elevated); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Azure Key Vault</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">kv-healthcare-sec01</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Permission Model: Azure RBAC</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Security: Azure RBAC (Key Vault Secrets User)</div>
                     </div>
-                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Azure Data Factory</div>
+                    <div style="background: var(--bg-elevated); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Azure Data Factory</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">adf-healthcare-punit01</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Git: punitgiri921/Azure-Healthcare-Data-Migration</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Git Branch: main | Directory: /adf</div>
                     </div>
                 </div>
             </div>
@@ -683,25 +1282,25 @@
             <div class="section-card">
                 <div class="section-title">🏥 Local On-Premises EMR & Gateway Topology</div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Database Engine & Instance</div>
+                    <div style="background: var(--bg-elevated); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Database Engine & Instance</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">SQL Server 2022 (.\SQLEXPRESS)</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Database: healthcare_emr_source (Port 1433)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">DB: healthcare_emr_source | Port: 1433</div>
                     </div>
-                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Self-Hosted Integration Runtime</div>
+                    <div style="background: var(--bg-elevated); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Self-Hosted Integration Runtime</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--success); margin-top: 0.25rem;">shir-onprem-gateway-01 (🟢 Running)</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Service: DIAHostService (Windows Daemon)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Host: DESKTOP-H5RKB3H | Service: DIAHostService</div>
                     </div>
-                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Key Vault Linked Service</div>
+                    <div style="background: var(--bg-elevated); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Key Vault Linked Service</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">ls_keyvault_healthcare</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Secret: sql-onprem-password</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Secret Key: sql-onprem-password</div>
                     </div>
-                    <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">SQL Server Linked Service</div>
+                    <div style="background: var(--bg-elevated); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">SQL Server Linked Service</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">ls_sqlserver_onprem</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Authentication: SQL Auth (adf_svc_user)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Auth: adf_svc_user (Password via Key Vault)</div>
                     </div>
                 </div>
             </div>
@@ -709,7 +1308,7 @@
     </main>
 
     <footer>
-        Azure Healthcare Data Migration & Medallion Lakehouse — Engineered by Punit Giri
+        Azure Healthcare Data Migration & Medallion Lakehouse — Engineered by Punit Giri • Master Learning Tracker
     </footer>
 
     <script>
