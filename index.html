@@ -398,7 +398,7 @@
                 <p>Enterprise On-Prem EMR to ADLS Gen2 Medallion Lakehouse Migration & Clinical Analytics</p>
             </div>
             <div>
-                <span class="badge badge-live">PHASE 2 IN PROGRESS • LOCAL DB SEEDED</span>
+                <span class="badge badge-live">PHASE 2 COMPLETE • PHASE 3 READY</span>
             </div>
         </div>
     </header>
@@ -406,13 +406,13 @@
     <div class="kpi-strip">
         <div class="kpi-card">
             <div class="kpi-label">Overall Progress</div>
-            <div class="kpi-value" id="kpi-progress">26%</div>
-            <div class="kpi-sub">10 of 38 Total Tasks Complete</div>
+            <div class="kpi-value" id="kpi-progress">38%</div>
+            <div class="kpi-sub">Phases 1 & 2 Complete (14/38 Tasks)</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Active Milestone</div>
-            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">Phase 2 of 6</div>
-            <div class="kpi-sub">SHIR Gateway & Key Vault Secrets</div>
+            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">Phase 3 of 6</div>
+            <div class="kpi-sub">Incremental Watermark Ingestion (Bronze)</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Azure Free Trial Budget</div>
@@ -427,7 +427,7 @@
         <div class="kpi-card">
             <div class="kpi-label">Technical Questions (TQ)</div>
             <div class="kpi-value" id="kpi-tq">4 / 4</div>
-            <div class="kpi-sub">Senior Architecture Defenses Logged</div>
+            <div class="kpi-sub">Phases 1 & 2 Gate Passed (10/10)</div>
         </div>
     </div>
 
@@ -458,7 +458,7 @@
             <div class="section-card">
                 <div class="section-title">🔐 Enterprise Security & HIPAA Standards Verified</div>
                 <ul style="padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8;">
-                    <li><strong>Zero-Secret Identity</strong>: ADF accesses Azure Key Vault and ADLS Gen2 strictly via System-Assigned Managed Identity (SMI).</li>
+                    <li><strong>Zero-Secret Identity</strong>: ADF accesses Azure Key Vault and ADLS Gen2 strictly via System-Assigned Managed Identity (SMI). Database password retrieved dynamically from Key Vault.</li>
                     <li><strong>Outbound-Only SHIR Connectivity</strong>: No incoming firewall ports opened on premise. The gateway polls Azure securely on port 443 over TLS 1.3.</li>
                     <li><strong>High-Watermark Idempotency</strong>: Dedicated <code>etl_watermark_control</code> table guarantees failure-safe incremental loads without duplicate records.</li>
                     <li><strong>ADLS Gen2 Hierarchical Namespace (HNS)</strong>: Atomic $O(1)$ folder renames and POSIX-compliant ACLs across <code>bronze</code>, <code>silver</code>, and <code>gold</code>.</li>
@@ -489,10 +489,10 @@
                 </div>
 
                 <!-- Phase 2 -->
-                <div class="phase-box in-progress">
+                <div class="phase-box completed">
                     <div class="phase-header">
                         <span class="phase-num">Phase 2</span>
-                        <span class="badge badge-progress">IN PROGRESS (3/7)</span>
+                        <span class="badge badge-done">COMPLETED (7/7)</span>
                     </div>
                     <div class="phase-name">On-Prem EMR DB & SHIR Gateway Setup</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Set up local EMR tables, seed test data, install Self-Hosted Integration Runtime agent.</p>
@@ -500,21 +500,30 @@
                         <li class="task-item done">✅ Create local SQL Server database (healthcare_emr_source)</li>
                         <li class="task-item done">✅ Execute DDL & seed clinical data (Patients, Providers, Encounters, etc.)</li>
                         <li class="task-item done">✅ Create etl_watermark_control table & seed initial watermarks</li>
-                        <li class="task-item active">⏳ Download & install Microsoft Integration Runtime (SHIR) on Windows</li>
-                        <li class="task-item">⏳ Register SHIR with ADF authentication key & verify gateway status</li>
-                        <li class="task-item">⏳ Store database connection credentials in Azure Key Vault</li>
-                        <li class="task-item">⏳ Create Key Vault & SHIR Linked Services in ADF</li>
+                        <li class="task-item done">✅ Download & install Microsoft Integration Runtime (SHIR) on Windows</li>
+                        <li class="task-item done">✅ Register SHIR with ADF authentication key & verify gateway status</li>
+                        <li class="task-item done">✅ Store database connection credentials in Azure Key Vault</li>
+                        <li class="task-item done">✅ Create Key Vault & SHIR Linked Services in ADF</li>
                     </ul>
                 </div>
 
                 <!-- Phase 3 -->
-                <div class="phase-box locked">
+                <div class="phase-box in-progress">
                     <div class="phase-header">
                         <span class="phase-num">Phase 3</span>
-                        <span class="badge badge-locked">LOCKED</span>
+                        <span class="badge badge-progress">ACTIVE / NEXT UP</span>
                     </div>
                     <div class="phase-name">Metadata Watermark Ingestion (Bronze)</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Build reusable parameterized copy pipeline with high-watermark delta loading into Bronze Parquet.</p>
+                    <ul class="task-list">
+                        <li class="task-item active">⏳ Create ADF Pipeline: pl_ingest_incremental_bronze</li>
+                        <li class="task-item">⏳ Implement Lookup activity on etl_watermark_control</li>
+                        <li class="task-item">⏳ Implement Lookup activity for current max source timestamp</li>
+                        <li class="task-item">⏳ Build dynamic Copy Activity with parameterized SQL query</li>
+                        <li class="task-item">⏳ Sink data to ADLS Gen2 bronze/ container as Parquet</li>
+                        <li class="task-item">⏳ Add Stored Procedure activity to advance high-watermark timestamp</li>
+                        <li class="task-item">⏳ Test baseline full load and simulate incremental clinical updates</li>
+                    </ul>
                 </div>
 
                 <!-- Phase 4 -->
@@ -672,27 +681,27 @@
             </div>
 
             <div class="section-card">
-                <div class="section-title">🏥 Local On-Premises EMR Topology (Source)</div>
+                <div class="section-title">🏥 Local On-Premises EMR & Gateway Topology</div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
                     <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
                         <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Database Engine & Instance</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">SQL Server 2022 (.\SQLEXPRESS)</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Database: healthcare_emr_source</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Database: healthcare_emr_source (Port 1433)</div>
                     </div>
                     <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Clinical & Billing Tables</div>
-                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">5 Seeded Tables (87 Total Rows)</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Providers, Patients, Encounters, Diagnoses, Claims</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Self-Hosted Integration Runtime</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--success); margin-top: 0.25rem;">shir-onprem-gateway-01 (🟢 Running)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Service: DIAHostService (Windows Daemon)</div>
                     </div>
                     <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Watermark Control Engine</div>
-                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">dbo.etl_watermark_control</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">5 Entities Initialized (1970-01-01 Baseline)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Key Vault Linked Service</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">ls_keyvault_healthcare</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Secret: sql-onprem-password</div>
                     </div>
                     <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Service Principal Account</div>
-                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">adf_svc_user</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Roles: db_datareader, db_datawriter</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">SQL Server Linked Service</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">ls_sqlserver_onprem</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Authentication: SQL Auth (adf_svc_user)</div>
                     </div>
                 </div>
             </div>

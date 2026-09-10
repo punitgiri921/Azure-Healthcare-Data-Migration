@@ -1,9 +1,9 @@
 {
   "project_name": "Azure Healthcare Data Migration & Medallion Lakehouse",
   "budget_credit_usd": 200,
-  "current_phase": 2,
-  "current_phase_name": "Phase 2: On-Prem Database & SHIR Gateway Setup",
-  "overall_progress_percent": 26,
+  "current_phase": 3,
+  "current_phase_name": "Phase 3: Metadata-Driven Watermark Ingestion (Bronze)",
+  "overall_progress_percent": 38,
   "last_updated": "2026-09-10",
   "phases": [
     {
@@ -51,7 +51,7 @@
     {
       "phase_id": 2,
       "title": "On-Prem Database & SHIR Gateway Setup",
-      "status": "IN_PROGRESS",
+      "status": "COMPLETED",
       "tasks": [
         {
           "task_id": "P2-T1",
@@ -71,30 +71,66 @@
         {
           "task_id": "P2-T4",
           "name": "Download & install Microsoft Integration Runtime (SHIR) on Windows",
-          "status": "IN_PROGRESS"
+          "status": "COMPLETED"
         },
         {
           "task_id": "P2-T5",
           "name": "Register SHIR with ADF authentication key & verify gateway status",
-          "status": "PENDING"
+          "status": "COMPLETED"
         },
         {
           "task_id": "P2-T6",
           "name": "Store database connection credentials in Azure Key Vault",
-          "status": "PENDING"
+          "status": "COMPLETED"
         },
         {
           "task_id": "P2-T7",
           "name": "Create Key Vault & SHIR Linked Services in ADF",
-          "status": "PENDING"
+          "status": "COMPLETED"
         }
       ]
     },
     {
       "phase_id": 3,
       "title": "Metadata-Driven Watermark Ingestion (Bronze)",
-      "status": "LOCKED",
-      "tasks": []
+      "status": "IN_PROGRESS",
+      "tasks": [
+        {
+          "task_id": "P3-T1",
+          "name": "Create ADF Pipeline: pl_ingest_incremental_bronze",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P3-T2",
+          "name": "Implement Lookup activity on etl_watermark_control",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P3-T3",
+          "name": "Implement Lookup activity for current max source timestamp",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P3-T4",
+          "name": "Build dynamic Copy Activity with parameterized SQL query",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P3-T5",
+          "name": "Sink data to ADLS Gen2 bronze/ container as Parquet",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P3-T6",
+          "name": "Add Script/Stored Procedure activity to advance high-watermark timestamp",
+          "status": "PENDING"
+        },
+        {
+          "task_id": "P3-T7",
+          "name": "Test baseline full load and simulate incremental clinical updates",
+          "status": "PENDING"
+        }
+      ]
     },
     {
       "phase_id": 4,
@@ -135,6 +171,16 @@
       "id": "CL-04",
       "title": "ADF Git Integration & Enterprise Branching Strategy",
       "summary": "Links ADF Studio to GitHub repo with collaboration branch (main), root directory (/adf), and automated ARM template publishing branch (adf_publish) for CI/CD."
+    },
+    {
+      "id": "CL-05",
+      "title": "High-Watermark Metadata Pattern & State Management",
+      "summary": "Dedicated control table etl_watermark_control tracks high-watermark timestamp per entity. Updates occur strictly upon Copy success, preventing silent data loss."
+    },
+    {
+      "id": "CL-06",
+      "title": "Hybrid Cloud Connectivity via Self-Hosted Integration Runtime (SHIR)",
+      "summary": "Outbound-only polling model on port 443 over TLS 1.3 extracts data securely from internal relational databases without public IPs or inbound firewall rules."
     }
   ],
   "technical_questions": [
@@ -147,6 +193,16 @@
       "id": "TQ-02",
       "question": "Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouse architectures instead of standard Blob Storage?",
       "core_rationale": "Without HNS, renaming or moving a directory requires copying every single blob individually (O(N) operations), which destroys pipeline performance at scale. HNS enables atomic metadata renames (O(1)) and granular POSIX directory ACLs."
+    },
+    {
+      "id": "TQ-03",
+      "question": "How does a Self-Hosted Integration Runtime (SHIR) securely bridge on-premise databases without opening inbound firewall ports?",
+      "core_rationale": "SHIR uses an outbound-only polling architecture over HTTPS port 443 with TLS 1.3. It never listens for inbound internet traffic, keeping the internal healthcare network completely secluded from external attacks."
+    },
+    {
+      "id": "TQ-04",
+      "question": "How do you prevent data loss or duplicate ingestion if an incremental pipeline fails halfway through a run?",
+      "core_rationale": "Through a two-phase watermark architecture where the watermark control table is only updated upon successful execution of the Copy Activity. If a failure occurs mid-batch, the old watermark remains, ensuring no records are skipped."
     }
   ]
 }

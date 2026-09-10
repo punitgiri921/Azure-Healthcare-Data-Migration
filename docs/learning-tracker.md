@@ -9,8 +9,8 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 | Phase ID | Phase Name | Status | Tasks Complete | Score |
 | :--- | :--- | :--- | :--- | :--- |
 | **Phase 1** | **Cloud Provisioning & Zero-Secret Setup** | 🟢 **COMPLETED** | **7 / 7** | **10 / 10** |
-| **Phase 2** | **On-Prem Database & SHIR Gateway Setup** | 🟡 **IN PROGRESS** | **3 / 7** | -- / 10 |
-| **Phase 3** | **Metadata-Driven Watermark Ingestion (Bronze)** | 🔒 Locked | 0 / 7 | -- / 10 |
+| **Phase 2** | **On-Prem Database & SHIR Gateway Setup** | 🟢 **COMPLETED** | **7 / 7** | **10 / 10** |
+| **Phase 3** | **Metadata-Driven Watermark Ingestion (Bronze)** | 🟡 **IN PROGRESS** | **0 / 7** | -- / 10 |
 | **Phase 4** | **Medallion Transformations & HIPAA (Silver & Gold)** | 🔒 Locked | 0 / 7 | -- / 10 |
 | **Phase 5** | **Synapse Serverless Serving & Trigger Automation** | 🔒 Locked | 0 / 5 | -- / 10 |
 | **Phase 6** | **Power BI Reporting & CV Deliverables** | 🔒 Locked | 0 / 5 | -- / 10 |
