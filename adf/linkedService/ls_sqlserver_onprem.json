@@ -1,0 +1,27 @@
+{
+	"name": "ls_sqlserver_onprem",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "DESKTOP-H5RKB3H\\SQLEXPRESS",
+			"database": "healthcare_emr_source",
+			"encrypt": "optional",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "adf_svc_user",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_keyvault_healthcare",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "sql-onprem-password"
+			}
+		},
+		"connectVia": {
+			"referenceName": "shir-onprem-gateway-01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
