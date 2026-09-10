@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 1 & Phase 2 Architecture — Master Visual Explainer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0e17;
+            --bg-card: #121826;
+            --bg-elevated: #1a2234;
+            --border-color: #232f45;
+            --text-primary: #f0f4fc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --primary: #38bdf8;
+            --accent: #818cf8;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Two Zone Split */
+        .zones-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .zones-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .zone-card {
+            background-color: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .zone-onprem {
+            border-color: #059669;
+        }
+
+        .zone-azure {
+            border-color: #0284c7;
+        }
+
+        .zone-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .badge-onprem {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .badge-azure {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .zone-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-card {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .item-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-name {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: #bae6fd;
+            font-size: 0.95rem;
+        }
+
+        .item-loc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: #0f172a;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .item-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .item-purpose {
+            background: #0b1120;
+            border-left: 3px solid var(--primary);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            color: #e2e8f0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .flow-bridge {
+            background: linear-gradient(90deg, rgba(5, 150, 105, 0.1) 0%, rgba(2, 132, 199, 0.1) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .bridge-step {
+            flex: 1;
+            min-width: 200px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+        }
+
+        .bridge-arrow {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Master Table */
+        .table-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--bg-elevated);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td code {
+            font-family: var(--font-mono);
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.8125rem;
+        }
+
+        tr:hover td {
+            background-color: rgba(56, 189, 248, 0.03);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🗺️ Healthcare Data Lakehouse — Complete Architecture Blueprint</h1>
+        <p class="subtitle">A complete breakdown of every resource created, where it lives, the exact configuration values, and the real-world engineering purpose.</p>
+    </header>
+
+    <!-- Interactive Flow Bridge -->
+    <div class="flow-bridge">
+        <div class="bridge-step">
+            <div style="font-size: 0.7rem; color: #34d399; font-weight: bold; text-transform: uppercase;">1. On-Prem Source</div>
+            <div style="font-weight: bold; margin-top: 0.25rem;">SQL Server 2022</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">healthcare_emr_source (Port 1433)</div>
+        </div>
+        <div class="bridge-arrow">➔</div>
+        <div class="bridge-step">
+            <div style="font-size: 0.7rem; color: #38bdf8; font-weight: bold; text-transform: uppercase;">2. Outbound Gateway</div>
+            <div style="font-weight: bold; margin-top: 0.25rem;">SHIR Service</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Outbound 443 HTTPS (Zero open inbound ports)</div>
+        </div>
+        <div class="bridge-arrow">➔</div>
+        <div class="bridge-step">
+            <div style="font-size: 0.7rem; color: #fbbf24; font-weight: bold; text-transform: uppercase;">3. Zero-Secret Credential</div>
+            <div style="font-weight: bold; margin-top: 0.25rem;">Azure Key Vault</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">sql-onprem-password (RBAC protected)</div>
+        </div>
+        <div class="bridge-arrow">➔</div>
+        <div class="bridge-step">
+            <div style="font-size: 0.7rem; color: #818cf8; font-weight: bold; text-transform: uppercase;">4. Cloud Ingestion</div>
+            <div style="font-weight: bold; margin-top: 0.25rem;">Azure Data Factory</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">ls_sqlserver_onprem via Managed Identity</div>
+        </div>
+        <div class="bridge-arrow">➔</div>
+        <div class="bridge-step">
+            <div style="font-size: 0.7rem; color: #f59e0b; font-weight: bold; text-transform: uppercase;">5. Lakehouse Sink</div>
+            <div style="font-weight: bold; margin-top: 0.25rem;">ADLS Gen2 Lake</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">sthealthcarelake01 (bronze / silver / gold)</div>
+        </div>
+    </div>
+
+    <!-- Zones Grid -->
+    <div class="zones-grid">
+        
+        <!-- ZONE 1: LOCAL ON-PREM -->
+        <div class="zone-card zone-onprem">
+            <span class="zone-badge badge-onprem">Phase 2 Environment</span>
+            <div class="zone-title">💻 Local Windows PC (On-Premises EMR)</div>
+            <p style="color: var(--text-secondary); font-size: 0.85rem;">Simulates an enterprise hospital or clinical network behind a corporate firewall.</p>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">.\SQLEXPRESS (SQL Server 2022)</span>
+                    <span class="item-loc">Local PC • Port 1433</span>
+                </div>
+                <div class="item-desc">Instance hosting the simulated electronic medical records. Reconfigured to <strong>Mixed Mode Authentication</strong> and <strong>TCP/IP Enabled</strong>.</div>
+                <div class="item-purpose"><strong>Purpose:</strong> Acts as the legacy operational healthcare database that needs migration to the cloud.</div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">healthcare_emr_source</span>
+                    <span class="item-loc">Database in SSMS</span>
+                </div>
+                <div class="item-desc">Contains 5 clinical & billing tables (<code>patients</code>, <code>providers</code>, <code>encounters</code>, <code>diagnoses</code>, <code>claims</code>) with 87 total seeded records.</div>
+                <div class="item-purpose"><strong>Purpose:</strong> Provides realistic relational data including patient PII to test HIPAA de-identification in the lakehouse.</div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">dbo.etl_watermark_control</span>
+                    <span class="item-loc">Control Table</span>
+                </div>
+                <div class="item-desc">Stores <code>table_name</code>, <code>watermark_column</code>, and <code>last_watermark_value</code> initialized to <code>1970-01-01</code>.</div>
+                <div class="item-purpose"><strong>Purpose:</strong> Enables metadata-driven delta loading so pipelines extract only new/updated rows without full table scans.</div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">adf_svc_user</span>
+                    <span class="item-loc">SQL Login User</span>
+                </div>
+                <div class="item-desc">Dedicated service account with <code>db_datareader</code> and <code>db_datawriter</code> permissions.</div>
+                <div class="item-purpose"><strong>Purpose:</strong> Adheres to Least Privilege (no sysadmin rights; can only read tables and advance the watermark table).</div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">DIAHostService (SHIR Agent)</span>
+                    <span class="item-loc">Windows Background Service</span>
+                </div>
+                <div class="item-desc">Installed via Express Setup. Service is running 24/7 on your PC and registered to ADF with key <code>IR@9043c9cc...</code>.</div>
+                <div class="item-purpose"><strong>Purpose:</strong> Connects OUTBOUND to Azure on port 443. The firewall never opens inbound ports, satisfying strict HIPAA network rules.</div>
+            </div>
+        </div>
+
+        <!-- ZONE 2: AZURE CLOUD -->
+        <div class="zone-card zone-azure">
+            <span class="zone-badge badge-azure">Phase 1 Environment</span>
+            <div class="zone-title">☁️ Microsoft Azure Cloud (Central India)</div>
+            <p style="color: var(--text-secondary); font-size: 0.85rem;">Target enterprise cloud infrastructure within resource group <code>rg-healthcare-migration-prod</code>.</p>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">sthealthcarelake01</span>
+                    <span class="item-loc">ADLS Gen2 Storage</span>
+                </div>
+                <div class="item-desc">StorageV2 account with <strong>Hierarchical Namespace (HNS) ENABLED</strong> and containers <code>bronze</code>, <code>silver</code>, <code>gold</code>.</div>
+                <div class="item-purpose"><strong>Purpose:</strong> Houses the 3-layer Medallion Lakehouse. HNS provides instant O(1) directory moves and POSIX ACL permissions.</div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">kv-healthcare-sec01</span>
+                    <span class="item-loc">Azure Key Vault</span>
+                </div>
+                <div class="item-desc">Configured with modern <strong>Azure RBAC</strong>. Contains secret <code>sql-onprem-password</code> (<code>HealthLakehouse2026!Secure</code>).</div>
+                <div class="item-purpose"><strong>Purpose:</strong> Centralizes password storage so no human or code ever hardcodes credentials in pipeline configurations.</div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">adf-healthcare-punit01</span>
+                    <span class="item-loc">Azure Data Factory v2</span>
+                </div>
+                <div class="item-desc">Enabled with <strong>System-Assigned Managed Identity (SMI)</strong> and integrated with GitHub repo <code>Azure-Healthcare-Data-Migration</code>.</div>
+                <div class="item-purpose"><strong>Purpose:</strong> Orchestrates the data migration pipelines. Managed Identity gives it auto-rotating zero-secret tokens to Key Vault and Storage.</div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">ls_keyvault_healthcare</span>
+                    <span class="item-loc">ADF Linked Service</span>
+                </div>
+                <div class="item-desc">Connection from ADF to <code>kv-healthcare-sec01</code> authenticated via System-Assigned Managed Identity.</div>
+                <div class="item-purpose"><strong>Purpose:</strong> Allows ADF activities to fetch the SQL Server password on-the-fly during pipeline runs.</div>
+            </div>
+
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="item-name">ls_sqlserver_onprem</span>
+                    <span class="item-loc">ADF Linked Service</span>
+                </div>
+                <div class="item-desc">Connects via <code>shir-onprem-gateway-01</code> to <code>DESKTOP-H5RKB3H\SQLEXPRESS</code> using user <code>adf_svc_user</code> and password from Key Vault.</div>
+                <div class="item-purpose"><strong>Purpose:</strong> The official pipeline data connector that Phase 3 will use as the Source to copy data into Bronze Parquet!</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Master Breakdown Table -->
+    <div class="table-section">
+        <h2 style="font-size: 1.25rem; margin-bottom: 0.5rem;">📋 Master Configuration Ledger: What, Where & Why</h2>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">Reference table for code reviews, portfolio documentation, and technical interview defenses.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Phase</th>
+                    <th>Where Configured?</th>
+                    <th>Exact Resource / Value</th>
+                    <th>Why Did We Do This? (The Purpose)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Phase 1</strong></td>
+                    <td>Azure Portal</td>
+                    <td><code>rg-healthcare-migration-prod</code></td>
+                    <td>Logical boundary grouping all cloud assets in Central India for unified lifecycle and cost monitoring.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 1</strong></td>
+                    <td>Azure Portal</td>
+                    <td><code>sthealthcarelake01</code> (HNS=True)</td>
+                    <td>Creates Medallion storage. Hierarchical Namespace provides POSIX file security and O(1) directory rename speed for Lakehouse batches.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 1</strong></td>
+                    <td>ADLS Containers</td>
+                    <td><code>bronze</code>, <code>silver</code>, <code>gold</code></td>
+                    <td>Separates raw ingested data (Bronze), cleaned/PII-masked data (Silver), and clinical analytical marts (Gold).</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 1</strong></td>
+                    <td>Azure Portal</td>
+                    <td><code>kv-healthcare-sec01</code></td>
+                    <td>Zero-Secret vault. Holds on-prem database credentials so pipelines never store passwords in plaintext.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 1</strong></td>
+                    <td>Azure Portal IAM</td>
+                    <td><code>Key Vault Secrets Officer</code> (You)</td>
+                    <td>Azure RBAC separates management plane from data plane. This gave your personal account permission to create secrets.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 1</strong></td>
+                    <td>Azure Portal IAM</td>
+                    <td><code>Storage Blob Data Contributor</code> (ADF)</td>
+                    <td>Gives ADF permission to write files to ADLS Gen2 containers via its System-Assigned Managed Identity.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 1</strong></td>
+                    <td>Azure Portal IAM</td>
+                    <td><code>Key Vault Secrets User</code> (ADF)</td>
+                    <td>Gives ADF permission to read secret values from Key Vault at runtime without granting permission to delete or alter keys.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 1</strong></td>
+                    <td>ADF Studio</td>
+                    <td>GitHub: <code>punitgiri921/Azure-Healthcare-Data-Migration</code></td>
+                    <td>Enables Git CI/CD version control. Live code saves to <code>main</code> branch under <code>/adf</code>; ARM templates publish to <code>adf_publish</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>Local SSMS</td>
+                    <td><code>healthcare_emr_source</code></td>
+                    <td>Simulated on-premises relational database hosting Patients, Providers, Encounters, Diagnoses, and Claims.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>Local SQL Server</td>
+                    <td><code>etl_watermark_control</code></td>
+                    <td>Tracks incremental high watermarks. Prevents full scans and enables restartability if an ADF run fails midway.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>Local SQL Server</td>
+                    <td><code>adf_svc_user</code> (db_datareader, db_datawriter)</td>
+                    <td>Principle of Least Privilege. Dedicated service login that can read clinical tables and update watermarks without admin rights.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>Windows Registry</td>
+                    <td><code>LoginMode = 2</code> (Mixed Mode)</td>
+                    <td>SQL Server Express starts in Windows-Only mode. Setting this to 2 allowed the <code>adf_svc_user</code> SQL login to authenticate.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>Windows Services</td>
+                    <td><code>SQL Server Browser</code> = Automatic</td>
+                    <td>Resolves the dynamic TCP port for the named SQL Server instance (<code>\SQLEXPRESS</code>) so external processes can find it.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>Local Windows Host</td>
+                    <td><code>DIAHostService</code> (SHIR Agent)</td>
+                    <td>Bridges your laptop to Azure Data Factory via outbound port 443 HTTPS. No inbound firewall holes needed.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>Azure Key Vault</td>
+                    <td>Secret: <code>sql-onprem-password</code></td>
+                    <td>Securely stores the <code>HealthLakehouse2026!Secure</code> password in Azure Key Vault.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>ADF Studio</td>
+                    <td><code>ls_keyvault_healthcare</code></td>
+                    <td>Linked Service allowing ADF to authenticate to Key Vault via Managed Identity.</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>ADF Studio</td>
+                    <td><code>ls_sqlserver_onprem</code></td>
+                    <td>Linked Service connecting to local SQL Server through SHIR gateway with password pulled dynamically from Key Vault.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

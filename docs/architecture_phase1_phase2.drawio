@@ -1,0 +1,187 @@
+<mxfile host="app.diagrams.net" modified="2026-09-10T17:45:00.000Z" agent="Antigravity" version="24.0.0" type="device">
+  <diagram id="Phase1_Phase2_Architecture" name="Phase 1 &amp; Phase 2 Topology">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" background="#0B1120" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITLE BAR -->
+        <mxCell id="title_banner" value="&lt;font style=&quot;font-size: 20px; font-weight: 800; color: #38BDF8;&quot;&gt;Azure Healthcare Migration — Phase 1 &amp;amp; Phase 2 End-to-End Architecture&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 12px; color: #94A3B8;&quot;&gt;Physical Topology, Zero-Secret RBAC Boundaries, On-Premises Gateway, and Exact Configuration Values&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#131D33;strokeColor=#1E293B;align=left;spacingLeft=25;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="30" width="1580" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- ZONE 1: LOCAL ON-PREMISES ENVIRONMENT (LAPTOP)                           -->
+        <!-- ========================================================================= -->
+        <mxCell id="zone_onprem" value="&lt;font style=&quot;font-size: 15px; font-weight: 700; color: #E2E8F0;&quot;&gt;💻 ON-PREMISES ENVIRONMENT — Local Windows Laptop (DESKTOP-H5RKB3H)&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px; color: #64748B;&quot;&gt;Simulates the Hospital / Clinical Network Boundary. No public IP and no inbound firewall openings.&lt;/font&gt;" style="swimlane;startSize=45;rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#334155;strokeWidth=2;collapsible=0;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="50" y="130" width="720" height="910" as="geometry" />
+        </mxCell>
+
+        <!-- SQL Server Instance Container -->
+        <mxCell id="box_sql_instance" value="&lt;font style=&quot;font-size: 13px; font-weight: 700; color: #38BDF8;&quot;&gt;🗄️ SQL Server 2022 Express Instance (.\SQLEXPRESS)&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px; color: #94A3B8;&quot;&gt;Service: MSSQL$SQLEXPRESS | Protocol: TCP/IP Port 1433 | Auth: Mixed Mode (SQL + Windows)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#0284C7;strokeWidth=1.5;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="30" y="65" width="660" height="420" as="geometry" />
+        </mxCell>
+
+        <!-- Database Box -->
+        <mxCell id="box_database" value="&lt;b&gt;Database:&lt;/b&gt; &lt;font color=&quot;#F59E0B&quot;&gt;healthcare_emr_source&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #94A3B8;&quot;&gt;Primary EMR source database hosting clinical &amp;amp; billing records&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=15;spacingTop=5;verticalAlign=top;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="50" y="125" width="620" height="235" as="geometry" />
+        </mxCell>
+
+        <!-- Table 1: Patients -->
+        <mxCell id="tbl_patients" value="&lt;b&gt;dbo.patients&lt;/b&gt; (20 rows)&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #94A3B8;&quot;&gt;PII: ssn, first_name, last_name, dob, address (To be hashed in Silver)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#334155;align=left;spacingLeft=10;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="70" y="165" width="270" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Table 2: Providers -->
+        <mxCell id="tbl_providers" value="&lt;b&gt;dbo.providers&lt;/b&gt; (10 rows)&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #94A3B8;&quot;&gt;provider_name, specialty, npi_number&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#334155;align=left;spacingLeft=10;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="370" y="165" width="280" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Table 3: Encounters -->
+        <mxCell id="tbl_encounters" value="&lt;b&gt;dbo.encounters&lt;/b&gt; (15 rows)&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #94A3B8;&quot;&gt;admission_date, discharge_date, type, updated_at&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#334155;align=left;spacingLeft=10;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="70" y="220" width="270" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Table 4: Diagnoses -->
+        <mxCell id="tbl_diagnoses" value="&lt;b&gt;dbo.diagnoses&lt;/b&gt; (17 rows)&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #94A3B8;&quot;&gt;icd10_code, description, is_primary&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#334155;align=left;spacingLeft=10;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="370" y="220" width="280" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Table 5: Claims -->
+        <mxCell id="tbl_claims" value="&lt;b&gt;dbo.claims&lt;/b&gt; (15 rows)&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #94A3B8;&quot;&gt;billed_amount, paid_amount, claim_status&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#334155;align=left;spacingLeft=10;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="70" y="275" width="270" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Table 6: Watermark Control -->
+        <mxCell id="tbl_watermark" value="&lt;b style=&quot;color: #34D399;&quot;&gt;dbo.etl_watermark_control&lt;/b&gt; (5 rows)&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #6EE7B7;&quot;&gt;table_name, watermark_col, last_watermark_val (1970-01-01)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#064E3B;strokeColor=#059669;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="370" y="275" width="280" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Service Account Box -->
+        <mxCell id="box_service_account" value="&lt;b&gt;Dedicated Service User:&lt;/b&gt; &lt;font color=&quot;#38BDF8;&quot;&gt;adf_svc_user&lt;/font&gt; | &lt;b&gt;Password:&lt;/b&gt; &lt;font color=&quot;#94A3B8;&quot;&gt;HealthLakehouse2026!Secure&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #94A3B8;&quot;&gt;Roles: &lt;b&gt;db_datareader&lt;/b&gt; (Extract data) + &lt;b&gt;db_datawriter&lt;/b&gt; (Update etl_watermark_control)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#0284C7;align=left;spacingLeft=15;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="50" y="375" width="620" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Tools Used: SSMS & Services -->
+        <mxCell id="box_local_tools" value="&lt;b&gt;Local Management Tools Used:&lt;/b&gt;&lt;br&gt;• &lt;b&gt;SSMS 20&lt;/b&gt;: Object Explorer &amp;gt; Connected to &lt;code&gt;.\SQLEXPRESS&lt;/code&gt; &amp;gt; Verified tables &amp;gt; Restarted service.&lt;br&gt;• &lt;b&gt;services.msc&lt;/b&gt;: Set &lt;code&gt;SQL Server Browser&lt;/code&gt; to Automatic &amp;amp; Started it (resolves port for instance)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#475569;align=left;spacingLeft=12;fontColor=#CBD5E1;fontSize=10;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="50" y="430" width="620" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- SHIR Agent Box -->
+        <mxCell id="box_shir_agent" value="&lt;font style=&quot;font-size: 13px; font-weight: 700; color: #34D399;&quot;&gt;🛡️ Self-Hosted Integration Runtime Agent (SHIR)&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px; color: #E2E8F0;&quot;&gt;Windows Service: &lt;b&gt;DIAHostService&lt;/b&gt; (Status: 🟢 Running)&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #94A3B8;&quot;&gt;Installed via Express Setup. Injected key: &lt;code&gt;IR@9043c9cc...&lt;/code&gt;&lt;br&gt;Acts as a secure local proxy. Queries SQL Server via loopback, compresses data to Parquet, and pushes OUTBOUND.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#064E3B;strokeColor=#10B981;strokeWidth=2;align=left;spacingLeft=15;spacingTop=10;verticalAlign=top;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="30" y="520" width="660" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Key Real-World Purpose Callout On-Prem -->
+        <mxCell id="box_onprem_callout" value="&lt;b style=&quot;color: #38BDF8;&quot;&gt;💡 WHY THIS SETUP MATTERS IN INTERVIEWS:&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;color: #CBD5E1;&quot;&gt;1. &lt;b&gt;HIPAA Network Isolation:&lt;/b&gt; We did NOT open Port 1433 to the internet. No public IP exists on the database.&lt;br&gt;2. &lt;b&gt;Dedicated Service Account:&lt;/b&gt; We created &lt;code&gt;adf_svc_user&lt;/code&gt; adhering to Least Privilege rather than using sysadmin &lt;code&gt;sa&lt;/code&gt;.&lt;br&gt;3. &lt;b&gt;Watermark Engine:&lt;/b&gt; &lt;code&gt;etl_watermark_control&lt;/code&gt; enables delta extraction without invasive source table triggers.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#131D33;strokeColor=#1E293B;align=left;spacingLeft=15;fontSize=10;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="30" y="660" width="660" height="90" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- ZONE 2: MICROSOFT AZURE CLOUD ENVIRONMENT                                 -->
+        <!-- ========================================================================= -->
+        <mxCell id="zone_azure" value="&lt;font style=&quot;font-size: 15px; font-weight: 700; color: #E2E8F0;&quot;&gt;☁️ MICROSOFT AZURE CLOUD (Region: Central India)&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px; color: #64748B;&quot;&gt;Resource Group: &lt;b style=&quot;color: #38BDF8;&quot;&gt;rg-healthcare-migration-prod&lt;/b&gt; | Secured via Entra ID RBAC &amp;amp; Zero-Secret SMI&lt;/font&gt;" style="swimlane;startSize=45;rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#0284C7;strokeWidth=2;collapsible=0;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="840" y="130" width="790" height="910" as="geometry" />
+        </mxCell>
+
+        <!-- ADLS Gen2 Storage Account Box -->
+        <mxCell id="box_adls" value="&lt;font style=&quot;font-size: 13px; font-weight: 700; color: #38BDF8;&quot;&gt;📦 ADLS Gen2 Data Lake: sthealthcarelake01&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #94A3B8;&quot;&gt;Tier: Standard StorageV2 | &lt;b style=&quot;color: #34D399;&quot;&gt;Hierarchical Namespace (HNS): ENABLED&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#334155;strokeWidth=1.5;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;" vertex="1" parent="zone_azure">
+          <mxGeometry x="40" y="65" width="710" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Bronze Container -->
+        <mxCell id="container_bronze" value="&lt;b style=&quot;color: #F59E0B;&quot;&gt;Container: bronze/&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #CBD5E1;&quot;&gt;Raw append-only Parquet files&lt;br&gt;Partition: &lt;code&gt;year=yyyy/month=MM&lt;/code&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#292524;strokeColor=#F59E0B;strokeWidth=1.5;align=center;" vertex="1" parent="zone_azure">
+          <mxGeometry x="60" y="115" width="205" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Silver Container -->
+        <mxCell id="container_silver" value="&lt;b style=&quot;color: #94A3B8;&quot;&gt;Container: silver/&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #CBD5E1;&quot;&gt;Clean Delta Lake tables&lt;br&gt;&lt;b style=&quot;color: #F87171;&quot;&gt;HIPAA SHA-256 Masked PII&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#94A3B8;strokeWidth=1.5;align=center;" vertex="1" parent="zone_azure">
+          <mxGeometry x="290" y="115" width="205" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Gold Container -->
+        <mxCell id="container_gold" value="&lt;b style=&quot;color: #FBBF24;&quot;&gt;Container: gold/&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #CBD5E1;&quot;&gt;Conformed Star Schema Marts&lt;br&gt;Dim_Patient, Fact_Encounters&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#362B0D;strokeColor=#FBBF24;strokeWidth=1.5;align=center;" vertex="1" parent="zone_azure">
+          <mxGeometry x="520" y="115" width="210" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Azure Key Vault Box -->
+        <mxCell id="box_keyvault" value="&lt;font style=&quot;font-size: 13px; font-weight: 700; color: #F59E0B;&quot;&gt;🔑 Azure Key Vault: kv-healthcare-sec01&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #94A3B8;&quot;&gt;Permission Model: &lt;b&gt;Azure RBAC&lt;/b&gt; (Separates Management Plane from Data Plane)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#334155;strokeWidth=1.5;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;" vertex="1" parent="zone_azure">
+          <mxGeometry x="40" y="240" width="710" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Secret Item -->
+        <mxCell id="secret_sql_pass" value="&lt;b style=&quot;color: #FBBF24;&quot;&gt;Secret: sql-onprem-password&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #E2E8F0;&quot;&gt;Value: &lt;code&gt;HealthLakehouse2026!Secure&lt;/code&gt; | Status: &lt;b style=&quot;color: #34D399;&quot;&gt;Enabled&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #94A3B8;&quot;&gt;Allows ADF to authenticate to on-prem SQL Server without hardcoded passwords.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#F59E0B;align=left;spacingLeft=15;" vertex="1" parent="zone_azure">
+          <mxGeometry x="60" y="285" width="670" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Azure Data Factory Box -->
+        <mxCell id="box_adf" value="&lt;font style=&quot;font-size: 13px; font-weight: 700; color: #38BDF8;&quot;&gt;🏭 Azure Data Factory v2: adf-healthcare-punit01&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #94A3B8;&quot;&gt;Orchestration &amp;amp; Ingestion Engine | Identity: &lt;b style=&quot;color: #34D399;&quot;&gt;System-Assigned Managed Identity (SMI)&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#0284C7;strokeWidth=1.5;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;" vertex="1" parent="zone_azure">
+          <mxGeometry x="40" y="385" width="710" height="425" as="geometry" />
+        </mxCell>
+
+        <!-- ADF Component 1: Git Integration -->
+        <mxCell id="adf_git" value="&lt;b style=&quot;color: #A78BFA;&quot;&gt;Git CI/CD Repository Integration&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #CBD5E1;&quot;&gt;• Repo: &lt;b&gt;punitgiri921/Azure-Healthcare-Data-Migration&lt;/b&gt;&lt;br&gt;• Collaboration Branch: &lt;b&gt;main&lt;/b&gt; | Root Folder: &lt;b&gt;/adf&lt;/b&gt;&lt;br&gt;• Auto ARM Publish Branch: &lt;b&gt;adf_publish&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E1B4B;strokeColor=#6366F1;align=left;spacingLeft=12;" vertex="1" parent="zone_azure">
+          <mxGeometry x="60" y="435" width="315" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- ADF Component 2: Integration Runtime Reference -->
+        <mxCell id="adf_ir_ref" value="&lt;b style=&quot;color: #34D399;&quot;&gt;Integration Runtime Definition&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #CBD5E1;&quot;&gt;• Name: &lt;b&gt;shir-onprem-gateway-01&lt;/b&gt;&lt;br&gt;• Type: Self-Hosted Integration Runtime&lt;br&gt;• Status in ADF: &lt;b style=&quot;color: #34D399;&quot;&gt;🟢 Running / Connected&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#064E3B;strokeColor=#10B981;align=left;spacingLeft=12;" vertex="1" parent="zone_azure">
+          <mxGeometry x="395" y="435" width="335" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- ADF Linked Service 1: Key Vault -->
+        <mxCell id="ls_keyvault" value="&lt;b style=&quot;color: #FBBF24;&quot;&gt;Linked Service: ls_keyvault_healthcare&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #CBD5E1;&quot;&gt;Type: &lt;b&gt;AzureKeyVault&lt;/b&gt; | AKV: &lt;code&gt;kv-healthcare-sec01&lt;/code&gt;&lt;br&gt;Auth: &lt;b&gt;System-Assigned Managed Identity&lt;/b&gt;&lt;br&gt;Purpose: Dynamically fetches database passwords without hardcoding.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=12;" vertex="1" parent="zone_azure">
+          <mxGeometry x="60" y="540" width="670" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- ADF Linked Service 2: SQL Server -->
+        <mxCell id="ls_sqlserver" value="&lt;b style=&quot;color: #38BDF8;&quot;&gt;Linked Service: ls_sqlserver_onprem&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #CBD5E1;&quot;&gt;Type: &lt;b&gt;SqlServer&lt;/b&gt; | Server: &lt;code&gt;DESKTOP-H5RKB3H\SQLEXPRESS&lt;/code&gt; | DB: &lt;code&gt;healthcare_emr_source&lt;/code&gt;&lt;br&gt;IR Gateway: &lt;code&gt;shir-onprem-gateway-01&lt;/code&gt; | User: &lt;code&gt;adf_svc_user&lt;/code&gt;&lt;br&gt;Password: &lt;b&gt;AKV Secret: sql-onprem-password&lt;/b&gt; | TrustCert: &lt;b&gt;True&lt;/b&gt; | Encrypt: &lt;b&gt;Optional&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#0284C7;strokeWidth=1.5;align=left;spacingLeft=12;" vertex="1" parent="zone_azure">
+          <mxGeometry x="60" y="635" width="670" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- ADF Pipeline Preview (Phase 3 Preview) -->
+        <mxCell id="box_phase3_prep" value="&lt;b style=&quot;color: #34D399;&quot;&gt;READY FOR PHASE 3:&lt;/b&gt; Pipeline &lt;code&gt;pl_ingest_incremental_bronze&lt;/code&gt; will use &lt;code&gt;ls_sqlserver_onprem&lt;/code&gt; as Source and write to &lt;code&gt;sthealthcarelake01/bronze/&lt;/code&gt; as Sink!" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#064E3B;strokeColor=#059669;align=center;fontSize=10;" vertex="1" parent="zone_azure">
+          <mxGeometry x="60" y="740" width="670" height="45" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- INTER-ENVIRONMENT CONNECTIVITY & RBAC LINES                              -->
+        <!-- ========================================================================= -->
+
+        <!-- 1. SHIR Local Query to SQL Server -->
+        <mxCell id="edge_shir_to_sql" value="&lt;font style=&quot;font-size: 10px; font-weight: 700; color: #38BDF8; background-color: #0F172A;&quot;&gt; Local Query (Port 1433 TCP) &lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#38BDF8;strokeWidth=2;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="box_shir_agent" target="box_service_account">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 2. SHIR Outbound HTTPS 443 to ADF Cloud -->
+        <mxCell id="edge_shir_to_adf" value="&lt;font style=&quot;font-size: 11px; font-weight: 700; color: #34D399; background-color: #0F172A;&quot;&gt; OUTBOUND HTTPS / TLS 1.3 (Port 443) &lt;br&gt;&lt;font style=&quot;font-size: 9px; font-weight: 400; color: #94A3B8;&quot;&gt;Zero Inbound Firewall Openings&lt;/font&gt;&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#10B981;strokeWidth=3;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_shir_agent" target="adf_ir_ref">
+          <mxGeometry x="0.1" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="705" />
+              <mxPoint x="750" y="608" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. ADF Managed Identity RBAC to Key Vault -->
+        <mxCell id="edge_adf_to_akv" value="&lt;font style=&quot;font-size: 10px; font-weight: 700; color: #F59E0B; background-color: #1E293B;&quot;&gt; RBAC: Key Vault Secrets User (Zero Secret) &lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F59E0B;strokeWidth=2;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="ls_keyvault" target="secret_sql_pass">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 4. ADF Managed Identity RBAC to ADLS Gen2 -->
+        <mxCell id="edge_adf_to_adls" value="&lt;font style=&quot;font-size: 10px; font-weight: 700; color: #38BDF8; background-color: #1E293B;&quot;&gt; RBAC: Storage Blob Data Contributor (Write to bronze/silver/gold) &lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#38BDF8;strokeWidth=2;exitX=0.9;exitY=0;exitDx=0;exitDy=0;entryX=0.9;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box_adf" target="box_adls">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1520" y="515" />
+              <mxPoint x="1520" y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
