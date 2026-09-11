@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 3 Dynamic Parameterized Ingestion Blueprint</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #090d16;
+            --card: #111726;
+            --elevated: #182236;
+            --border: #243049;
+            --primary: #38bdf8;
+            --accent: #818cf8;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --text: #f1f5f9;
+            --text-sec: #94a3b8;
+            --font: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 2rem; }
+        .header { text-align: center; margin-bottom: 2.5rem; }
+        .header h1 { font-size: 1.85rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem; }
+        .header h1 span { color: var(--primary); }
+        .header p { color: var(--text-sec); font-size: 0.95rem; }
+        
+        .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem; }
+        
+        .zone-grid { display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 1.5rem; }
+        .zone { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+        .zone-header { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+        .zone-onprem .zone-header { color: var(--warning); }
+        .zone-adf .zone-header { color: var(--primary); }
+        .zone-adls .zone-header { color: var(--success); }
+
+        .pipeline-card { background: var(--elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+        .pipeline-title { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: var(--font-mono); font-weight: 700; }
+        .badge-parent { background: rgba(56, 189, 248, 0.15); color: var(--primary); }
+        .badge-child { background: rgba(129, 140, 248, 0.15); color: var(--accent); }
+        .badge-success { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+
+        .flow-box { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+        .activity-node { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.825rem; }
+        .activity-node strong { display: block; font-family: var(--font-mono); font-size: 0.85rem; color: #fff; margin-bottom: 0.25rem; }
+        .activity-node code { font-family: var(--font-mono); color: #bae6fd; font-size: 0.775rem; background: rgba(56, 189, 248, 0.08); padding: 0.15rem 0.35rem; border-radius: 3px; display: inline-block; margin-top: 0.25rem; }
+
+        .loop-indicator { border-left: 2px dashed var(--warning); padding-left: 1rem; margin: 0.75rem 0 0.75rem 0.5rem; }
+
+        .table-chip { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; font-family: var(--font-mono); }
+        .table-chip .status { color: var(--success); font-weight: 700; }
+
+        .legend { display: flex; justify-content: center; gap: 2rem; background: var(--card); border: 1px solid var(--border); padding: 1rem; border-radius: 8px; font-size: 0.825rem; color: var(--text-sec); }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot-blue { background: var(--primary); }
+        .dot-green { background: var(--success); }
+        .dot-amber { background: var(--warning); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏥 <span>Apex Health Lakehouse</span> — Master Ingestion Engine</h1>
+        <p>Phase 3 Architecture: Metadata-Driven ForEach Orchestration & Dynamic Watermark Child Pipeline</p>
+    </div>
+
+    <div class="container">
+        <div class="legend">
+            <div class="legend-item"><span class="dot dot-amber"></span> <span>On-Premises EMR (Private LAN)</span></div>
+            <div class="legend-item"><span class="dot dot-blue"></span> <span>ADF Orchestrator (Cloud Managed Identity)</span></div>
+            <div class="legend-item"><span class="dot dot-green"></span> <span>ADLS Gen2 Bronze (Snappy Parquet)</span></div>
+        </div>
+
+        <div class="zone-grid">
+            <!-- Zone 1: On-Prem Source -->
+            <div class="zone zone-onprem">
+                <div class="zone-header">🏢 On-Premises EMR (localhost:1433)</div>
+                <div class="pipeline-card">
+                    <div class="pipeline-title">dbo.etl_watermark_control <span class="badge badge-success">STATE ENGINE</span></div>
+                    <p style="font-size: 0.785rem; color: var(--text-sec); margin-bottom: 0.75rem;">Metadata table queried by parent pipeline to discover active ingestion targets.</p>
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                        <div class="table-chip"><span>1. claims</span> <span class="status">2024-03-10 ✅</span></div>
+                        <div class="table-chip"><span>2. diagnoses</span> <span class="status">2024-02-19 ✅</span></div>
+                        <div class="table-chip"><span>3. encounters</span> <span class="status">2024-02-23 ✅</span></div>
+                        <div class="table-chip"><span>4. patients</span> <span class="status">2024-01-24 ✅</span></div>
+                        <div class="table-chip"><span>5. providers</span> <span class="status">2024-01-01 ✅</span></div>
+                    </div>
+                </div>
+
+                <div class="pipeline-card">
+                    <div class="pipeline-title">shir-onprem-gateway-01 <span class="badge badge-success">ONLINE</span></div>
+                    <p style="font-size: 0.8rem; color: var(--text-sec); line-height: 1.5;">
+                        • Windows Daemon: <code>DIAHostService</code><br>
+                        • Inbound Ports: <strong>0 Opened</strong><br>
+                        • Outbound Port: <strong>HTTPS 443 / TLS 1.3</strong><br>
+                        • Local Compute: Reads SQL, serializes into Snappy Parquet in-memory, and pushes to Azure.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Zone 2: ADF Orchestration -->
+            <div class="zone zone-adf">
+                <div class="zone-header">🚀 Azure Data Factory Orchestration</div>
+
+                <!-- Parent Pipeline -->
+                <div class="pipeline-card" style="border-left: 4px solid var(--primary);">
+                    <div class="pipeline-title">
+                        pl_master_ingest_bronze
+                        <span class="badge badge-parent">PARENT ORCHESTRATOR</span>
+                    </div>
+                    <div class="flow-box">
+                        <div class="activity-node">
+                            <strong>1. GetTableMetadata (Lookup)</strong>
+                            Reads all active tables from control engine.<br>
+                            <code>First row only: FALSE ➔ Returns Array of 5 Objects</code>
+                        </div>
+                        <div class="activity-node">
+                            <strong>2. ForEachTable (ForEach Loop)</strong>
+                            Iterates through <code>@activity('GetTableMetadata').output.value</code>.<br>
+                            <code>Batch Count: 5 | Total Run: 4m 09s Succeeded</code>
+                            <div class="loop-indicator">
+                                <div class="activity-node" style="background: rgba(129, 140, 248, 0.1); border-color: rgba(129, 140, 248, 0.3);">
+                                    <strong style="color: var(--accent);">➔ TriggerTableIngest (Execute Pipeline)</strong>
+                                    Passes dynamic parameters to child pipeline:<br>
+                                    • <code>TableName = @item().table_name</code><br>
+                                    • <code>WatermarkColumn = @item().watermark_column</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Child Pipeline -->
+                <div class="pipeline-card" style="border-left: 4px solid var(--accent);">
+                    <div class="pipeline-title">
+                        pl_ingest_incremental_bronze
+                        <span class="badge badge-child">REUSABLE CHILD PIPELINE</span>
+                    </div>
+                    <p style="font-size: 0.775rem; color: var(--text-sec); margin-bottom: 0.5rem;">
+                        Parameters: <code>TableName</code>, <code>WatermarkColumn</code>
+                    </p>
+                    <div class="flow-box">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <div class="activity-node">
+                                <strong>LookupOldWatermark</strong>
+                                Reads previous watermark for <code>@pipeline().parameters.TableName</code>.
+                            </div>
+                            <div class="activity-node">
+                                <strong>LookupNewWatermark</strong>
+                                Reads <code>MAX(@pipeline().parameters.WatermarkColumn)</code>.
+                            </div>
+                        </div>
+                        <div class="activity-node" style="border-color: rgba(56, 189, 248, 0.4);">
+                            <strong>CopyIncrementalData (Copy Activity)</strong>
+                            Dynamic extraction: <code>WHERE col &gt; OldWM AND col &lt;= NewWM</code><br>
+                            Sink Folder: <code>bronze/@{pipeline().parameters.TableName}/</code>
+                        </div>
+                        <div class="activity-node" style="border-color: rgba(52, 211, 153, 0.4);">
+                            <strong>UpdateWatermark (Stored Procedure)</strong>
+                            Atomic commit: Calls <code>dbo.usp_update_watermark</code> on local SQL Server.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone 3: ADLS Gen2 Bronze -->
+            <div class="zone zone-adls">
+                <div class="zone-header">🛢️ ADLS Gen2 Bronze Lakehouse</div>
+                <div class="pipeline-card">
+                    <div class="pipeline-title">sthealthcarelake01 / bronze <span class="badge badge-success">HNS ENABLED</span></div>
+                    <p style="font-size: 0.785rem; color: var(--text-sec); margin-bottom: 0.75rem;">Immutable raw landing zone populated by dynamic ForEach runs.</p>
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                        <div class="table-chip"><span>📁 /claims/*.parquet</span> <span class="status">15 rows</span></div>
+                        <div class="table-chip"><span>📁 /diagnoses/*.parquet</span> <span class="status">17 rows</span></div>
+                        <div class="table-chip"><span>📁 /encounters/*.parquet</span> <span class="status">15 rows</span></div>
+                        <div class="table-chip"><span>📁 /patients/*.parquet</span> <span class="status">20 rows (PII)</span></div>
+                        <div class="table-chip"><span>📁 /providers/*.parquet</span> <span class="status">10 rows</span></div>
+                    </div>
+                </div>
+
+                <div class="pipeline-card" style="border-left: 4px solid var(--success);">
+                    <div class="pipeline-title">Phase 4 Target Ready</div>
+                    <p style="font-size: 0.8rem; color: var(--text-sec); line-height: 1.5;">
+                        All 77 clinical records across all 5 tables are landed in Parquet format. Next, our Spark Data Flow reads <code>bronze/patients/</code> to apply SHA-256 cryptographic hashing to SSNs.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
