@@ -1,0 +1,10 @@
+{
+	"name": "ls_adls_healthcare",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://sthealthcarelake01.dfs.core.windows.net/"
+		}
+	}
+}
