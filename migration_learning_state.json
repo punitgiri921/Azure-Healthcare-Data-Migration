@@ -1,14 +1,14 @@
 {
   "project_name": "Azure Healthcare Data Migration & Medallion Lakehouse",
   "budget_credit_usd": 200,
-  "current_phase": 3,
-  "current_phase_name": "Phase 3: Metadata-Driven Watermark Ingestion (Bronze)",
-  "overall_progress_percent": 38,
+  "current_phase": 4,
+  "current_phase_name": "Phase 4: Medallion Transformations & HIPAA Compliance (Silver & Gold)",
+  "overall_progress_percent": 58,
   "last_updated": "2026-09-11",
   "phase_gate_status": {
-    "current_phase_id": 3,
-    "current_step": "EXPLAIN_BACK",
-    "step_number": 2,
+    "current_phase_id": 4,
+    "current_step": "UNDERSTAND",
+    "step_number": 1,
     "total_steps": 11,
     "steps_flow": [
       "1. UNDERSTAND",
@@ -23,13 +23,13 @@
       "10. PHASE COMPLETE",
       "11. UNLOCK NEXT PHASE"
     ],
-    "gate_requirement": "User must explain the core watermark extraction mechanism and failure recovery before planning the Copy pipeline build."
+    "gate_requirement": "Master the Medallion progression (Bronze -> Silver -> Gold), HIPAA Safe Harbor de-identification rules, and Star Schema modeling."
   },
   "next_task": {
-    "task_id": "P3-T1",
-    "name": "Phase 3 Ingestion Architecture & Explain-Back Checkpoint",
-    "target_pipeline": "pl_ingest_incremental_bronze",
-    "description": "Establish the 8-step formula (Problem -> Why -> What -> How -> Example -> Architecture -> Trade-off -> Explain Back) for incremental ingestion."
+    "task_id": "P4-T1",
+    "name": "Phase 4 Architecture & HIPAA Compliance Blueprint",
+    "target_pipeline": "df_bronze_to_silver / df_silver_to_gold",
+    "description": "Establish the 8-step formula for Bronze-to-Silver data hygiene, SHA-256 PII masking, and conformed Star Schema marts."
   },
   "current_azure_resources": [
     {
@@ -142,6 +142,21 @@
       "phase_id": 2,
       "item": "Git commit c353daf containing JSON manifests for linked services and integration runtime pushed to GitHub main branch",
       "verified": true
+    },
+    {
+      "phase_id": 3,
+      "item": "ADF Studio Debug Run screenshot showing all 4 activities (LookupOldWatermark, LookupNewWatermark, CopyIncrementalEncounters, UpdateWatermark) Succeeded via SHIR",
+      "verified": true
+    },
+    {
+      "phase_id": 3,
+      "item": "Git commit c75d205 saved and pushed via ADF Git integration containing pipeline, datasets, and ADLS Gen2 linked service manifests",
+      "verified": true
+    },
+    {
+      "phase_id": 3,
+      "item": "Local SQL Server verification confirming dbo.etl_watermark_control for encounters advanced to 2024-02-23 15:30:00.000 with status SUCCESS",
+      "verified": true
     }
   ],
   "concepts_understood": [
@@ -150,11 +165,13 @@
     "CL-03: Azure RBAC Data Plane vs Management Plane & Least Privilege",
     "CL-04: ADF Git Integration & Multi-Branch Enterprise CI/CD",
     "CL-05: High-Watermark Metadata Pattern & State Management",
-    "CL-06: Hybrid Cloud Connectivity via Self-Hosted Integration Runtime (SHIR)"
+    "CL-06: Hybrid Cloud Connectivity via Self-Hosted Integration Runtime (SHIR)",
+    "CL-07: Delta Pipeline Dynamic Extraction Expressions & Parameterized Queries",
+    "CL-08: Atomic Watermark Advancement via Stored Procedure & Service Account Roles"
   ],
   "concepts_requiring_reinforcement": [
-    "Distinction between CDC / Change Tracking vs Timestamp Watermarks (especially handling hard deletes)",
-    "Idempotent sink behavior in Bronze if Copy Activity fails halfway through"
+    "Handling late-arriving clinical events and watermark lookback buffers",
+    "Partition pruning and column pruning on Bronze Parquet files"
   ],
   "phases": [
     {
@@ -188,23 +205,30 @@
     {
       "phase_id": 3,
       "title": "Metadata-Driven Watermark Ingestion (Bronze)",
-      "status": "IN_PROGRESS",
+      "status": "COMPLETED",
       "tasks": [
-        { "task_id": "P3-T1", "name": "Phase 3 Ingestion Architecture & Explain-Back Checkpoint", "status": "PENDING" },
-        { "task_id": "P3-T2", "name": "Create ADF Pipeline: pl_ingest_incremental_bronze", "status": "PENDING" },
-        { "task_id": "P3-T3", "name": "Implement Lookup activity on etl_watermark_control", "status": "PENDING" },
-        { "task_id": "P3-T4", "name": "Implement Lookup activity for current max source timestamp", "status": "PENDING" },
-        { "task_id": "P3-T5", "name": "Build dynamic Copy Activity with parameterized SQL query", "status": "PENDING" },
-        { "task_id": "P3-T6", "name": "Sink data to ADLS Gen2 bronze/ container as Parquet", "status": "PENDING" },
-        { "task_id": "P3-T7", "name": "Add Stored Procedure activity to advance high-watermark timestamp", "status": "PENDING" },
-        { "task_id": "P3-T8", "name": "Test baseline full load and simulate incremental clinical updates", "status": "PENDING" }
+        { "task_id": "P3-T1", "name": "Phase 3 Ingestion Architecture & Explain-Back Checkpoint", "status": "COMPLETED" },
+        { "task_id": "P3-T2", "name": "Create ADF Pipeline: pl_ingest_incremental_bronze", "status": "COMPLETED" },
+        { "task_id": "P3-T3", "name": "Implement Lookup activity on etl_watermark_control", "status": "COMPLETED" },
+        { "task_id": "P3-T4", "name": "Implement Lookup activity for current max source timestamp", "status": "COMPLETED" },
+        { "task_id": "P3-T5", "name": "Build dynamic Copy Activity with parameterized SQL query", "status": "COMPLETED" },
+        { "task_id": "P3-T6", "name": "Sink data to ADLS Gen2 bronze/ container as Parquet", "status": "COMPLETED" },
+        { "task_id": "P3-T7", "name": "Add Stored Procedure activity to advance high-watermark timestamp", "status": "COMPLETED" },
+        { "task_id": "P3-T8", "name": "Test baseline full load and simulate incremental clinical updates", "status": "COMPLETED" }
       ]
     },
     {
       "phase_id": 4,
       "title": "Medallion Transformations & HIPAA Compliance (Silver & Gold)",
-      "status": "LOCKED",
-      "tasks": []
+      "status": "IN_PROGRESS",
+      "tasks": [
+        { "task_id": "P4-T1", "name": "Phase 4 Architecture & HIPAA Compliance Blueprint", "status": "PENDING" },
+        { "task_id": "P4-T2", "name": "Setup Azure Integration Runtime compute for Mapping Data Flows", "status": "PENDING" },
+        { "task_id": "P4-T3", "name": "Build Data Flow: df_bronze_to_silver (PII Masking & Deduplication)", "status": "PENDING" },
+        { "task_id": "P4-T4", "name": "Sink curated Delta / Parquet to ADLS Gen2 silver/ container", "status": "PENDING" },
+        { "task_id": "P4-T5", "name": "Build Data Flow: df_silver_to_gold (Star Schema Marts)", "status": "PENDING" },
+        { "task_id": "P4-T6", "name": "Sink conformed dimensional models to ADLS Gen2 gold/ container", "status": "PENDING" }
+      ]
     },
     {
       "phase_id": 5,
@@ -243,6 +267,18 @@
       "question": "How do you prevent data loss or duplicate ingestion if an incremental pipeline fails halfway through a run?",
       "evaluation": "Correct",
       "core_rationale": "Through a two-phase watermark architecture where the watermark control table is only updated upon successful execution of the Copy Activity. If a failure occurs mid-batch, the old watermark remains, ensuring no records are skipped."
+    },
+    {
+      "id": "TQ-05",
+      "question": "How does the upper watermark boundary enforce snapshot isolation if new rows arrive during an active Copy Activity?",
+      "evaluation": "Correct",
+      "core_rationale": "The pipeline explicitly binds the extraction query to `updated_at <= new_watermark`. Any transaction occurring after the snapshot timestamp is excluded from the current batch and safely picked up in the next run when the old watermark advances to that exact snapshot boundary."
+    },
+    {
+      "id": "TQ-06",
+      "question": "Where does compute and data serialization occur during on-premise to cloud data ingestion via SHIR?",
+      "evaluation": "Correct",
+      "core_rationale": "The on-premise SHIR compute node queries the local SQL Server, serializes relational records into Parquet format in-memory, and pushes the payload over outbound port 443 to ADLS Gen2. Azure never initiates an inbound connection into the corporate hospital network."
     }
   ]
 }
