@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "SELECT last_watermark_value \nFROM dbo.etl_watermark_control \nWHERE table_name = 'encounters'\n",
+						"sqlReaderQuery": "@concat('SELECT last_watermark_value FROM dbo.etl_watermark_control WHERE table_name = ''', pipeline().parameters.TableName, '''')\n",
 						"queryTimeout": "01:59:00",
 						"partitionOption": "None"
 					},
@@ -42,7 +42,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "SELECT ISNULL(MAX(updated_at), '1970-01-01') AS new_watermark \nFROM dbo.encounters\n",
+						"sqlReaderQuery": "@concat('SELECT ISNULL(MAX(', pipeline().parameters.WatermarkColumn, '), ''1970-01-01'') AS new_watermark FROM dbo.', pipeline().parameters.TableName)\n",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -53,7 +53,7 @@
 				}
 			},
 			{
-				"name": "CopyIncrementalEncounters",
+				"name": "CopyIncrementalData",
 				"type": "Copy",
 				"dependsOn": [
 					{
@@ -80,7 +80,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "@concat('SELECT * FROM dbo.encounters WHERE updated_at > ''', activity('LookupOldWatermark').output.firstRow.last_watermark_value, ''' AND updated_at <= ''', activity('LookupNewWatermark').output.firstRow.new_watermark, '''')\n",
+						"sqlReaderQuery": {
+							"value": "@concat('SELECT * FROM dbo.', pipeline().parameters.TableName, ' WHERE ', pipeline().parameters.WatermarkColumn, ' > ''', activity('LookupOldWatermark').output.firstRow.last_watermark_value, ''' AND ', pipeline().parameters.WatermarkColumn, ' <= ''', activity('LookupNewWatermark').output.firstRow.new_watermark, '''')\n",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -113,7 +116,13 @@
 				"outputs": [
 					{
 						"referenceName": "ds_adls_bronze_parquet",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"folderName": {
+								"value": "@pipeline().parameters.TableName",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			},
@@ -122,7 +131,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "CopyIncrementalEncounters",
+						"activity": "CopyIncrementalData",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -140,7 +149,10 @@
 					"storedProcedureName": "[dbo].[usp_update_watermark]",
 					"storedProcedureParameters": {
 						"NewWatermarkValue": {
-							"value": "@activity('LookupNewWatermark').output.firstRow.new_watermark",
+							"value": {
+								"value": "@activity('LookupNewWatermark').output.firstRow.new_watermark",
+								"type": "Expression"
+							},
 							"type": "DateTime"
 						},
 						"TableName": {
@@ -155,6 +167,16 @@
 				}
 			}
 		],
+		"parameters": {
+			"TableName": {
+				"type": "string",
+				"defaultValue": "encounters"
+			},
+			"WatermarkColumn": {
+				"type": "string",
+				"defaultValue": "updated_at"
+			}
+		},
 		"annotations": []
 	}
 }
