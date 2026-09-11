@@ -156,7 +156,10 @@
 							"type": "DateTime"
 						},
 						"TableName": {
-							"value": "encounters",
+							"value": {
+								"value": "@pipeline().parameters.TableName",
+								"type": "Expression"
+							},
 							"type": "String"
 						}
 					}
