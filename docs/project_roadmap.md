@@ -28,31 +28,34 @@
 
 ---
 
-### Phase 3: Metadata-Driven Watermark Ingestion (Bronze Layer)
-- **Goal**: Build reusable, dynamic incremental ingestion pipeline.
-- **Tasks**:
-  1. Create ADF Pipeline: `pl_ingest_incremental_bronze`.
-  2. Implement Lookup on `etl_watermark_control`.
-  3. Implement Lookup for current max source timestamp.
-  4. Build dynamic Copy Activity with parameterized SQL query.
-  5. Sink data to ADLS Gen2 `bronze/` container as Parquet.
-  6. Add Script/Stored Procedure activity to advance high-watermark timestamp.
-  7. Test baseline full load and simulate incremental updates.
+### Phase 3: Ingestion to Bronze Layer (Static -> Parameterized)
+- **Goal**: Extract on-prem SQL tables into ADLS Gen2 `bronze/` container as Parquet.
+- **Stage A (Static / Non-Parameterized)**:
+  1. Build dedicated `ds_sql_patients_static` and `ds_adls_bronze_patients_static`.
+  2. Build `pl_ingest_patients_static` with direct Copy Activity (no parameters).
+  3. Validate parquet output in `bronze/patients/`.
+- **Stage B (Dynamic / Parameterized)**:
+  4. Create generic parameterized datasets (`@dataset().TableName`, `@dataset().DirectoryName`).
+  5. Implement `etl_watermark_control` table and stored procedure.
+  6. Implement Lookup + ForEach loop to ingest all 5 tables dynamically.
 
 ---
 
 ### Phase 4: Medallion Transformations & HIPAA Compliance (Silver & Gold)
-- **Goal**: Clean data, mask PII, and build star schema marts using Mapping Data Flows.
-- **Tasks**:
-  1. Author Data Flow `df_bronze_to_silver`:
-     - Clean data types, standardize dates, handle nulls.
+- **Goal**: Clean data, mask PII, and build star schema dimensional models using Mapping Data Flows.
+- **Stage A (Static / Single-Table)**:
+  1. Author `df_patients_bronze_to_silver`:
+     - Clean data types, standardize dates.
      - Implement HIPAA SHA-256 masking on SSN and patient names.
-     - Deduplicate records.
-     - Sink clean Delta to `silver/`.
-  2. Author Data Flow `df_silver_to_gold`:
-     - Build `Dim_Patient`, `Dim_Provider`, `Dim_Diagnosis`, `Dim_Date`.
-     - Build `Fact_Encounters` and `Fact_Claims`.
-     - Sink conformed Delta files to `gold/`.
+     - Sink clean Parquet to `silver/patients/`.
+  2. Author `df_patients_silver_to_gold`:
+     - Add `surrogateKey()` transformation (`patient_sk`).
+     - Calculate patient `age`.
+     - Sink conformed dimension table to `gold/dim_patient/`.
+- **Stage B (Multi-Table & Star Schema Integration)**:
+  3. Clean and process remaining entities (`encounters`, `providers`, `diagnoses`, `claims`).
+  4. Build Star Schema marts (`Dim_Patient`, `Dim_Provider`, `Dim_Diagnosis`, `Fact_Encounters`).
+
 
 ---
 

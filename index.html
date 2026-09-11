@@ -904,6 +904,48 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                                 <td>Commits pipeline JSONs to <code>main</code> and exports ARM templates to <code>adf_publish</code>.</td>
                                 <td><span class="without-bad">❌ No version history, no rollback capability, accidental edits deployed immediately to prod.</span></td>
                             </tr>
+                            <tr>
+                                <td><span class="comp-code">Linked Service</span></td>
+                                <td>Pipelines need secure connection definitions to reach databases and storage.</td>
+                                <td>Acts as the "Passport & Address" separating connection authentication from data queries.</td>
+                                <td>Encapsulates endpoint URLs, SHIR gateway routing, and Key Vault / SMI authentication tokens.</td>
+                                <td><span class="without-bad">❌ Hardcoded connection strings with embedded passwords inside every dataset.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Dataset</span></td>
+                                <td>Activities need to know exact file format, compression, schema, and table/folder paths.</td>
+                                <td>Acts as the "Specific Book on the Shelf", pointing to a precise data structure.</td>
+                                <td>Defines data location (e.g., <code>[dbo].[patients]</code> or <code>bronze/patients/</code>) and format (Snappy Parquet).</td>
+                                <td><span class="without-bad">❌ Inability to enforce schema, columnar formats, or partition paths.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Pipeline</span></td>
+                                <td>Data engineering tasks require sequential execution, dependency logic, and error handling.</td>
+                                <td>Acts as the "Assembly Line", orchestrating activities with conditional branching.</td>
+                                <td>Chains Copy Activities, Lookups, Stored Procedures, and Data Flows with failure alerting.</td>
+                                <td><span class="without-bad">❌ Uncoordinated tasks executing out of order, writing corrupt partial data.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Mapping Data Flow</span></td>
+                                <td>Row-level transformations (HIPAA masking, joins, surrogate keys) require massive compute.</td>
+                                <td>Provides code-free Spark big data transformation factory without cluster management.</td>
+                                <td>Compiles visual logic into optimized PySpark code executed on managed Azure Databricks/Spark nodes.</td>
+                                <td><span class="without-bad">❌ Writing custom Python scripts with manual Spark cluster provisioning and maintenance.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Stage A: Static Flow</span></td>
+                                <td>Jumping straight to complex parameters causes confusion and hidden configuration bugs.</td>
+                                <td>Master the fundamentals with 100% visible, explicit single-table data flows (Crawl Stage).</td>
+                                <td>Builds dedicated, zero-parameter pipelines and data flows for <code>patients</code> table end-to-end.</td>
+                                <td><span class="without-bad">❌ Developers cannot debug complex pipelines because they do not understand the underlying ETL logic.</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="comp-code">Stage B: Dynamic Flow</span></td>
+                                <td>Creating separate pipelines and datasets for 50+ enterprise tables is unmaintainable.</td>
+                                <td>Scale out to all clinical tables automatically via metadata control (Run Stage).</td>
+                                <td>Uses <code>Lookup</code> + <code>ForEach</code> + parameterized datasets to ingest all tables dynamically.</td>
+                                <td><span class="without-bad">❌ Massive pipeline proliferation; duplicating code 50 times across the data factory.</span></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -1011,14 +1053,14 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                         <span class="badge badge-progress">ACTIVE / CURRENT</span>
                     </div>
                     <div class="phase-name">Medallion Transformations & HIPAA Masking</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Mapping Data Flows: Silver cleansing & SHA-256 PII masking + Gold dimensional Star Schema.</p>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Two-Stage Progression: Stage A (Static Single-Table Fundamentals) followed by Stage B (Dynamic Parameterized Automation).</p>
                     <ul class="task-list">
-                        <li class="task-item active">⏳ Phase 4 Architecture & HIPAA Compliance Blueprint</li>
-                        <li class="task-item">⏳ Setup Azure IR compute for Mapping Data Flows</li>
-                        <li class="task-item">⏳ Build Data Flow: df_bronze_to_silver (PII Masking)</li>
-                        <li class="task-item">⏳ Sink curated Delta / Parquet to silver/ container</li>
-                        <li class="task-item">⏳ Build Data Flow: df_silver_to_gold (Star Schema Marts)</li>
-                        <li class="task-item">⏳ Sink conformed dimensional models to gold/ container</li>
+                        <li class="task-item active">⏳ Stage A: Static Datasets (ds_sql_patients_static & ds_adls_bronze_patients_static)</li>
+                        <li class="task-item">⏳ Stage A: Ingestion Pipeline (pl_ingest_patients_static -> bronze/patients/)</li>
+                        <li class="task-item">⏳ Stage A: Silver Data Flow (df_patients_bronze_to_silver with SHA-256 HIPAA Masking)</li>
+                        <li class="task-item">⏳ Stage A: Gold Data Flow (df_patients_silver_to_gold with Dim_Patient Surrogate Key)</li>
+                        <li class="task-item">⏳ Stage B: Parameterized Datasets (@dataset().TableName, @dataset().ContainerName)</li>
+                        <li class="task-item">⏳ Stage B: Master Ingestion Orchestrator (Lookup -> ForEach dynamic all-table loading)</li>
                     </ul>
                 </div>
 

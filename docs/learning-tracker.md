@@ -51,6 +51,36 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 
 ---
 
+## 3.1 Two-Stage Implementation Framework: Static Fundamentals vs. Parameterized Automation
+
+To guarantee total mastery without cognitive overload, we enforce a two-stage pedagogical framework:
+
+### A. Stage A: Static / Individual Table (Crawl Stage)
+Every schema, connection, transformation, and storage path is hardcoded and 100% visible. No parameter expressions (`@dataset()...` or `@pipeline()...`) are used.
+
+| Component / Asset Name | Primary Architectural Purpose | Technical Configuration | What Happens Without It? |
+| :--- | :--- | :--- | :--- |
+| **`ds_sql_patients_static`** | Dedicated source dataset targeting `[dbo].[patients]` | Linked Service: `ls_sqlserver_onprem`<br>Table: `[dbo].[patients]` | ADF cannot read source patient records from SQL Server. |
+| **`ds_adls_bronze_patients_static`** | Dedicated sink dataset targeting raw Bronze Parquet | Linked Service: `ls_adls_healthcarelake01`<br>Path: `bronze/patients/` (Snappy Parquet) | Raw clinical records cannot land in the lakehouse. |
+| **`pl_ingest_patients_static`** | Single Copy Activity pipeline extracting patients | Source: `ds_sql_patients_static`<br>Sink: `ds_adls_bronze_patients_static` | No automated movement from on-prem to cloud storage. |
+| **`ds_adls_silver_patients_static`** | Dedicated sink dataset for de-identified Silver Parquet | Linked Service: `ls_adls_healthcarelake01`<br>Path: `silver/patients/` | Cleaned, compliant data has no storage destination. |
+| **`df_patients_bronze_to_silver`** | Spark Data Flow executing HIPAA Safe Harbor de-identification | • `ssn`: `sha2(256, concat(ssn, 'ApexSalt2026!'))`<br>• `names`: `concat(left(name, 1), '***')`<br>• `ingested_at`: `currentUTC()` | Plaintext patient SSN and names leak to lakehouse users (HIPAA violation). |
+| **`ds_adls_gold_dim_patient_static`**| Dedicated sink dataset for Kimball Star Schema `Dim_Patient` | Linked Service: `ls_adls_healthcarelake01`<br>Path: `gold/dim_patient/` | Business intelligence tools must query unindexed raw/silver data. |
+| **`df_patients_silver_to_gold`** | Spark Data Flow generating Surrogate Key & analytical attributes | • `surrogateKey('patient_sk')`<br>• Derived age from `dob`<br>• Select analytical attributes | Lakehouse analytics remain tightly coupled to OLTP source database integer keys. |
+
+### B. Stage B: Dynamic & Parameterized Framework (Run Stage)
+Once Stage A is verified end-to-end, we generalize across all 5 tables (`patients`, `providers`, `encounters`, `diagnoses`, `claims`):
+
+| Component / Asset Name | Primary Architectural Purpose | Technical Configuration | Why It Replaces Static Assets |
+| :--- | :--- | :--- | :--- |
+| **Generic ADLS Parquet Dataset** | 1 single reusable dataset for any container and folder | Parameters: `@dataset().ContainerName`, `@dataset().DirectoryName` | Eliminates creating 15 separate datasets for Bronze, Silver, and Gold tables. |
+| **Generic SQL Dataset** | 1 single reusable dataset for any source SQL table | Parameter: `@dataset().TableName` | Eliminates creating 5 separate SQL datasets. |
+| **`dbo.etl_watermark_control`** | State ledger maintaining high-watermarks for all tables | Columns: `table_name`, `watermark_col`, `last_watermark`, `status` | Allows dynamic incremental delta loads without hardcoded date filters. |
+| **Master Ingestion Pipeline** | 1 pipeline that iterates over all tables automatically | `Lookup (Get Tables)` ➔ `ForEach` ➔ `ExecutePipeline` | Scales to 100+ tables with zero new pipeline code. |
+
+
+---
+
 ## 4. Concept Disambiguation Matrix (Rule 11)
 
 | Construct | Primary Responsibility | What It NEVER Does |

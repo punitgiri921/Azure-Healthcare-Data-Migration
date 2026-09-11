@@ -26,10 +26,10 @@
     "gate_requirement": "Master the Medallion progression (Bronze -> Silver -> Gold), HIPAA Safe Harbor de-identification rules, and Star Schema modeling."
   },
   "next_task": {
-    "task_id": "P4-T1",
-    "name": "Phase 4 Architecture & HIPAA Compliance Blueprint",
-    "target_pipeline": "df_bronze_to_silver / df_silver_to_gold",
-    "description": "Establish the 8-step formula for Bronze-to-Silver data hygiene, SHA-256 PII masking, and conformed Star Schema marts."
+    "task_id": "P3A-T1",
+    "name": "Stage A: Static Single-Table Ingestion (dbo.patients -> Bronze)",
+    "target_pipeline": "pl_ingest_patients_static",
+    "description": "Create dedicated static datasets and direct Copy Activity for patients table with zero parameters."
   },
   "current_azure_resources": [
     {
