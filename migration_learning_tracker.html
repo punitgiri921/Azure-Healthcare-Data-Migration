@@ -676,8 +676,8 @@
                 <p>Enterprise On-Prem EMR to ADLS Gen2 Medallion Lakehouse Migration & Clinical Analytics</p>
             </div>
             <div style="display: flex; gap: 0.75rem; align-items: center;">
-                <span class="badge badge-done">PHASE 1 & 2 VERIFIED</span>
-                <span class="badge badge-progress">PHASE 3 ACTIVE • INGESTION</span>
+                <span class="badge badge-done">PHASES 1-3 VERIFIED</span>
+                <span class="badge badge-progress">PHASE 4 ACTIVE • MEDALLION LAKEHOUSE</span>
             </div>
         </div>
     </header>
@@ -686,13 +686,13 @@
     <div class="kpi-strip">
         <div class="kpi-card">
             <div class="kpi-label">Overall Progress</div>
-            <div class="kpi-value" id="kpi-progress">38%</div>
-            <div class="kpi-sub">Phases 1 & 2 Complete (14/38 Tasks)</div>
+            <div class="kpi-value" id="kpi-progress">58%</div>
+            <div class="kpi-sub">Phases 1, 2 & 3 Complete (22/38 Tasks)</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Active Phase Gate</div>
-            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">UNDERSTAND / PLAN</div>
-            <div class="kpi-sub">Phase 3 Gate: pl_ingest_incremental_bronze</div>
+            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">1. UNDERSTAND</div>
+            <div class="kpi-sub">Phase 4 Gate: df_bronze_to_silver & HIPAA Safe Harbor</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Azure Free Budget</div>
@@ -701,12 +701,12 @@
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Components Active</div>
-            <div class="kpi-value" id="kpi-concepts">7</div>
-            <div class="kpi-sub">SQL Express, SHIR, Key Vault, SMI, ADF, ADLS, Git</div>
+            <div class="kpi-value" id="kpi-concepts">8</div>
+            <div class="kpi-sub">SQL Express, SHIR, Key Vault, SMI, ADF, Bronze ADLS, Datasets, Watermark Engine</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Technical Questions (TQ)</div>
-            <div class="kpi-value" id="kpi-tq">4 / 4</div>
+            <div class="kpi-value" id="kpi-tq">6 / 6</div>
             <div class="kpi-sub">Rated: 100% Correct (Interview-Grade)</div>
         </div>
     </div>
@@ -941,7 +941,7 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                     <div class="gate-step">11. UNLOCK NEXT</div>
                 </div>
                 <div style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;">
-                    📍 <strong>Current Phase 3 Gate Position:</strong> Stage 2 (Explain Back checkpoint before ADF Copy Activity build).
+                    📍 <strong>Current Phase 4 Gate Position:</strong> Stage 1 (Understand Medallion Transformation Architecture & HIPAA Safe Harbor De-identification).
                 </div>
             </div>
 
@@ -985,32 +985,41 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                 </div>
 
                 <!-- Phase 3 -->
-                <div class="phase-box in-progress">
+                <div class="phase-box completed">
                     <div class="phase-header">
                         <span class="phase-num">Phase 3</span>
-                        <span class="badge badge-progress">ACTIVE / CURRENT</span>
+                        <span class="badge badge-done">COMPLETED (8/8)</span>
                     </div>
                     <div class="phase-name">Metadata Watermark Ingestion (Bronze)</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Parameterized incremental ingestion pipeline extracting delta records to partitioned Bronze Parquet.</p>
                     <ul class="task-list">
-                        <li class="task-item active">⏳ Pipeline Architecture & Explain-Back Checkpoint</li>
-                        <li class="task-item">⏳ Create ADF Pipeline: pl_ingest_incremental_bronze</li>
-                        <li class="task-item">⏳ Lookup Last Watermark from etl_watermark_control</li>
-                        <li class="task-item">⏳ Lookup Current Max Source updated_at timestamp</li>
-                        <li class="task-item">⏳ Copy Activity: Parameterized delta query to Bronze Parquet</li>
-                        <li class="task-item">⏳ Stored Procedure Activity: Advance high-watermark</li>
-                        <li class="task-item">⏳ End-to-end incremental load simulation test</li>
+                        <li class="task-item done">✅ Pipeline Architecture & Explain-Back Checkpoint</li>
+                        <li class="task-item done">✅ Create ADF Pipeline: pl_ingest_incremental_bronze</li>
+                        <li class="task-item done">✅ Lookup Last Watermark from etl_watermark_control</li>
+                        <li class="task-item done">✅ Lookup Current Max Source updated_at timestamp</li>
+                        <li class="task-item done">✅ Copy Activity: Parameterized delta query to Bronze Parquet</li>
+                        <li class="task-item done">✅ Sink Parquet to ADLS Gen2 bronze container via SMI</li>
+                        <li class="task-item done">✅ Stored Procedure Activity: Advance high-watermark</li>
+                        <li class="task-item done">✅ End-to-end verified debug run (15 encounters extracted)</li>
                     </ul>
                 </div>
 
                 <!-- Phase 4 -->
-                <div class="phase-box locked">
+                <div class="phase-box in-progress">
                     <div class="phase-header">
                         <span class="phase-num">Phase 4</span>
-                        <span class="badge badge-locked">LOCKED</span>
+                        <span class="badge badge-progress">ACTIVE / CURRENT</span>
                     </div>
                     <div class="phase-name">Medallion Transformations & HIPAA Masking</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Mapping Data Flows: Silver cleansing & SHA-256 PII masking + Gold dimensional Star Schema.</p>
+                    <ul class="task-list">
+                        <li class="task-item active">⏳ Phase 4 Architecture & HIPAA Compliance Blueprint</li>
+                        <li class="task-item">⏳ Setup Azure IR compute for Mapping Data Flows</li>
+                        <li class="task-item">⏳ Build Data Flow: df_bronze_to_silver (PII Masking)</li>
+                        <li class="task-item">⏳ Sink curated Delta / Parquet to silver/ container</li>
+                        <li class="task-item">⏳ Build Data Flow: df_silver_to_gold (Star Schema Marts)</li>
+                        <li class="task-item">⏳ Sink conformed dimensional models to gold/ container</li>
+                    </ul>
                 </div>
 
                 <!-- Phase 5 -->

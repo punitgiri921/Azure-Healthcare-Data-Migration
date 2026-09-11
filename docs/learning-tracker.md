@@ -10,14 +10,14 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Phase 1** | **Cloud Provisioning & Zero-Secret Setup** | 🟢 **COMPLETED** | **7 / 7** | **10. PHASE COMPLETE** | **10 / 10** |
 | **Phase 2** | **On-Prem Database & SHIR Gateway Setup** | 🟢 **COMPLETED** | **7 / 7** | **10. PHASE COMPLETE** | **10 / 10** |
-| **Phase 3** | **Metadata-Driven Watermark Ingestion (Bronze)** | 🟡 **IN PROGRESS** | **0 / 8** | **2. EXPLAIN BACK** | -- / 10 |
-| **Phase 4** | **Medallion Transformations & HIPAA (Silver & Gold)** | 🔒 Locked | 0 / 7 | Locked | -- / 10 |
+| **Phase 3** | **Metadata-Driven Watermark Ingestion (Bronze)** | 🟢 **COMPLETED** | **8 / 8** | **10. PHASE COMPLETE** | **10 / 10** |
+| **Phase 4** | **Medallion Transformations & HIPAA (Silver & Gold)** | 🟡 **IN PROGRESS** | **0 / 6** | **1. UNDERSTAND** | -- / 10 |
 | **Phase 5** | **Synapse Serverless Serving & Trigger Automation** | 🔒 Locked | 0 / 5 | Locked | -- / 10 |
 | **Phase 6** | **Power BI Reporting & CV Deliverables** | 🔒 Locked | 0 / 5 | Locked | -- / 10 |
 
 ```text
 11-STEP PHASE GATE PIPELINE:
-UNDERSTAND -> [EXPLAIN BACK (Phase 3 Active)] -> PLAN -> YOU EXECUTE -> PROVIDE EVIDENCE 
+[UNDERSTAND (Phase 4 Active)] -> EXPLAIN BACK -> PLAN -> YOU EXECUTE -> PROVIDE EVIDENCE 
            -> TECH QUESTIONS -> EVALUATION -> FIX GAPS -> ARCH RECAP -> PHASE COMPLETE -> UNLOCK NEXT
 ```
 
@@ -96,6 +96,22 @@ UNDERSTAND -> [EXPLAIN BACK (Phase 3 Active)] -> PLAN -> YOU EXECUTE -> PROVIDE 
 - **Level 2 — Technical Mechanics**: Windows daemon `DIAHostService` initiates outbound HTTPS calls on TCP port 443 over TLS 1.3 to ADF service bus queues. It pulls the query instruction, queries `localhost:1433`, compresses data into Parquet, and streams it straight to ADLS Gen2.
 - **Level 3 — Senior Enterprise Architecture**: Zero attack surface on enterprise firewalls. Eliminates costly dedicated ExpressRoute VPN requirements for initial data migration batches while maintaining strict network perimeter isolation.
 
+### [CL-07] Dynamic SQL Expressions & Parameterized Watermark Injection
+- **Level 1 — Simple Intuition**: Generating a customized search instruction on the fly using exact start and stop timestamps so only the new batch is pulled.
+- **Level 2 — Technical Mechanics**: ADF Copy Activity uses string interpolation:
+  `@concat('SELECT * FROM dbo.encounters WHERE updated_at > ''', activity('LookupOldWatermark').output.firstRow.last_watermark_value, ''' AND updated_at <= ''', activity('LookupNewWatermark').output.firstRow.new_watermark, '''')`.
+- **Level 3 — Senior Enterprise Architecture**: Evaluates dynamic bounds entirely in-memory within ADF orchestration, preventing hardcoded dates in pipelines. Ensures strict boundary isolation where late-arriving records during active copy executions are deferred to subsequent schedules.
+
+### [CL-08] Atomic Watermark Advancement via Stored Procedures & Transaction Scope
+- **Level 1 — Simple Intuition**: Moving the bookmark forward only AFTER you close the book and put it back on the shelf, never while reading.
+- **Level 2 — Technical Mechanics**: Stored Procedure `dbo.usp_update_watermark` is triggered conditionally upon `CopyIncrementalEncounters` returning status `Succeeded`. It updates `last_watermark_value` and `last_run_timestamp` in a single ACID transaction.
+- **Level 3 — Senior Enterprise Architecture**: Solves distributed two-phase commit risks. If ADF loses connectivity to Azure Data Lake midway through blob writes, the stored procedure is never reached, guaranteeing that pipeline retries cleanly re-extract the identical batch without silent data loss.
+
+### [CL-09] Bronze Lakehouse Storage & Parquet Snappy Compression
+- **Level 1 — Simple Intuition**: Storing medical notes in a locked filing cabinet in their original handwriting, but zipped up tight to save drawer space.
+- **Level 2 — Technical Mechanics**: Relational rows are serialized into Apache Parquet with Snappy compression directly on the SHIR agent node and streamed to `sthealthcarelake01/bronze/`.
+- **Level 3 — Senior Enterprise Architecture**: Columnar storage enables dictionary encoding, run-length compression, and fast column pruning for downstream Spark engines. Parquet preserves raw data types (dates, decimals, strings) without CSV parsing errors or floating-point truncation.
+
 ---
 
 ## 6. Technical Question & Defense Ledger (TQ) — Evaluated Rubric (Rule 14 & 15)
@@ -127,6 +143,20 @@ UNDERSTAND -> [EXPLAIN BACK (Phase 3 Active)] -> PLAN -> YOU EXECUTE -> PROVIDE 
   > *"We enforce strict pipeline idempotency through a two-phase watermark pattern. In the first phase, we capture the static maximum source timestamp into an ADF pipeline variable before starting the copy. In the second phase, the Copy Activity sinks the data to partitioned Bronze storage.*
   > 
   > *Crucially, the stored procedure that updates `etl_watermark_control` runs **only upon successful completion** of the Copy Activity. If the pipeline crashes mid-stream, the watermark in the database remains unchanged. The subsequent run re-evaluates the same delta window, avoiding silent data loss. Any overlapping records are seamlessly deduplicated in the Silver transformation layer."*
+
+### [TQ-05] How does the upper watermark boundary enforce snapshot isolation if new rows arrive during an active Copy Activity?
+- **Rating**: 🟢 **Correct** (Senior Architect Level)
+- **Candidate Defense**:
+  > *"Because our pipeline explicitly binds the extraction query with an upper bound `updated_at <= NewWatermark`, any emergency admissions or clinical orders posted while the Copy Activity is actively streaming are excluded from the current batch. When the stored procedure executes, it advances the watermark strictly to that locked `NewWatermark` value.*
+  > 
+  > *On the subsequent pipeline run, the lower bound becomes `updated_at > OldWatermark` (which equals the previous `NewWatermark`), ensuring that all records inserted during or after that execution window are seamlessly captured without data loss or race conditions."*
+
+### [TQ-06] Where does compute and data serialization occur during on-premise to cloud data ingestion via SHIR?
+- **Rating**: 🟢 **Correct** (Senior Architect Level)
+- **Candidate Defense**:
+  > *"ADF does not reach into the on-premises network to pull rows. The Self-Hosted Integration Runtime operates entirely on the local machine within the hospital network. It executes the SQL query over local ODBC/TCP, reads the rows, serializes them in-memory into Snappy Parquet format, and pushes the compressed payload out over HTTPS 443 to the ADLS Gen2 DFS endpoint.*
+  > 
+  > *This distinction is critical because it preserves the internal security boundary: SQL Server remains completely unexposed to the public internet, no inbound firewall ports are opened, and CPU-intensive Parquet compression is distributed to the edge."*
 
 ---
 
@@ -170,3 +200,16 @@ UNDERSTAND -> [EXPLAIN BACK (Phase 3 Active)] -> PLAN -> YOU EXECUTE -> PROVIDE 
 - **ADF Linked Services**:
   - `ls_keyvault_healthcare`: Connected to `kv-healthcare-sec01`
   - `ls_sqlserver_onprem`: Connected to `healthcare_emr_source` via SHIR using password from Key Vault
+
+### Phase 3 Provisioned Lakehouse Ingestion Artifacts
+- **ADLS Gen2 Linked Service**: `ls_adls_healthcare` (Authentication: System-Assigned Managed Identity)
+- **ADF Datasets Created**:
+  - `ds_sql_encounters`: Source table pointer
+  - `ds_sql_watermark_control`: State engine pointer
+  - `ds_adls_bronze_parquet`: Parquet sink in `bronze` container (Compression: Snappy)
+- **SQL Stored Procedure**: [sql/04_create_watermark_stored_procedure.sql](file:///d:/01_Ex_Files_Intermediate_SQL_for_Data_Scientists/Goodly%20PowerBi/Azure-Healthcare-Data-Migration/sql/04_create_watermark_stored_procedure.sql) (`dbo.usp_update_watermark`)
+- **Incremental Pipeline**: [adf/pipeline/pl_ingest_incremental_bronze.json](file:///d:/01_Ex_Files_Intermediate_SQL_for_Data_Scientists/Goodly%20PowerBi/Azure-Healthcare-Data-Migration/adf/pipeline/pl_ingest_incremental_bronze.json) (4/4 Activities Succeeded)
+- **Verified Extraction**: Exactly 15 encounter rows extracted and written to `sthealthcarelake01/bronze/encounters/`
+- **Advanced State**: `dbo.etl_watermark_control` for `encounters` updated to `2024-02-23 15:30:00.000` (Status: `SUCCESS`)
+- **Architectural Reference Blueprint**: [docs/phase3_watermark_architecture.drawio](file:///d:/01_Ex_Files_Intermediate_SQL_for_Data_Scientists/Goodly%20PowerBi/Azure-Healthcare-Data-Migration/docs/phase3_watermark_architecture.drawio)
+- **Technical Walkthrough**: [docs/phase3_walkthrough.md](file:///d:/01_Ex_Files_Intermediate_SQL_for_Data_Scientists/Goodly%20PowerBi/Azure-Healthcare-Data-Migration/docs/phase3_walkthrough.md)

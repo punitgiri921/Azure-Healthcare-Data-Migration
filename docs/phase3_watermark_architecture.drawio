@@ -1,0 +1,221 @@
+<mxfile host="Electron" modified="2026-09-11T23:15:00.000Z" agent="Mozilla/5.0" version="21.6.8" type="device">
+  <diagram id="phase3-watermark-architecture" name="Phase 3 Watermark Ingestion Architecture">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1750" pageHeight="1150" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITLE BAR -->
+        <mxCell id="title" value="Azure Healthcare Data Migration &amp; Medallion Lakehouse&#xa;Complete Architectural Blueprint: Phase 3 (Metadata-Driven Watermark Ingestion to Bronze Parquet)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#0F172A;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="120" y="25" width="1510" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- SUBTITLE -->
+        <mxCell id="subtitle" value="High-Watermark Delta Pattern: State Engine, Outbound Hybrid Execution, Dynamic Extraction Query, and Atomic Two-Phase Commit" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#64748B;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="250" y="70" width="1250" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- ZONE 1: ON-PREMISES CLINICAL ENVIRONMENT                                   -->
+        <!-- ========================================================================= -->
+        <mxCell id="onprem-zone" value="🏢 ON-PREMISES CLINICAL ENVIRONMENT (Hospital LAN / Private Workstation)&#xa;Host: DESKTOP-H5RKB3H  |  Private Network (192.168.x.x)  |  0 Inbound Ports Opened" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=2;fontColor=#1E293B;fontSize=14;fontStyle=1;fontFamily=Helvetica;startSize=40;rounded=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="540" height="960" as="geometry" />
+        </mxCell>
+
+        <!-- SQL Server Container -->
+        <mxCell id="sql-box" value="🗄️ SQL Server 2022 (.\SQLEXPRESS)&#xa;Database: [healthcare_emr_source] (TCP 1433)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#F59E0B;strokeWidth=1.5;fontColor=#92400E;fontSize=12;fontStyle=1;fontFamily=Helvetica;startSize=45;rounded=1;" vertex="1" parent="onprem-zone">
+          <mxGeometry x="20" y="55" width="500" height="510" as="geometry" />
+        </mxCell>
+
+        <!-- Source Clinical Table -->
+        <mxCell id="tbl-encounters" value="📋 Source Table: [dbo.encounters]&#xa;• Rows: 15 Clinical Admissions &amp; Visits&#xa;• Tracking Column: updated_at (DATETIME2)&#xa;• Baseline Max Timestamp: 2024-02-23 15:30:00.000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FCD34D;fontColor=#451A03;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="sql-box">
+          <mxGeometry x="15" y="55" width="470" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Watermark State Engine Table -->
+        <mxCell id="tbl-watermark" value="⏱️ State Control Engine: [dbo.etl_watermark_control]&#xa;• table_name = 'encounters'&#xa;• watermark_column = 'updated_at'&#xa;• last_watermark_value: Advanced from 1970-01-01 ➔ 2024-02-23 15:30:00&#xa;• status: SUCCESS  |  last_run_timestamp: Verified" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#34D399;fontColor=#064E3B;fontSize=11;align=left;spacingLeft=12;fontStyle=1;" vertex="1" parent="sql-box">
+          <mxGeometry x="15" y="140" width="470" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Stored Procedure Engine -->
+        <mxCell id="sp-watermark" value="⚙️ Watermark Stored Procedure: [dbo.usp_update_watermark]&#xa;• Parameters: @TableName VARCHAR(100), @NewWatermarkValue DATETIME2&#xa;• Atomic Update: SET last_watermark_value = @NewWatermarkValue, status = 'SUCCESS'&#xa;• Security: GRANT EXECUTE TO [adf_svc_user]&#xa;• Safety: Atomic 2-Phase commit prevents skipped records if copy fails" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#60A5FA;fontColor=#1E3A8A;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="sql-box">
+          <mxGeometry x="15" y="240" width="470" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Security Role Account -->
+        <mxCell id="sql-user-box" value="👤 Service Principal: [adf_svc_user]&#xa;• Least Privilege: db_datareader (Read encounters &amp; control) + EXECUTE on proc&#xa;• Authentication: Password stored securely in Azure Key Vault" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#CBD5E1;fontColor=#334155;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="sql-box">
+          <mxGeometry x="15" y="350" width="470" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Other Seeded Tables Note -->
+        <mxCell id="other-tables" value="📁 Ready for Ingestion: dbo.patients (20), dbo.providers (10), dbo.diagnoses (17), dbo.claims (15)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#FCD34D;fontColor=#78350F;fontSize=10;align=center;" vertex="1" parent="sql-box">
+          <mxGeometry x="15" y="420" width="470" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Local SHIR Gateway -->
+        <mxCell id="shir-gateway-box" value="🌉 HYBRID GATEWAY: Self-Hosted Integration Runtime (SHIR)&#xa;Name: shir-onprem-gateway-01  |  Daemon: DIAHostService (🟢 Running)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#10B981;strokeWidth=1.5;fontColor=#065F46;fontSize=12;fontStyle=1;fontFamily=Helvetica;startSize=45;rounded=1;" vertex="1" parent="onprem-zone">
+          <mxGeometry x="20" y="585" width="500" height="240" as="geometry" />
+        </mxCell>
+
+        <mxCell id="shir-compute-role" value="• Outbound HTTPS 443 Polling: Regularly checks ADF command queue&#xa;• Local Query Dispatcher: Executes SQL queries on localhost:1433 via ODBC&#xa;• In-Memory Compute Engine: Serializes extracted SQL rows into Snappy Parquet&#xa;• Stream Pusher: Direct TLS 1.3 upload stream to ADLS Gen2 DFS endpoint&#xa;• Zero Attack Surface: Never listens on public ports; hospital firewall intact" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#A7F3D0;fontColor=#047857;fontSize=11;align=left;spacingLeft=12;lineHeight=1.5;" vertex="1" parent="shir-gateway-box">
+          <mxGeometry x="15" y="55" width="470" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="shir-status-badge" value="🟢 Status: ONLINE | Node: DESKTOP-H5RKB3H | Duration: 18s Copy Execution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;fontColor=#065F46;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="shir-gateway-box">
+          <mxGeometry x="15" y="190" width="470" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- On-Premise Audit Footer -->
+        <mxCell id="onprem-footer" value="🔒 HIPAA Safeguard § 164.312: Zero public exposure of patient health information" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#F87171;fontColor=#991B1B;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="onprem-zone">
+          <mxGeometry x="20" y="880" width="500" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- ZONE 2: AZURE DATA FACTORY ORCHESTRATION                                  -->
+        <!-- ========================================================================= -->
+        <mxCell id="adf-zone" value="🚀 AZURE DATA FACTORY: [adf-healthcare-punit01]&#xa;Managed Identity (SMI)  |  Git Integrated: punitgiri921/Azure-Healthcare-Data-Migration (main)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=2;fontColor=#1D4ED8;fontSize=14;fontStyle=1;fontFamily=Helvetica;startSize=40;rounded=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="610" y="120" width="600" height="960" as="geometry" />
+        </mxCell>
+
+        <!-- Pipeline Box -->
+        <mxCell id="pipe-box" value="🔄 Pipeline: [pl_ingest_incremental_bronze]&#xa;Incremental Delta Extraction via High-Watermark Metadata Pattern" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E40AF;fontSize=12;fontStyle=1;fontFamily=Helvetica;startSize=45;rounded=1;" vertex="1" parent="adf-zone">
+          <mxGeometry x="20" y="55" width="560" height="690" as="geometry" />
+        </mxCell>
+
+        <!-- Activity 1: Lookup Old -->
+        <mxCell id="act-look-old" value="🔍 Activity 1 (Lookup): [LookupOldWatermark]&#xa;• Dataset: ds_sql_watermark_control&#xa;• ConnectVia: shir-onprem-gateway-01&#xa;• SQL: SELECT last_watermark_value FROM dbo.etl_watermark_control WHERE table_name = 'encounters'&#xa;• Result: '1970-01-01 00:00:00' (🟢 Succeeded - 17s)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#10B981;fontColor=#065F46;fontSize=10;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="pipe-box">
+          <mxGeometry x="20" y="60" width="520" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Activity 2: Lookup New -->
+        <mxCell id="act-look-new" value="🔍 Activity 2 (Lookup): [LookupNewWatermark]&#xa;• Dataset: ds_sql_encounters&#xa;• ConnectVia: shir-onprem-gateway-01&#xa;• SQL: SELECT ISNULL(MAX(updated_at), '1970-01-01') AS new_watermark FROM dbo.encounters&#xa;• Result: '2024-02-23 15:30:00.000' (🟢 Succeeded - 19s)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#10B981;fontColor=#065F46;fontSize=10;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="pipe-box">
+          <mxGeometry x="20" y="160" width="520" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Activity 3: Copy Activity -->
+        <mxCell id="act-copy" value="📦 Activity 3 (Copy Data): [CopyIncrementalEncounters]&#xa;• Source: ds_sql_encounters (Dynamic Delta Query)&#xa;  WHERE updated_at &gt; '@{LookupOldWatermark}' AND updated_at &lt;= '@{LookupNewWatermark}'&#xa;• Sink: ds_adls_bronze_parquet (sthealthcarelake01 / bronze / encounters /)&#xa;• Format: Parquet with Snappy Compression&#xa;• Metrics: 15 Rows Read ➔ 15 Rows Copied (🟢 Succeeded - 18s via SHIR)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;fontColor=#1E3A8A;fontSize=10;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="pipe-box">
+          <mxGeometry x="20" y="270" width="520" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Activity 4: Stored Procedure -->
+        <mxCell id="act-sp" value="⚡ Activity 4 (Stored Procedure): [UpdateWatermark]&#xa;• Linked Service: ls_sqlserver_onprem&#xa;• Stored Proc: [dbo].[usp_update_watermark]&#xa;• Param 1: @TableName = 'encounters'&#xa;• Param 2: @NewWatermarkValue = @{activity('LookupNewWatermark').output...}&#xa;• Execution: Strictly executed AFTER Copy Activity Success (🟢 Succeeded - 10s)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontColor=#78350F;fontSize=10;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="pipe-box">
+          <mxGeometry x="20" y="410" width="520" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Internal Arrows in Pipeline -->
+        <mxCell id="arr-p1" value="Success" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#10B981;strokeWidth=2;fontSize=10;fontColor=#065F46;fontStyle=1;" edge="1" parent="pipe-box" source="act-look-old" target="act-copy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arr-p2" value="Success" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#10B981;strokeWidth=2;fontSize=10;fontColor=#065F46;fontStyle=1;" edge="1" parent="pipe-box" source="act-look-new" target="act-copy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arr-p3" value="Success (Terminal Commit)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#10B981;strokeWidth=2;fontSize=10;fontColor=#065F46;fontStyle=1;" edge="1" parent="pipe-box" source="act-copy" target="act-sp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Pipeline Metadata & Settings -->
+        <mxCell id="pipe-props" value="⚙️ Pipeline Artifacts:&#xa;• Linked Services: ls_sqlserver_onprem, ls_keyvault_healthcare, ls_adls_healthcare&#xa;• Datasets: ds_sql_encounters, ds_sql_watermark_control, ds_adls_bronze_parquet&#xa;• Git Commit: c75d205 synced to main branch in GitHub" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;fontColor=#334155;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="pipe-box">
+          <mxGeometry x="20" y="525" width="520" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ADF Linked Services Strip -->
+        <mxCell id="ls-strip" value="🔗 Linked Services Summary:&#xa;1. ls_keyvault_healthcare ➔ kv-healthcare-sec01 (Zero-Secret Password Store)&#xa;2. ls_sqlserver_onprem ➔ DESKTOP-H5RKB3H\SQLEXPRESS (via shir-onprem-gateway-01)&#xa;3. ls_adls_healthcare ➔ sthealthcarelake01 (via SystemAssignedManagedIdentity)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;fontColor=#1E293B;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="adf-zone">
+          <mxGeometry x="20" y="760" width="560" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="adf-footer" value="✅ Phase 3 Evidence Verified: Debug Run executed with 4/4 Succeeded activities" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;fontColor=#065F46;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="adf-zone">
+          <mxGeometry x="20" y="880" width="560" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- ZONE 3: AZURE CLOUD DATA LAKE (ADLS GEN2)                                  -->
+        <!-- ========================================================================= -->
+        <mxCell id="adls-zone" value="🛢️ AZURE DATA LAKE STORAGE GEN2&#xa;Account: [sthealthcarelake01]  |  Hierarchical Namespace (HNS): ENABLED" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ECFEFF;strokeColor=#06B6D4;strokeWidth=2;fontColor=#0E7490;fontSize=14;fontStyle=1;fontFamily=Helvetica;startSize=40;rounded=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="120" width="460" height="960" as="geometry" />
+        </mxCell>
+
+        <!-- Bronze Lakehouse Container -->
+        <mxCell id="adls-bronze" value="🥉 [bronze] Raw Landing Container&#xa;Immutable Audit Store — Zero Schema Drift Loss" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;fontColor=#78350F;fontSize=12;fontStyle=1;fontFamily=Helvetica;startSize=45;rounded=1;" vertex="1" parent="adls-zone">
+          <mxGeometry x="20" y="55" width="420" height="340" as="geometry" />
+        </mxCell>
+
+        <!-- Folder Structure -->
+        <mxCell id="adls-folder" value="📁 Directory: /bronze/encounters/&#xa;└── 📄 Encounters_20260911_Debug.parquet&#xa;&#xa;• File Format: Apache Parquet (Columnar Storage)&#xa;• Compression: Snappy (High compression + Splittable)&#xa;• Schema: Retains raw source data types and metadata&#xa;• Row Count: Exactly 15 encounters extracted&#xa;• Purpose: Raw immutable replay zone for Silver masking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FCD34D;fontColor=#451A03;fontSize=11;align=left;spacingLeft=12;lineHeight=1.4;" vertex="1" parent="adls-bronze">
+          <mxGeometry x="15" y="55" width="390" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="adls-hns-benefit" value="⚡ Why HNS is Critical Here:&#xa;Atomic O(1) folder rename and directory partition operations.&#xa;Prevents copy-delete O(N) timeouts during large incremental loads." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontColor=#78350F;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="adls-bronze">
+          <mxGeometry x="15" y="220" width="390" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="adls-auth-badge" value="🔐 Authentication: Managed Identity (Storage Blob Data Contributor)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#93C5FD;fontColor=#1E3A8A;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="adls-bronze">
+          <mxGeometry x="15" y="285" width="390" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Next Downstream Targets (Silver & Gold) -->
+        <mxCell id="downstream-box" value="🥈 Downstream Medallion Lakehouse (Phase 4 &amp; 5)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1;fontColor=#1E293B;fontSize=11;fontStyle=1;fontFamily=Helvetica;startSize=35;rounded=1;" vertex="1" parent="adls-zone">
+          <mxGeometry x="20" y="420" width="420" height="320" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ds-silver" value="🥈 [silver] Container (Phase 4 - Active Target)&#xa;• HIPAA Safe Harbor: SHA-256 Masked SSN &amp; Name&#xa;• Cleansed &amp; Deduplicated Delta Tables&#xa;• Transformation Engine: ADF Mapping Data Flow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#94A3B8;fontColor=#334155;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="downstream-box">
+          <mxGeometry x="15" y="45" width="390" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ds-gold" value="🥇 [gold] Container (Phase 4 - Star Schema Marts)&#xa;• Fact_Encounters, Fact_Claims&#xa;• Dim_Patient, Dim_Provider, Dim_Diagnosis&#xa;• Optimized for Power BI &amp; Synapse Analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontColor=#92400E;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="downstream-box">
+          <mxGeometry x="15" y="135" width="390" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ds-serving" value="📊 Serving Layer (Phase 5 &amp; 6)&#xa;• Azure Synapse Serverless SQL Database&#xa;• Direct Lake / Import Power BI Dashboards" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#34D399;fontColor=#065F46;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="downstream-box">
+          <mxGeometry x="15" y="225" width="390" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="adls-footer" value="💾 Azure Free Budget: Consumed &lt; $0.50 of $200.00 credit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#10B981;fontColor=#065F46;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="adls-zone">
+          <mxGeometry x="20" y="880" width="420" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- INTER-ZONE CONNECTORS & DATA FLOW ARROWS                                  -->
+        <!-- ========================================================================= -->
+
+        <!-- SHIR to ADF Command Polling -->
+        <mxCell id="arrow-shir-adf" value="1. Outbound HTTPS 443 Polling&#xa;(SHIR asks ADF for tasks)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#10B981;strokeWidth=2;fontColor=#065F46;fontSize=10;fontStyle=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="shir-gateway-box" target="pipe-box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="580" y="740" />
+              <mxPoint x="580" y="465" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- SHIR to ADLS Parquet Direct Stream -->
+        <mxCell id="arrow-shir-adls" value="2. Direct Encrypted Parquet Push (TLS 1.3)&#xa;(SHIR streams Parquet directly to sthealthcarelake01)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#0284C7;strokeWidth=3;fontColor=#0369A1;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="shir-gateway-box" target="adls-bronze">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="590" y="780" />
+              <mxPoint x="590" y="1030" />
+              <mxPoint x="1460" y="1030" />
+              <mxPoint x="1460" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ADF to Key Vault Secret Read -->
+        <mxCell id="akv-call" value="ADF reads sql-onprem-password&#xa;via Managed Identity RBAC" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9333EA;strokeWidth=2;fontColor=#7E22CE;fontSize=10;fontStyle=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="ls-strip" target="akv-box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="860" />
+              <mxPoint x="600" y="860" />
+              <mxPoint x="600" y="240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
