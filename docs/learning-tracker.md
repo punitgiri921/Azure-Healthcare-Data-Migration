@@ -31,6 +31,14 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 4. **Managed Identity lets Azure talk to Azure** without storing passwords or storage access keys in code or pipeline JSON.
 5. **Git tracks pipeline definitions and code changes**, while data-history mechanisms (Watermarks / CDC) track changes to the actual healthcare data rows.
 
+### 🖼️ Visualizing Breakthrough Principle #1: The SHIR Hybrid Outbound Bridge
+
+![SHIR Outbound-Only Architecture and Security Guard Analogy](./images/shir_outbound_architecture.png)
+
+* **Outbound Polling (Port 443):** SHIR connects outwards to Azure ("I'm here. Any work?"). The enterprise firewall security guard blocks all inbound traffic.
+* **Local EMR Query:** SHIR runs the copy instruction locally against SQL Server (`localhost:1433`).
+* **Direct Lakehouse Stream:** SHIR compresses records into Snappy Parquet and streams directly to ADLS Gen2 `bronze/` over outbound HTTPS.
+
 ---
 
 ## 3. "Why We Built This" Enterprise Architecture Matrix (Rule 18 & 9)
