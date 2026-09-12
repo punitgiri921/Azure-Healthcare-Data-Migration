@@ -39,6 +39,8 @@ CREATE TABLE etl_watermark_control (
   - `patient_name` -> Encrypted or pseudonymized into `patient_surrogate_key`.
   - Date of Birth -> Truncated to birth year or age bracket in Silver/Gold.
 
+![Azure Data Factory - Components and Where You Can Do Masking & Calculated Columns](./images/adf_components_and_transformations.png)
+
 ---
 
 ## 4. Medallion Layer Specifications

@@ -80,6 +80,16 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
 | **`dbo.etl_watermark_control`** | State ledger maintaining high-watermarks for all tables | Columns: `table_name`, `watermark_col`, `last_watermark`, `status` | Allows dynamic incremental delta loads without hardcoded date filters. |
 | **Master Ingestion Pipeline** | 1 pipeline that iterates over all tables automatically | `Lookup (Get Tables)` ➔ `ForEach` ➔ `ExecutePipeline` | Scales to 100+ tables with zero new pipeline code. |
 
+### C. ADF Components & Where Masking & Calculated Columns Happen
+
+![Azure Data Factory - Components and Where You Can Do Masking & Calculated Columns](./images/adf_components_and_transformations.png)
+
+> [!TIP]
+> **Why Mapping Data Flows for Healthcare PII Masking?**
+> * **Copy Activity:** Best for fast, raw, byte-for-byte ingestion from on-premises SQL Server into Bronze Parquet.
+> * **Mapping Data Flows:** The native distributed Apache Spark engine in ADF. This is where we execute **HIPAA Safe Harbor SHA-256 salted hashing** on SSN, mask patient names (`J***`), and compute analytical fields like patient `age` and `patient_sk` surrogate keys for Gold.
+> * **Power Query:** Alternative M-code transformation engine (ideal for ad-hoc analysts familiar with Excel/Power BI Power Query).
+> * **CDC (Change Data Capture):** Native engine to capture row-level delta mutations without full database scans.
 
 ---
 
