@@ -30,6 +30,140 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "FE_Table_Load",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "LKP_Get_Watermark_Control",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('LKP_Get_Watermark_Control').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "LKP_Current_Watermark",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@concat(\n    'SELECT MAX(',\n    item().watermark_column,\n    ') AS current_watermark FROM dbo.',\n    item().table_name\n)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "DS_SQL_Source",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_table_name": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										}
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "COPY_SQL_To_Bronze",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "LKP_Current_Watermark",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@concat(\n    'SELECT * FROM dbo.',\n    item().table_name,\n    ' WHERE updated_at > ''',\n    item().last_watermark_value,\n    ''' AND updated_at <= ''',\n    activity('LKP_Current_Watermark').output.firstRow.current_watermark,\n    ''''\n)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_SQL_Source",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_table_name": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_Bronze",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_folder_name": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										},
+										"p_file_name": {
+											"value": "@concat(\n    item().table_name,\n    '_',\n    formatDateTime(utcNow(),'yyyyMMddHHmmss'),\n    '.parquet'\n)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
 			}
 		],
 		"annotations": []
