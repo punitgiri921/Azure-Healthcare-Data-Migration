@@ -19,6 +19,10 @@ This solution demonstrates how modern data organizations eliminate on-prem legac
 
 ## End-to-End Architecture
 
+![Azure Data Factory - Complete Flow Diagram](./docs/images/adf_complete_flow_diagram.png)
+
+### Architectural Data Flow & Security Perimeters
+
 ```mermaid
 graph TD
     subgraph OnPremises["ON-PREMISES / SOURCE ENVIRONMENT"]
@@ -68,12 +72,9 @@ graph TD
 ---
 
 ## Key Technical Highlights
- 
+
 1. **Hybrid Cloud Connectivity (SHIR)**:
    - Zero inbound firewall traversal. Local Windows Self-Hosted Integration Runtime (SHIR) creates secure outbound HTTPS (port 443) connections to Azure Data Factory.
-   
-   ![SHIR Outbound-Only Architecture and Security Guard Analogy](docs/images/shir_outbound_architecture.png)
-
 2. **Zero-Secret Cloud Security**:
    - Azure Key Vault stores all database passwords and connection strings.
    - Azure Data Factory uses its System-Assigned Managed Identity (SMI) with `Storage Blob Data Contributor` on ADLS Gen2 and `Key Vault Secrets User` on Key Vault. No plaintext credentials are ever stored in pipeline JSON or Git.
