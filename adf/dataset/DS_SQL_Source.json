@@ -7,8 +7,7 @@
 		},
 		"parameters": {
 			"p_table_name": {
-				"type": "string",
-				"defaultValue": "dbo.patients"
+				"type": "string"
 			}
 		},
 		"annotations": [],
