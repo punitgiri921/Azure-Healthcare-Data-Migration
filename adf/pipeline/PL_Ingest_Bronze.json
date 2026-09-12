@@ -108,7 +108,7 @@
 								"source": {
 									"type": "SqlServerSource",
 									"sqlReaderQuery": {
-										"value": "@concat(\n    'SELECT * FROM dbo.',\n    item().table_name,\n    ' WHERE updated_at > ''',\n    item().last_watermark_value,\n    ''' AND updated_at <= ''',\n    activity('LKP_Current_Watermark').output.firstRow.current_watermark,\n    ''''\n)",
+										"value": "@concat(\n    'SELECT * FROM dbo.',\n    item().table_name,\n    ' WHERE updated_at > ''',\n    item().last_watermark_value,\n    ''' AND updated_at <= ''',\n    activity('LKP_Current_Watermark').output.value[0].current_watermark,\n    ''''\n)",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
