@@ -1,0 +1,37 @@
+{
+	"name": "PL_Ingest_Bronze",
+	"properties": {
+		"activities": [
+			{
+				"name": "LKP_Get_Watermark_Control",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT\n    table_name,\n    watermark_column,\n    last_watermark_value\nFROM dbo.etl_watermark_control\nWHERE status = 'SUCCESS';",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQL_Source",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_table_name": "etl_watermark_control"
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"annotations": []
+	}
+}
