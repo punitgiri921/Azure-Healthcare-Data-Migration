@@ -126,6 +126,17 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
 - **Level 2 — Technical Mechanics**: Windows daemon `DIAHostService` initiates outbound HTTPS calls on TCP port 443 over TLS 1.3 to ADF service bus queues. It pulls the query instruction, queries `localhost:1433`, compresses data into Parquet, and streams it straight to ADLS Gen2.
 - **Level 3 — Senior Enterprise Architecture**: Zero attack surface on enterprise firewalls. Eliminates costly dedicated ExpressRoute VPN requirements for initial data migration batches while maintaining strict network perimeter isolation.
 
+![SHIR Outbound-Only Architecture and Security Guard Analogy](./images/shir_outbound_architecture.png)
+
+> [!IMPORTANT]
+> **Key Architectural Takeaway from the Diagram**:
+> 1. **Zero Inbound Ports Opened:** Corporate firewall blocks 100% of incoming connections. No public IP address or port forwarding is required.
+> 2. **Outbound Polling (Step 1):** SHIR (the employee inside) dials outward to Azure Data Factory (Head Office) over port 443 asking *"I'm here. Any work?"*.
+> 3. **Instruction Dispatch (Step 4):** ADF pushes SQL query jobs down through the established outbound connection.
+> 4. **Local Query (Steps 2 & 3):** SHIR queries the Records Room (`SQL Server` on `localhost:1433`) locally.
+> 5. **Direct Lakehouse Ingestion (Step 5):** SHIR compresses clinical rows into Snappy Parquet and streams them directly to ADLS Gen2 (`sthealthcarelake01/bronze`) over outbound HTTPS.
+
+
 ### [CL-07] Dynamic SQL Expressions & Parameterized Watermark Injection
 - **Level 1 — Simple Intuition**: Generating a customized search instruction on the fly using exact start and stop timestamps so only the new batch is pulled.
 - **Level 2 — Technical Mechanics**: ADF Copy Activity uses string interpolation:

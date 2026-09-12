@@ -104,6 +104,10 @@ flowchart TD
 > 
 > **The Solution (SHIR)**: The Self-Hosted Integration Runtime lives inside your local network. It dials **outward** to Azure over standard secure HTTPS (port 443). ADF never touches your database directly; instead, ADF hands the query to the SHIR agent, the agent runs the query locally on `localhost:1433`, compresses the data into Parquet, and streams it up to Azure. **0 firewall holes opened.**
 
+![SHIR Outbound-Only Architecture and Security Guard Analogy](./images/shir_outbound_architecture.png)
+
+---
+
 ### 2. "Why did we need Azure Key Vault? Why not just type the password into ADF?"
 > **The Problem**: If you type the database password directly into ADF, that password is saved in plaintext or easily readable JSON format. Because ADF is linked to GitHub, pushing code would leak your password to the public Git repository!
 > 
