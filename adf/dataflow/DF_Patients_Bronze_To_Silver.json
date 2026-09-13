@@ -13,7 +13,11 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "DrvMaskPHI"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          patient_id as integer,",
@@ -34,7 +38,10 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet',",
-				"     wildcardPaths:['patients/*.parquet']) ~> SrcBronzePatients"
+				"     wildcardPaths:['patients/*.parquet']) ~> SrcBronzePatients",
+				"SrcBronzePatients derive(first_name = concat(substring(first_name,1,1),'***'),",
+				"          last_name = concat(substring(last_name,1,1),'*'),",
+				"          ssn = sha2(256,replace(ssn,'-',''))) ~> DrvMaskPHI"
 			]
 		}
 	}
