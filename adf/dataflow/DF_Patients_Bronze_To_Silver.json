@@ -1,0 +1,41 @@
+{
+	"name": "DF_Patients_Bronze_To_Silver",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Bronze",
+						"type": "DatasetReference"
+					},
+					"name": "SrcBronzePatients"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          patient_id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          ssn as string,",
+				"          dob as date,",
+				"          gender as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          zip as string,",
+				"          insurance_id as string,",
+				"          created_at as timestamp,",
+				"          updated_at as timestamp",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['patients/*.parquet']) ~> SrcBronzePatients"
+			]
+		}
+	}
+}
