@@ -18,8 +18,12 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().p_file_name",
+					"type": "Expression"
+				},
 				"folderPath": {
-					"value": "patients",
+					"value": "@dataset().p_folder_name",
 					"type": "Expression"
 				},
 				"fileSystem": "bronze"
