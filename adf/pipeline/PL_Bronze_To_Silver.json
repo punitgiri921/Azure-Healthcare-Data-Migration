@@ -27,7 +27,7 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"p_silver_last_watermark": {
-								"value": "'@{activity('LKP_Silver_Watermark').output}'",
+								"value": "'@{activity('LKP_Silver_Watermark').output.value[0].last_watermark_value\n}'",
 								"type": "Expression"
 							}
 						},
