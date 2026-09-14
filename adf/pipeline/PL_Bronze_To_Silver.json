@@ -102,7 +102,7 @@
 						{
 							"type": "NonQuery",
 							"text": {
-								"value": "@concat(\n'UPDATE dbo.etl_watermark_control\nSET \n    last_watermark_value = GETDATE(),\n    status = ''SUCCESS'',\n    last_run_timestamp = GETDATE()\nWHERE table_name = ''silver_patients'''\n)\n",
+								"value": "@concat(\n'UPDATE s\nSET \n    s.last_watermark_value = b.last_watermark_value,\n    s.status = ''SUCCESS'',\n    s.last_run_timestamp = GETDATE()\nFROM dbo.etl_watermark_control s\nCROSS JOIN (\n    SELECT last_watermark_value \n    FROM dbo.etl_watermark_control \n    WHERE table_name = ''patients''\n) b\nWHERE s.table_name = ''silver_patients'''\n)\n",
 								"type": "Expression"
 							}
 						}
