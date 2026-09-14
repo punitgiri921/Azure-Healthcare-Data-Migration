@@ -28,9 +28,15 @@
 			"transformations": [
 				{
 					"name": "DrvMaskPHI"
+				},
+				{
+					"name": "FltNewOrUpdated"
 				}
 			],
 			"scriptLines": [
+				"parameters{",
+				"     p_silver_last_watermark as string ('1970-01-01 00:00:00.000')",
+				"}",
 				"source(output(",
 				"          patient_id as integer,",
 				"          first_name as string,",
@@ -51,9 +57,11 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet',",
 				"     wildcardPaths:['patients/*.parquet']) ~> SrcBronzePatients",
-				"SrcBronzePatients derive(first_name = concat(substring(first_name,1,1),'***'),",
+				"FltNewOrUpdated derive(first_name = concat(substring(first_name,1,1),'***'),",
 				"          last_name = concat(substring(last_name,1,1),'*'),",
 				"          ssn = sha2(256,replace(ssn,'-',''))) ~> DrvMaskPHI",
+				"SrcBronzePatients filter(isNull(updated_at) || updated_at > toTimestamp($p_silver_last_watermark)\r",
+				") ~> FltNewOrUpdated",
 				"DrvMaskPHI sink(allowSchemaDrift: true,",
 				"     validateSchema: true,",
 				"     format: 'parquet',",
