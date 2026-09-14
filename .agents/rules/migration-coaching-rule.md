@@ -837,3 +837,19 @@ RECOVERY
 ```
 
 The project is considered successful when I can **build, troubleshoot, explain, and defend the architecture myself**.
+
+---
+
+# 29. ADF IMPLEMENTATION LESSONS & EXPRESSION RULES
+
+### Rule A: Lookup Output Referencing (`value[0]` vs `firstRow`)
+* When accessing records returned from a Lookup activity where the result is returned as an array or multi-row query, access the first record using:
+  ```sql
+  @activity('LKP_Name').output.value[0].column_name
+  ```
+* Standardize on `.output.value[0].<column_name>` when passing watermark outputs across pipelines to prevent runtime null errors.
+
+### Rule B: Data Flow Parameters in Pipeline Canvas (`Pipeline expression` vs `Data flow expression`)
+* When mapping parameters in the **Data flow activity** inside a pipeline:
+  * **Always choose `Pipeline expression`** when reading values from upstream pipeline activities (e.g. `@activity('LKP_...').output.value[0]...`), pipeline variables, or system parameters.
+  * **`Data flow expression`** is strictly reserved for in-engine Spark expressions evaluated at runtime without pipeline context.
