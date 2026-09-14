@@ -188,7 +188,7 @@
 							"typeProperties": {
 								"scripts": [
 									{
-										"type": "Query",
+										"type": "NonQuery",
 										"text": {
 											"value": "@concat(\n'UPDATE dbo.etl_watermark_control\nSET\n    last_watermark_value = ''',\nactivity('LKP_Current_Watermark').output.value[0].current_watermark,\n''',\n    status = ''SUCCESS'',\n    last_run_timestamp = GETDATE()\nWHERE table_name = ''',\nitem().table_name,\n''''\n)",
 											"type": "Expression"
