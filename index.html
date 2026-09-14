@@ -1058,12 +1058,14 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                     <div class="phase-name">Medallion Transformations & HIPAA Masking</div>
                     <p style="font-size: 0.8125rem; color: var(--text-secondary);">Two-Stage Progression: Stage A (Static Single-Table Fundamentals) followed by Stage B (Dynamic Parameterized Automation).</p>
                     <ul class="task-list">
-                        <li class="task-item active">⏳ Stage A: Static Datasets (ds_sql_patients_static & ds_adls_bronze_patients_static)</li>
-                        <li class="task-item">⏳ Stage A: Ingestion Pipeline (pl_ingest_patients_static -> bronze/patients/)</li>
-                        <li class="task-item">⏳ Stage A: Silver Data Flow (df_patients_bronze_to_silver with SHA-256 HIPAA Masking)</li>
-                        <li class="task-item">⏳ Stage A: Gold Data Flow (df_patients_silver_to_gold with Dim_Patient Surrogate Key)</li>
-                        <li class="task-item">⏳ Stage B: Parameterized Datasets (@dataset().TableName, @dataset().ContainerName)</li>
-                        <li class="task-item">⏳ Stage B: Master Ingestion Orchestrator (Lookup -> ForEach dynamic all-table loading)</li>
+                        <li class="task-item done">✓ Generic Ingestion Datasets (DS_SQL_Source & DS_ADLS_Bronze)</li>
+                        <li class="task-item done">✓ Master Ingestion Pipeline (PL_Ingest_Bronze + SCR_Update_Watermark)</li>
+                        <li class="task-item done">✓ Silver Parquet Dataset (DS_ADLS_Silver_Patients -> silver/patients)</li>
+                        <li class="task-item done">✓ Mapping Data Flow: DF_Patients_Bronze_To_Silver (SHA-256 Masking)</li>
+                        <li class="task-item done">✓ Pipeline Execution: PL_Bronze_To_Silver (Spark 8-Core General Run)</li>
+                        <li class="task-item active">⏳ Incremental / Watermark Filtering for Bronze -> Silver Processing</li>
+                        <li class="task-item">⏳ Gold Data Flow: DF_Patients_Silver_To_Gold (Dim_Patient Surrogate Key)</li>
+                        <li class="task-item">⏳ Multi-Entity Star Schema Integration (Encounters, Providers, Diagnoses)</li>
                     </ul>
                 </div>
 
