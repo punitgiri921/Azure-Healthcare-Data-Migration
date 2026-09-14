@@ -28,33 +28,38 @@
 
 ---
 
-### Phase 3: Ingestion to Bronze Layer (Static -> Parameterized)
-- **Goal**: Extract on-prem SQL tables into ADLS Gen2 `bronze/` container as Parquet.
-- **Stage A (Static / Non-Parameterized)**:
-  1. Build dedicated `ds_sql_patients_static` and `ds_adls_bronze_patients_static`.
-  2. Build `pl_ingest_patients_static` with direct Copy Activity (no parameters).
-  3. Validate parquet output in `bronze/patients/`.
-- **Stage B (Dynamic / Parameterized)**:
-  4. Create generic parameterized datasets (`@dataset().TableName`, `@dataset().DirectoryName`).
-  5. Implement `etl_watermark_control` table and stored procedure.
-  6. Implement Lookup + ForEach loop to ingest all 5 tables dynamically.
+### Phase 3: Metadata-Driven Lakehouse Ingestion (Bronze Layer)
+- **Goal**: Dynamically extract on-prem SQL tables into ADLS Gen2 `bronze/` container as timestamped Parquet files.
+- **Tasks & Architecture**:
+  1. Generic Source Dataset: `DS_SQL_Source` with parameter `p_table_name`.
+  2. Generic Sink Dataset: `DS_ADLS_Bronze` with parameters `p_folder_name` and `p_file_name`.
+  3. Master Ingestion Pipeline: `PL_Ingest_Bronze`:
+     - Lookup `LKP_Get_Watermark_Control`: Reads active watermark control metadata (`WHERE status = 'SUCCESS'`).
+     - ForEach Loop `FE_Table_Load`: Iterates through tables sequentially (`isSequential = true`).
+     - Dynamic Upper Watermark: `LKP_Current_Watermark` extracts snapshot `MAX(watermark_column)`.
+     - Incremental Copy Activity: `COPY_SQL_To_Bronze` streams delta records with timestamped filename `@concat(item().table_name, '_', formatDateTime(utcNow(),'yyyyMMddHHmmss'), '.parquet')`.
+  4. Watermark Closure: Add stored procedure activity (`usp_update_watermark`) to advance `last_watermark_value`.
 
 ---
 
 ### Phase 4: Medallion Transformations & HIPAA Compliance (Silver & Gold)
-- **Goal**: Clean data, mask PII, and build star schema dimensional models using Mapping Data Flows.
-- **Stage A (Static / Single-Table)**:
-  1. Author `df_patients_bronze_to_silver`:
-     - Clean data types, standardize dates.
-     - Implement HIPAA SHA-256 masking on SSN and patient names.
-     - Sink clean Parquet to `silver/patients/`.
-  2. Author `df_patients_silver_to_gold`:
+- **Goal**: Clean data, mask PII/PHI under HIPAA Safe Harbor, and build star schema dimensional models using Mapping Data Flows.
+- **Stage A (Patients Bronze to Silver Transformation)**:
+  1. Author & Configure Mapping Data Flow `DF_Patients_Bronze_To_Silver`:
+     - Source: `SrcBronzePatients` reading from `patients/*.parquet`.
+     - Derived Column `DrvMaskPHI`:
+       - First Name: Initial masked (`concat(substring(first_name,1,1),'***')`).
+       - Last Name: Initial masked (`concat(substring(last_name,1,1),'*')`).
+       - SSN: HIPAA cryptographic hash (`sha2(256,replace(ssn,'-',''))`).
+     - Sink: `SNKSilverPatients` writing to `DS_ADLS_Silver_Patients` (`silver/patients/`) with schema validation.
+  2. Author Orchestration Pipeline `PL_Bronze_To_Silver` to execute `DF_Patients_Bronze_To_Silver` on Azure IR (8 cores General compute).
+  3. Validate Silver output and verify de-identification compliance.
+- **Stage B (Silver to Gold Dimensional Modeling)**:
+  4. Author `DF_Patients_Silver_To_Gold`:
      - Add `surrogateKey()` transformation (`patient_sk`).
-     - Calculate patient `age`.
+     - Calculate patient `age` from `dob`.
      - Sink conformed dimension table to `gold/dim_patient/`.
-- **Stage B (Multi-Table & Star Schema Integration)**:
-  3. Clean and process remaining entities (`encounters`, `providers`, `diagnoses`, `claims`).
-  4. Build Star Schema marts (`Dim_Patient`, `Dim_Provider`, `Dim_Diagnosis`, `Fact_Encounters`).
+  5. Clean and process remaining entities (`encounters`, `providers`, `diagnoses`, `claims`) into Star Schema marts (`Dim_Provider`, `Dim_Diagnosis`, `Fact_Encounters`).
 
 
 ---

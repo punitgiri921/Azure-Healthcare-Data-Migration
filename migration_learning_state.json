@@ -26,10 +26,10 @@
     "gate_requirement": "Master the Medallion progression (Bronze -> Silver -> Gold), HIPAA Safe Harbor de-identification rules, and Star Schema modeling."
   },
   "next_task": {
-    "task_id": "P3A-T1",
-    "name": "Stage A: Static Single-Table Ingestion (dbo.patients -> Bronze)",
-    "target_pipeline": "pl_ingest_patients_static",
-    "description": "Create dedicated static datasets and direct Copy Activity for patients table with zero parameters."
+    "task_id": "P4-T4",
+    "name": "Execute & Validate PL_Bronze_To_Silver and DF_Patients_Bronze_To_Silver",
+    "target_pipeline": "PL_Bronze_To_Silver",
+    "description": "Trigger pipeline run to execute Data Flow on Azure IR, verify HIPAA SHA-256 masking, and inspect output parquet files in ADLS Gen2 silver/patients/ container."
   },
   "current_azure_resources": [
     {
@@ -207,14 +207,14 @@
       "title": "Metadata-Driven Watermark Ingestion (Bronze)",
       "status": "COMPLETED",
       "tasks": [
-        { "task_id": "P3-T1", "name": "Phase 3 Ingestion Architecture & Explain-Back Checkpoint", "status": "COMPLETED" },
-        { "task_id": "P3-T2", "name": "Create ADF Pipeline: pl_ingest_incremental_bronze", "status": "COMPLETED" },
-        { "task_id": "P3-T3", "name": "Implement Lookup activity on etl_watermark_control", "status": "COMPLETED" },
-        { "task_id": "P3-T4", "name": "Implement Lookup activity for current max source timestamp", "status": "COMPLETED" },
-        { "task_id": "P3-T5", "name": "Build dynamic Copy Activity with parameterized SQL query", "status": "COMPLETED" },
-        { "task_id": "P3-T6", "name": "Sink data to ADLS Gen2 bronze/ container as Parquet", "status": "COMPLETED" },
-        { "task_id": "P3-T7", "name": "Add Stored Procedure activity to advance high-watermark timestamp", "status": "COMPLETED" },
-        { "task_id": "P3-T8", "name": "Test baseline full load and simulate incremental clinical updates", "status": "COMPLETED" }
+        { "task_id": "P3-T1", "name": "Build generic source/sink datasets: DS_SQL_Source & DS_ADLS_Bronze", "status": "COMPLETED" },
+        { "task_id": "P3-T2", "name": "Create master ingestion pipeline: PL_Ingest_Bronze", "status": "COMPLETED" },
+        { "task_id": "P3-T3", "name": "Implement LKP_Get_Watermark_Control on dbo.etl_watermark_control", "status": "COMPLETED" },
+        { "task_id": "P3-T4", "name": "Implement sequential FE_Table_Load ForEach loop", "status": "COMPLETED" },
+        { "task_id": "P3-T5", "name": "Implement LKP_Current_Watermark dynamic MAX timestamp query", "status": "COMPLETED" },
+        { "task_id": "P3-T6", "name": "Implement COPY_SQL_To_Bronze timestamped Parquet extraction", "status": "COMPLETED" },
+        { "task_id": "P3-T7", "name": "Advance high-watermark timestamp via stored procedure usp_update_watermark", "status": "PENDING" },
+        { "task_id": "P3-T8", "name": "Validate Bronze lakehouse ingestion per entity folder", "status": "COMPLETED" }
       ]
     },
     {
@@ -222,12 +222,13 @@
       "title": "Medallion Transformations & HIPAA Compliance (Silver & Gold)",
       "status": "IN_PROGRESS",
       "tasks": [
-        { "task_id": "P4-T1", "name": "Phase 4 Architecture & HIPAA Compliance Blueprint", "status": "PENDING" },
-        { "task_id": "P4-T2", "name": "Setup Azure Integration Runtime compute for Mapping Data Flows", "status": "PENDING" },
-        { "task_id": "P4-T3", "name": "Build Data Flow: df_bronze_to_silver (PII Masking & Deduplication)", "status": "PENDING" },
-        { "task_id": "P4-T4", "name": "Sink curated Delta / Parquet to ADLS Gen2 silver/ container", "status": "PENDING" },
-        { "task_id": "P4-T5", "name": "Build Data Flow: df_silver_to_gold (Star Schema Marts)", "status": "PENDING" },
-        { "task_id": "P4-T6", "name": "Sink conformed dimensional models to ADLS Gen2 gold/ container", "status": "PENDING" }
+        { "task_id": "P4-T1", "name": "Design HIPAA Safe Harbor PII/PHI de-identification specification", "status": "COMPLETED" },
+        { "task_id": "P4-T2", "name": "Configure Azure Integration Runtime compute (8 cores General)", "status": "COMPLETED" },
+        { "task_id": "P4-T3", "name": "Build Mapping Data Flow: DF_Patients_Bronze_To_Silver (SHA-256 SSN & Name initial masking)", "status": "COMPLETED" },
+        { "task_id": "P4-T4", "name": "Build Orchestrator Pipeline PL_Bronze_To_Silver and sink to DS_ADLS_Silver_Patients", "status": "COMPLETED" },
+        { "task_id": "P4-T5", "name": "Execute & validate Silver Parquet output and schema conformance", "status": "IN_PROGRESS" },
+        { "task_id": "P4-T6", "name": "Build Data Flow: DF_Patients_Silver_To_Gold (Surrogate Key & Age calculation)", "status": "PENDING" },
+        { "task_id": "P4-T7", "name": "Build Star Schema Dimensional Marts for remaining clinical entities", "status": "PENDING" }
       ]
     },
     {
