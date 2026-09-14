@@ -161,6 +161,42 @@
 									}
 								}
 							]
+						},
+						{
+							"name": "SCR_Update_Watermark",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "COPY_SQL_To_Bronze",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "@concat(\n'UPDATE dbo.etl_watermark_control\nSET\n    last_watermark_value = ''',\nactivity('LKP_Current_Watermark').output.value[0].current_watermark,\n''',\n    status = ''SUCCESS'',\n    last_run_timestamp = GETDATE()\nWHERE table_name = ''',\nitem().table_name,\n''''\n)",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
 						}
 					]
 				}

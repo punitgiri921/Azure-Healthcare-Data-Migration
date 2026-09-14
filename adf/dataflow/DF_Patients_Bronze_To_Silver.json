@@ -18,7 +18,11 @@
 						"referenceName": "DS_ADLS_Silver_Patients",
 						"type": "DatasetReference"
 					},
-					"name": "SNKSilverPatients"
+					"name": "SNKSilverPatients",
+					"rejectedDataLinkedService": {
+						"referenceName": "ls_adls_healthcare",
+						"type": "LinkedServiceReference"
+					}
 				}
 			],
 			"transformations": [
@@ -50,7 +54,7 @@
 				"SrcBronzePatients derive(first_name = concat(substring(first_name,1,1),'***'),",
 				"          last_name = concat(substring(last_name,1,1),'*'),",
 				"          ssn = sha2(256,replace(ssn,'-',''))) ~> DrvMaskPHI",
-				"DrvMaskPHI sink(allowSchemaDrift: false,",
+				"DrvMaskPHI sink(allowSchemaDrift: true,",
 				"     validateSchema: true,",
 				"     format: 'parquet',",
 				"     umask: 0022,",
