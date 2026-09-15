@@ -1,0 +1,22 @@
+{
+	"name": "DF_Providers_Bronze_To_Silver",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"parameters{",
+				"     p_silver_last_watermark as string ('1970-01-01 00:00:00.000')",
+				"}",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false) ~> source1"
+			]
+		}
+	}
+}
