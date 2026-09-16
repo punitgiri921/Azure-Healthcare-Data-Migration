@@ -1,0 +1,20 @@
+{
+	"name": "DS_ADLS_Silver_Claims",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls_healthcare",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "claims",
+				"fileSystem": "silver"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

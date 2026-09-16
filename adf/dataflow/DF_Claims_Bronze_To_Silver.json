@@ -1,13 +1,67 @@
 {
-	"name": "dataflow1",
+	"name": "DF_Claims_Bronze_To_Silver",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
-			"sources": [],
-			"sinks": [],
-			"transformations": [],
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Bronze",
+						"type": "DatasetReference"
+					},
+					"name": "SrcBronzeClaims"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Silver_Claims",
+						"type": "DatasetReference"
+					},
+					"name": "SNKSilverClaims"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FltNewOrUpdated"
+				},
+				{
+					"name": "DrvCleanClaims"
+				}
+			],
 			"scriptLines": [
-				""
+				"parameters{",
+				"     p_silver_last_watermark as string ('1970-01-01 00:00:00.000')",
+				"}",
+				"source(output(",
+				"          claim_id as integer,",
+				"          encounter_id as integer,",
+				"          billed_amount as decimal(18,2),",
+				"          paid_amount as decimal(18,2),",
+				"          claim_status as string,",
+				"          denial_reason as string,",
+				"          submitted_date as date,",
+				"          paid_date as date,",
+				"          created_at as timestamp,",
+				"          updated_at as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['claims/*.parquet']) ~> SrcBronzeClaims",
+				"SrcBronzeClaims filter(isNull(updated_at) || updated_at > toTimestamp(replace(replace($p_silver_last_watermark, 'T', ' '), 'Z', ''))",
+				") ~> FltNewOrUpdated",
+				"FltNewOrUpdated derive(patient_responsibility = round(billed_amount - paid_amount, 2),",
+				"          is_denied = iif(claim_status == 'Denied', true(), false())) ~> DrvCleanClaims",
+				"DrvCleanClaims sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SNKSilverClaims"
 			]
 		}
 	}

@@ -10,9 +10,6 @@
 						"type": "DatasetReference"
 					},
 					"name": "SrcBronzeEncounters"
-				},
-				{
-					"name": "source1"
 				}
 			],
 			"sinks": [
@@ -53,8 +50,6 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet',",
 				"     wildcardPaths:['encounters/*.parquet']) ~> SrcBronzeEncounters",
-				"source(allowSchemaDrift: true,",
-				"     validateSchema: false) ~> source1",
 				"SrcBronzeEncounters filter(isNull(updated_at) || updated_at > toTimestamp(replace(replace($p_silver_last_watermark, 'T', ' '), 'Z', ''))",
 				") ~> FltNewOrUpdated",
 				"FltNewOrUpdated derive(length_of_stay_days = iif(isNull(discharge_date), 0, minus(toDate(discharge_date), toDate(admission_date))),",
