@@ -1,0 +1,66 @@
+{
+	"name": "DF_Diagnoses_Bronze_To_Silver",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Bronze",
+						"type": "DatasetReference"
+					},
+					"name": "SrcBronzeDiagnoses"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Silver_Diagnoses",
+						"type": "DatasetReference"
+					},
+					"name": "SNKSilverDiagnoses"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FltNewOrUpdated"
+				},
+				{
+					"name": "DrvCleanDiagnoses"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     p_silver_last_watermark as string ('1970-01-01 00:00:00.000')",
+				"}",
+				"source(output(",
+				"          diagnosis_id as integer,",
+				"          encounter_id as integer,",
+				"          icd10_code as string,",
+				"          diagnosis_description as string,",
+				"          is_primary as boolean,",
+				"          created_at as timestamp,",
+				"          updated_at as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['diagnoses/*.parquet']) ~> SrcBronzeDiagnoses",
+				"SrcBronzeDiagnoses filter(isNull(updated_at) || updated_at > toTimestamp(replace(replace($p_silver_last_watermark, 'T', ' '), 'Z', ''))",
+				") ~> FltNewOrUpdated",
+				"FltNewOrUpdated derive(icd10_code = trim(upper(icd10_code)),",
+				"          diagnosis_description = trim(diagnosis_description),",
+				"          ingested_at = currentUTC()) ~> DrvCleanDiagnoses",
+				"DrvCleanDiagnoses sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SNKSilverDiagnoses"
+			]
+		}
+	}
+}
