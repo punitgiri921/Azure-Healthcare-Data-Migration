@@ -1,0 +1,74 @@
+{
+	"name": "DF_Encounters_Bronze_To_Silver",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Bronze",
+						"type": "DatasetReference"
+					},
+					"name": "SrcBronzeEncounters"
+				},
+				{
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Silver_Encounters",
+						"type": "DatasetReference"
+					},
+					"name": "SNKSilverEncounters"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FltNewOrUpdated"
+				},
+				{
+					"name": "DrvCleanEncounters"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     p_silver_last_watermark as string ('1970-01-01 00:00:00.000')",
+				"}",
+				"source(output(",
+				"          encounter_id as integer,",
+				"          patient_id as integer,",
+				"          provider_id as integer,",
+				"          admission_date as timestamp,",
+				"          discharge_date as timestamp,",
+				"          encounter_type as string,",
+				"          department as string,",
+				"          discharge_disposition as string,",
+				"          created_at as timestamp,",
+				"          updated_at as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['encounters/*.parquet']) ~> SrcBronzeEncounters",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false) ~> source1",
+				"SrcBronzeEncounters filter(isNull(updated_at) || updated_at > toTimestamp(replace(replace($p_silver_last_watermark, 'T', ' '), 'Z', ''))",
+				") ~> FltNewOrUpdated",
+				"FltNewOrUpdated derive(length_of_stay_days = iif(isNull(discharge_date), 0, minus(toDate(discharge_date), toDate(admission_date))),",
+				"          ingested_at = currentUTC()) ~> DrvCleanEncounters",
+				"DrvCleanEncounters sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1) ~> SNKSilverEncounters"
+			]
+		}
+	}
+}
