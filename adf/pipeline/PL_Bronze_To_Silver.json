@@ -27,7 +27,7 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"p_silver_last_watermark": {
-								"value": "'@{activity('LKP_Silver_Watermark').output.value[0].last_watermark_value\n}'",
+								"value": "'@{activity('LKP_Silver_Watermark').output.value[0].silver_patients\n\n}'",
 								"type": "Expression"
 							}
 						},
@@ -159,8 +159,14 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"p_silver_last_watermark": {
-								"value": "'@{activity('LKP_Silver_Watermark').output.firstRow.silver_encounters\n}'",
+								"value": "'@{activity('LKP_Silver_Watermark').output.value[0].silver_claims\n}'",
 								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"SrcBronzeClaims": {
+								"p_folder_name": "dummy",
+								"p_file_name": "dummy"
 							}
 						}
 					},
@@ -196,8 +202,14 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"p_silver_last_watermark": {
-								"value": "'@{activity('LKP_Silver_Watermark').output.firstRow.silver_encounters\n}'",
+								"value": "'@{activity('LKP_Silver_Watermark').output.value[0].silver_diagnoses\n}'",
 								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"SrcBronzeDiagnoses": {
+								"p_folder_name": "dummy",
+								"p_file_name": "dummy"
 							}
 						}
 					},
@@ -233,8 +245,14 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"p_silver_last_watermark": {
-								"value": "'@{activity('LKP_Silver_Watermark').output.firstRow.silver_encounters\n}'",
+								"value": "'@{activity('LKP_Silver_Watermark').output.value[0].silver_encounters\n}'",
 								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"SrcBronzeEncounters": {
+								"p_folder_name": "dummy",
+								"p_file_name": "dummy"
 							}
 						}
 					},
@@ -270,8 +288,14 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"p_silver_last_watermark": {
-								"value": "'@{activity('LKP_Silver_Watermark').output.firstRow.silver_providers\n}'",
+								"value": "'@{activity('LKP_Silver_Watermark').output.value[0].silver_providers\n}'",
 								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"SrcBronzeProviders": {
+								"p_folder_name": "dummy",
+								"p_file_name": "dummy"
 							}
 						}
 					},
