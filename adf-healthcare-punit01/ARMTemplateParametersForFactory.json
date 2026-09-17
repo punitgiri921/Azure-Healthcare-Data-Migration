@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-healthcare-punit01"
+		},
+		"ls_adls_healthcare_properties_typeProperties_url": {
+			"value": "https://sthealthcarelake01.dfs.core.windows.net/"
+		},
+		"ls_keyvault_healthcare_properties_typeProperties_baseUrl": {
+			"value": "https://kv-healthcare-sec01.vault.azure.net/"
+		},
+		"ls_sqlserver_onprem_properties_typeProperties_server": {
+			"value": "DESKTOP-H5RKB3H\\SQLEXPRESS"
+		},
+		"ls_sqlserver_onprem_properties_typeProperties_database": {
+			"value": "healthcare_emr_source"
+		},
+		"ls_sqlserver_onprem_properties_typeProperties_userName": {
+			"value": "adf_svc_user"
+		}
+	}
+}
