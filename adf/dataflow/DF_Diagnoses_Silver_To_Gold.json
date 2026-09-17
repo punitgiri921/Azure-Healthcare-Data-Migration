@@ -1,0 +1,76 @@
+{
+	"name": "DF_Diagnoses_Silver_To_Gold",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Silver_Diagnoses",
+						"type": "DatasetReference"
+					},
+					"name": "SrcSilverDiagnoses"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Gold_Dim_Provider",
+						"type": "DatasetReference"
+					},
+					"name": "SNKGoldDimProvider"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerDiagnosisAttributes"
+				},
+				{
+					"name": "GenDiagnosisSK"
+				},
+				{
+					"name": "SelDimDiagnosis"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          diagnosis_id as integer,",
+				"          encounter_id as integer,",
+				"          icd10_code as string,",
+				"          diagnosis_description as string,",
+				"          is_primary as boolean,",
+				"          created_at as timestamp,",
+				"          updated_at as timestamp,",
+				"          ingested_at as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['diagnoses/*.parquet']) ~> SrcSilverDiagnoses",
+				"SrcSilverDiagnoses derive(gold_created_at = currentUTC()) ~> DerDiagnosisAttributes",
+				"DerDiagnosisAttributes keyGenerate(output(diagnosis_sk as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> GenDiagnosisSK",
+				"GenDiagnosisSK select(mapColumn(",
+				"          diagnosis_sk,",
+				"          diagnosis_id,",
+				"          icd10_code,",
+				"          diagnosis_description,",
+				"          is_primary,",
+				"          gold_created_at",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelDimDiagnosis",
+				"SelDimDiagnosis sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SNKGoldDimProvider"
+			]
+		}
+	}
+}
