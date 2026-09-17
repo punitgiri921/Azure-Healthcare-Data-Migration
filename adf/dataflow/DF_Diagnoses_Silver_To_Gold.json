@@ -15,10 +15,10 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "DS_ADLS_Gold_Dim_Provider",
+						"referenceName": "DS_ADLS_Gold_Dim_Diagnosis",
 						"type": "DatasetReference"
 					},
-					"name": "SNKGoldDimProvider"
+					"name": "SNKGoldDimDiagnosis"
 				}
 			],
 			"transformations": [
@@ -69,7 +69,7 @@
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> SNKGoldDimProvider"
+				"     skipDuplicateMapOutputs: true) ~> SNKGoldDimDiagnosis"
 			]
 		}
 	}
