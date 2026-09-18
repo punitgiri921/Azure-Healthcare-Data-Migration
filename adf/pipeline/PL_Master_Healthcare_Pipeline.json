@@ -4,7 +4,7 @@
 		"description": "End-to-end Master Orchestration: Bronze -> Silver -> Gold",
 		"activities": [
 			{
-				"name": "EP_Run_Bronze_Ingestio",
+				"name": "EP_Run_Bronze_Ingestion",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
 				"policy": {
@@ -24,7 +24,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "EP_Run_Bronze_Ingestio",
+						"activity": "EP_Run_Bronze_Ingestion",
 						"dependencyConditions": [
 							"Succeeded"
 						]
