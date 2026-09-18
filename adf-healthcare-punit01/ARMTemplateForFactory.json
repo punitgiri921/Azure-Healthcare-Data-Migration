@@ -586,6 +586,248 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/PL_Silver_To_Gold')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "DF_Diagnoses_Silver_To_Gold",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "DEL_Clear_Gold_Marts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_Diagnoses_Silver_To_Gold",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SrcSilverDiagnoses": {},
+									"SNKGoldDimDiagnosis": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "DF_Patients_Silver_To_Gold",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "DEL_Clear_Gold_Marts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_Patients_Silver_To_Gold",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SrcSilverPatients": {},
+									"SNKGoldDimPatient": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "DF_Providers_Silver_To_Gold",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "DEL_Clear_Gold_Marts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_Providers_Silver_To_Gold",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SrcSilverProviders": {},
+									"SNKGoldDimProvider": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "DF_Claims_Silver_To_Gold",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "DEL_Clear_Gold_Marts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_Claims_Silver_To_Gold",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SrcSilverClaims": {},
+									"SNKGoldFactClaims": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "DF_Encounters_Silver_To_Gold",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "DF_Patients_Silver_To_Gold",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "DF_Providers_Silver_To_Gold",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_Encounters_Silver_To_Gold",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SrcSilverEncounters": {},
+									"SrcDimPatient": {},
+									"SrcDimProvider": {},
+									"SNKGoldFactEncounters": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "DEL_Clear_Gold_Marts",
+						"description": "Deletes prior Parquet files in gold to prevent duplicate appends.",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "DS_ADLS_Gold_Binary",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"wildcardFileName": "*",
+								"enablePartitionDiscovery": false
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/DF_Diagnoses_Silver_To_Gold')]",
+				"[concat(variables('factoryId'), '/dataflows/DF_Patients_Silver_To_Gold')]",
+				"[concat(variables('factoryId'), '/dataflows/DF_Providers_Silver_To_Gold')]",
+				"[concat(variables('factoryId'), '/dataflows/DF_Claims_Silver_To_Gold')]",
+				"[concat(variables('factoryId'), '/dataflows/DF_Encounters_Silver_To_Gold')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Gold_Binary')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Bronze')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -679,6 +921,168 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Gold_Binary')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adls_healthcare",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "gold"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adls_healthcare')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Gold_Dim_Diagnosis')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adls_healthcare",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Gold"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "dim_diagnosis",
+						"fileSystem": "gold"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adls_healthcare')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Gold_Dim_Patient')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adls_healthcare",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Gold"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "dim_patient",
+						"fileSystem": "gold"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adls_healthcare')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Gold_Dim_Provider')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adls_healthcare",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Gold"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "dim_provider",
+						"fileSystem": "gold"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adls_healthcare')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Gold_Fact_Claims')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adls_healthcare",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Gold"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "fact_claims",
+						"fileSystem": "gold"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adls_healthcare')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Gold_Fact_Encounters')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adls_healthcare",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Gold"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "fact_encounters",
+						"fileSystem": "gold"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adls_healthcare')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Silver_Claims')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -686,6 +1090,9 @@
 				"linkedServiceName": {
 					"referenceName": "ls_adls_healthcare",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Silver"
 				},
 				"annotations": [],
 				"type": "Parquet",
@@ -712,6 +1119,9 @@
 					"referenceName": "ls_adls_healthcare",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "Silver"
+				},
 				"annotations": [],
 				"type": "Parquet",
 				"typeProperties": {
@@ -736,6 +1146,9 @@
 				"linkedServiceName": {
 					"referenceName": "ls_adls_healthcare",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Silver"
 				},
 				"annotations": [],
 				"type": "Parquet",
@@ -762,6 +1175,9 @@
 					"referenceName": "ls_adls_healthcare",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "Silver"
+				},
 				"annotations": [],
 				"type": "Parquet",
 				"typeProperties": {
@@ -786,6 +1202,9 @@
 				"linkedServiceName": {
 					"referenceName": "ls_adls_healthcare",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Silver"
 				},
 				"annotations": [],
 				"type": "Parquet",
@@ -1031,6 +1450,101 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DF_Claims_Silver_To_Gold')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "To_Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Silver_Claims",
+								"type": "DatasetReference"
+							},
+							"name": "SrcSilverClaims"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Gold_Fact_Claims",
+								"type": "DatasetReference"
+							},
+							"name": "SNKGoldFactClaims"
+						}
+					],
+					"transformations": [
+						{
+							"name": "GenClaimSK"
+						},
+						{
+							"name": "DerClaimAttributes"
+						},
+						{
+							"name": "SelFactClaims"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          claim_id as integer,",
+						"          encounter_id as integer,",
+						"          billed_amount as decimal(18,2),",
+						"          paid_amount as decimal(18,2),",
+						"          claim_status as string,",
+						"          denial_reason as string,",
+						"          submitted_date as date,",
+						"          paid_date as date,",
+						"          created_at as timestamp,",
+						"          updated_at as timestamp,",
+						"          patient_responsibility as decimal(20,2),",
+						"          is_denied as boolean",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     wildcardPaths:['claims/*.parquet']) ~> SrcSilverClaims",
+						"SrcSilverClaims keyGenerate(output(GenClaimSK as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> GenClaimSK",
+						"GenClaimSK derive(gold_created_at = currentUTC()) ~> DerClaimAttributes",
+						"DerClaimAttributes select(mapColumn(",
+						"          GenClaimSK,",
+						"          claim_id,",
+						"          encounter_id,",
+						"          submitted_date,",
+						"          paid_date,",
+						"          billed_amount,",
+						"          paid_amount,",
+						"          claim_status,",
+						"          denial_reason,",
+						"          patient_responsibility,",
+						"          is_denied,",
+						"          gold_created_at",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelFactClaims",
+						"SelFactClaims sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SNKGoldFactClaims"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Silver_Claims')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Gold_Fact_Claims')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DF_Diagnoses_Bronze_To_Silver')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -1099,6 +1613,91 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Bronze')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Silver_Diagnoses')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Diagnoses_Silver_To_Gold')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "To_Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Silver_Diagnoses",
+								"type": "DatasetReference"
+							},
+							"name": "SrcSilverDiagnoses"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Gold_Dim_Diagnosis",
+								"type": "DatasetReference"
+							},
+							"name": "SNKGoldDimDiagnosis"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DerDiagnosisAttributes"
+						},
+						{
+							"name": "GenDiagnosisSK"
+						},
+						{
+							"name": "SelDimDiagnosis"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          diagnosis_id as integer,",
+						"          encounter_id as integer,",
+						"          icd10_code as string,",
+						"          diagnosis_description as string,",
+						"          is_primary as boolean,",
+						"          created_at as timestamp,",
+						"          updated_at as timestamp,",
+						"          ingested_at as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     wildcardPaths:['diagnoses/*.parquet']) ~> SrcSilverDiagnoses",
+						"SrcSilverDiagnoses derive(gold_created_at = currentUTC()) ~> DerDiagnosisAttributes",
+						"DerDiagnosisAttributes keyGenerate(output(diagnosis_sk as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> GenDiagnosisSK",
+						"GenDiagnosisSK select(mapColumn(",
+						"          diagnosis_sk,",
+						"          diagnosis_id,",
+						"          icd10_code,",
+						"          diagnosis_description,",
+						"          is_primary,",
+						"          gold_created_at",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelDimDiagnosis",
+						"SelDimDiagnosis sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SNKGoldDimDiagnosis"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Silver_Diagnoses')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Gold_Dim_Diagnosis')]"
 			]
 		},
 		{
@@ -1173,6 +1772,167 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Bronze')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Silver_Encounters')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Encounters_Silver_To_Gold')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "To_Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Silver_Encounters",
+								"type": "DatasetReference"
+							},
+							"name": "SrcSilverEncounters"
+						},
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Gold_Dim_Patient",
+								"type": "DatasetReference"
+							},
+							"name": "SrcDimPatient"
+						},
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Gold_Dim_Provider",
+								"type": "DatasetReference"
+							},
+							"name": "SrcDimProvider"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Gold_Fact_Encounters",
+								"type": "DatasetReference"
+							},
+							"name": "SNKGoldFactEncounters"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LkpPatientSK"
+						},
+						{
+							"name": "LkpProviderSK"
+						},
+						{
+							"name": "GenEncounterSK"
+						},
+						{
+							"name": "SelFactColumns"
+						},
+						{
+							"name": "DerEncounterAttributes"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          encounter_id as integer,",
+						"          patient_id as integer,",
+						"          provider_id as integer,",
+						"          admission_date as timestamp,",
+						"          discharge_date as timestamp,",
+						"          encounter_type as string,",
+						"          department as string,",
+						"          discharge_disposition as string,",
+						"          created_at as timestamp,",
+						"          updated_at as timestamp,",
+						"          length_of_stay_days as integer,",
+						"          ingested_at as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     wildcardPaths:['encounters/*.parquet']) ~> SrcSilverEncounters",
+						"source(output(",
+						"          patient_sk as long,",
+						"          patient_id as integer,",
+						"          ssn as string,",
+						"          first_name as string,",
+						"          last_name as string,",
+						"          gender as string,",
+						"          dob as date,",
+						"          current_age as integer,",
+						"          age_group as string,",
+						"          address as string,",
+						"          city as string,",
+						"          state as string,",
+						"          zip as string,",
+						"          insurance_id as string,",
+						"          created_at as timestamp,",
+						"          updated_at as timestamp,",
+						"          gold_created_at as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     wildcardPaths:['dim_patient/*.parquet']) ~> SrcDimPatient",
+						"source(output(",
+						"          provider_sk as long,",
+						"          provider_id as integer,",
+						"          provider_name as string,",
+						"          specialty as string,",
+						"          department as string,",
+						"          npi_number as string,",
+						"          gold_created_at as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     wildcardPaths:['dim_provider/*.parquet']) ~> SrcDimProvider",
+						"SrcSilverEncounters, SrcDimPatient join(SrcSilverEncounters@patient_id == SrcDimPatient@patient_id,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LkpPatientSK",
+						"LkpPatientSK, SrcDimProvider lookup(SrcSilverEncounters@provider_id == SrcDimProvider@provider_id,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> LkpProviderSK",
+						"SelFactColumns keyGenerate(output(encounter_sk as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> GenEncounterSK",
+						"LkpProviderSK select(mapColumn(",
+						"          encounter_id,",
+						"          patient_sk,",
+						"          provider_sk,",
+						"          admission_date,",
+						"          discharge_date,",
+						"          encounter_type,",
+						"          department = SrcSilverEncounters@department,",
+						"          discharge_disposition,",
+						"          length_of_stay_days",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelFactColumns",
+						"GenEncounterSK derive(gold_created_at = currentUTC()) ~> DerEncounterAttributes",
+						"DerEncounterAttributes sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SNKGoldFactEncounters"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Silver_Encounters')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Gold_Dim_Patient')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Gold_Dim_Provider')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Gold_Fact_Encounters')]"
 			]
 		},
 		{
@@ -1273,6 +2033,112 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DF_Patients_Silver_To_Gold')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "To_Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Silver_Patients",
+								"type": "DatasetReference"
+							},
+							"name": "SrcSilverPatients"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Gold_Dim_Patient",
+								"type": "DatasetReference"
+							},
+							"name": "SNKGoldDimPatient"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DerPatientAttributes"
+						},
+						{
+							"name": "DerPatientAgeGroup"
+						},
+						{
+							"name": "GenPatientSK"
+						},
+						{
+							"name": "SelDimPatient"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          patient_id as integer,",
+						"          first_name as string,",
+						"          last_name as string,",
+						"          ssn as string,",
+						"          dob as date,",
+						"          gender as string,",
+						"          address as string,",
+						"          city as string,",
+						"          state as string,",
+						"          zip as string,",
+						"          insurance_id as string,",
+						"          created_at as timestamp,",
+						"          updated_at as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     wildcardPaths:['patients/*.parquet']) ~> SrcSilverPatients",
+						"SrcSilverPatients derive(current_age = iif(isNull(dob), toInteger(null()), toInteger(year(currentDate()) - year(dob)))) ~> DerPatientAttributes",
+						"DerPatientAttributes derive(age_group = case(     isNull(current_age), 'Unknown',     current_age < 18, 'Pediatric (0-17)',     current_age < 65, 'Adult (18-64)',     'Senior (65+)' ),",
+						"          gold_created_at = currentUTC()) ~> DerPatientAgeGroup",
+						"DerPatientAgeGroup keyGenerate(output(patient_sk as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> GenPatientSK",
+						"GenPatientSK select(mapColumn(",
+						"          patient_sk,",
+						"          patient_id,",
+						"          ssn,",
+						"          first_name,",
+						"          last_name,",
+						"          gender,",
+						"          dob,",
+						"          current_age,",
+						"          age_group,",
+						"          address,",
+						"          city,",
+						"          state,",
+						"          zip,",
+						"          insurance_id,",
+						"          created_at,",
+						"          updated_at,",
+						"          gold_created_at",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelDimPatient",
+						"SelDimPatient sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SNKGoldDimPatient"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Silver_Patients')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Gold_Dim_Patient')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DF_Providers_Bronze_To_Silver')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -1341,6 +2207,207 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Bronze')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Silver_Providers')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Providers_Silver_To_Gold')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "To_Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Silver_Providers",
+								"type": "DatasetReference"
+							},
+							"name": "SrcSilverProviders"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_ADLS_Gold_Dim_Provider",
+								"type": "DatasetReference"
+							},
+							"name": "SNKGoldDimProvider"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DerProviderAttributes"
+						},
+						{
+							"name": "GenProviderSK"
+						},
+						{
+							"name": "SelDimProvider"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          provider_id as integer,",
+						"          provider_name as string,",
+						"          specialty as string,",
+						"          department as string,",
+						"          npi_number as string,",
+						"          created_at as timestamp,",
+						"          updated_at as timestamp,",
+						"          ingested_at as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     wildcardPaths:['providers/*.parquet']) ~> SrcSilverProviders",
+						"SrcSilverProviders derive(gold_created_at = currentUTC()) ~> DerProviderAttributes",
+						"DerProviderAttributes keyGenerate(output(provider_sk as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> GenProviderSK",
+						"GenProviderSK select(mapColumn(",
+						"          provider_sk,",
+						"          provider_id,",
+						"          provider_name,",
+						"          specialty,",
+						"          department,",
+						"          npi_number,",
+						"          gold_created_at",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelDimProvider",
+						"SelDimProvider sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SNKGoldDimProvider"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Silver_Providers')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Gold_Dim_Provider')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_Master_Healthcare_Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "End-to-end Master Orchestration: Bronze -> Silver -> Gold",
+				"activities": [
+					{
+						"name": "EP_Run_Bronze_Ingestio",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_Ingest_Bronze",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "P_Run_Silver_Transformations",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "EP_Run_Bronze_Ingestio",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_Bronze_To_Silver",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "EP_Run_Gold_Star_Schema",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "P_Run_Silver_Transformations",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_Silver_To_Gold",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/PL_Ingest_Bronze')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_Bronze_To_Silver')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_Silver_To_Gold')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TRG_Daily_Healthcare_ETL')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "PL_Master_Healthcare_Pipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2026-09-19T02:00:00",
+						"timeZone": "India Standard Time",
+						"schedule": {}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/PL_Master_Healthcare_Pipeline')]"
 			]
 		}
 	]
