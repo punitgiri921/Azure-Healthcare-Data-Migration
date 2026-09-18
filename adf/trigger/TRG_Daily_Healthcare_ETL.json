@@ -1,0 +1,24 @@
+{
+	"name": "TRG_Daily_Healthcare_ETL",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "PL_Master_Healthcare_Pipeline",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-09-19T02:00:00",
+				"timeZone": "India Standard Time"
+			}
+		}
+	}
+}

@@ -1,0 +1,71 @@
+{
+	"name": "PL_Master_Healthcare_Pipeline",
+	"properties": {
+		"description": "End-to-end Master Orchestration: Bronze -> Silver -> Gold",
+		"activities": [
+			{
+				"name": "EP_Run_Bronze_Ingestio",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PL_Ingest_Bronze",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "P_Run_Silver_Transformations",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "EP_Run_Bronze_Ingestio",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PL_Bronze_To_Silver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "EP_Run_Gold_Star_Schema",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "P_Run_Silver_Transformations",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PL_Silver_To_Gold",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": []
+	}
+}
