@@ -1,0 +1,89 @@
+{
+	"name": "DF_Claims_Silver_To_Gold",
+	"properties": {
+		"folder": {
+			"name": "To_Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Silver_Claims",
+						"type": "DatasetReference"
+					},
+					"name": "SrcSilverClaims"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Gold_Fact_Claims",
+						"type": "DatasetReference"
+					},
+					"name": "SNKGoldFactClaims"
+				}
+			],
+			"transformations": [
+				{
+					"name": "GenClaimSK"
+				},
+				{
+					"name": "DerClaimAttributes"
+				},
+				{
+					"name": "SelFactClaims"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          claim_id as integer,",
+				"          encounter_id as integer,",
+				"          billed_amount as decimal(18,2),",
+				"          paid_amount as decimal(18,2),",
+				"          claim_status as string,",
+				"          denial_reason as string,",
+				"          submitted_date as date,",
+				"          paid_date as date,",
+				"          created_at as timestamp,",
+				"          updated_at as timestamp,",
+				"          patient_responsibility as decimal(20,2),",
+				"          is_denied as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['claims/*.parquet']) ~> SrcSilverClaims",
+				"SrcSilverClaims keyGenerate(output(GenClaimSK as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> GenClaimSK",
+				"GenClaimSK derive(gold_created_at = currentUTC()) ~> DerClaimAttributes",
+				"DerClaimAttributes select(mapColumn(",
+				"          GenClaimSK,",
+				"          claim_id,",
+				"          encounter_id,",
+				"          submitted_date,",
+				"          paid_date,",
+				"          billed_amount,",
+				"          paid_amount,",
+				"          claim_status,",
+				"          denial_reason,",
+				"          patient_responsibility,",
+				"          is_denied,",
+				"          gold_created_at",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelFactClaims",
+				"SelFactClaims sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SNKGoldFactClaims"
+			]
+		}
+	}
+}

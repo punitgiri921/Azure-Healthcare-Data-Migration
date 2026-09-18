@@ -1,20 +1,20 @@
 {
-	"name": "DS_ADLS_Silver_Claims",
+	"name": "DS_ADLS_Gold_Fact_Claims",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_adls_healthcare",
 			"type": "LinkedServiceReference"
 		},
 		"folder": {
-			"name": "Silver"
+			"name": "Gold"
 		},
 		"annotations": [],
 		"type": "Parquet",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": "claims",
-				"fileSystem": "silver"
+				"folderPath": "fact_claims",
+				"fileSystem": "gold"
 			},
 			"compressionCodec": "snappy"
 		},
