@@ -1,6 +1,9 @@
 {
 	"name": "DF_Patients_Silver_To_Gold",
 	"properties": {
+		"folder": {
+			"name": "To_Gold"
+		},
 		"type": "MappingDataFlow",
 		"typeProperties": {
 			"sources": [

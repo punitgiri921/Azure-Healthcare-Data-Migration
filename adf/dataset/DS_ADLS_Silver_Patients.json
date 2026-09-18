@@ -5,6 +5,9 @@
 			"referenceName": "ls_adls_healthcare",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "Silver"
+		},
 		"annotations": [],
 		"type": "Parquet",
 		"typeProperties": {

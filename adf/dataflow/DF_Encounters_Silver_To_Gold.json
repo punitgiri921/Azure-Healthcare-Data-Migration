@@ -1,0 +1,153 @@
+{
+	"name": "DF_Encounters_Silver_To_Gold",
+	"properties": {
+		"folder": {
+			"name": "To_Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Silver_Encounters",
+						"type": "DatasetReference"
+					},
+					"name": "SrcSilverEncounters"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Gold_Dim_Patient",
+						"type": "DatasetReference"
+					},
+					"name": "SrcDimPatient"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Gold_Dim_Provider",
+						"type": "DatasetReference"
+					},
+					"name": "SrcDimProvider"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Gold_Fact_Encounters",
+						"type": "DatasetReference"
+					},
+					"name": "SNKGoldFactEncounters"
+				}
+			],
+			"transformations": [
+				{
+					"name": "LkpPatientSK"
+				},
+				{
+					"name": "LkpProviderSK"
+				},
+				{
+					"name": "GenEncounterSK"
+				},
+				{
+					"name": "SelFactColumns"
+				},
+				{
+					"name": "DerEncounterAttributes"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          encounter_id as integer,",
+				"          patient_id as integer,",
+				"          provider_id as integer,",
+				"          admission_date as timestamp,",
+				"          discharge_date as timestamp,",
+				"          encounter_type as string,",
+				"          department as string,",
+				"          discharge_disposition as string,",
+				"          created_at as timestamp,",
+				"          updated_at as timestamp,",
+				"          length_of_stay_days as integer,",
+				"          ingested_at as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['encounters/*.parquet']) ~> SrcSilverEncounters",
+				"source(output(",
+				"          patient_sk as long,",
+				"          patient_id as integer,",
+				"          ssn as string,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          gender as string,",
+				"          dob as date,",
+				"          current_age as integer,",
+				"          age_group as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          zip as string,",
+				"          insurance_id as string,",
+				"          created_at as timestamp,",
+				"          updated_at as timestamp,",
+				"          gold_created_at as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['dim_patient/*.parquet']) ~> SrcDimPatient",
+				"source(output(",
+				"          provider_sk as long,",
+				"          provider_id as integer,",
+				"          provider_name as string,",
+				"          specialty as string,",
+				"          department as string,",
+				"          npi_number as string,",
+				"          gold_created_at as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['dim_provider/*.parquet']) ~> SrcDimProvider",
+				"SrcSilverEncounters, SrcDimPatient join(SrcSilverEncounters@patient_id == SrcDimPatient@patient_id,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LkpPatientSK",
+				"LkpPatientSK, SrcDimProvider lookup(SrcSilverEncounters@provider_id == SrcDimProvider@provider_id,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> LkpProviderSK",
+				"SelFactColumns keyGenerate(output(encounter_sk as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> GenEncounterSK",
+				"LkpProviderSK select(mapColumn(",
+				"          encounter_id,",
+				"          patient_sk,",
+				"          provider_sk,",
+				"          admission_date,",
+				"          discharge_date,",
+				"          encounter_type,",
+				"          department = SrcSilverEncounters@department,",
+				"          discharge_disposition,",
+				"          length_of_stay_days",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelFactColumns",
+				"GenEncounterSK derive(gold_created_at =  currentUTC()) ~> DerEncounterAttributes",
+				"DerEncounterAttributes sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SNKGoldFactEncounters"
+			]
+		}
+	}
+}

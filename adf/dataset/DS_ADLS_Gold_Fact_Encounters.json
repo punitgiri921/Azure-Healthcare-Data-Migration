@@ -1,5 +1,5 @@
 {
-	"name": "DS_ADLS_Gold_Dim_Diagnosis",
+	"name": "DS_ADLS_Gold_Fact_Encounters",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_adls_healthcare",
@@ -13,7 +13,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": "dim_diagnosis",
+				"folderPath": "fact_encounters",
 				"fileSystem": "gold"
 			},
 			"compressionCodec": "snappy"
