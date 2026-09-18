@@ -11,14 +11,13 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 | **Phase 1** | **Cloud Provisioning & Zero-Secret Setup** | 🟢 **COMPLETED** | **7 / 7** | **10. PHASE COMPLETE** | **10 / 10** |
 | **Phase 2** | **On-Prem Database & SHIR Gateway Setup** | 🟢 **COMPLETED** | **7 / 7** | **10. PHASE COMPLETE** | **10 / 10** |
 | **Phase 3** | **Metadata-Driven Watermark Ingestion (Bronze)** | 🟢 **COMPLETED** | **8 / 8** | **10. PHASE COMPLETE** | **10 / 10** |
-| **Phase 4** | **Medallion Transformations & HIPAA (Silver & Gold)** | 🟡 **IN PROGRESS** | **0 / 6** | **1. UNDERSTAND** | -- / 10 |
-| **Phase 5** | **Synapse Serverless Serving & Trigger Automation** | 🔒 Locked | 0 / 5 | Locked | -- / 10 |
-| **Phase 6** | **Power BI Reporting & CV Deliverables** | 🔒 Locked | 0 / 5 | Locked | -- / 10 |
+| **Phase 4** | **Medallion Transformations & HIPAA (Silver & Gold)** | 🟢 **COMPLETED** | **7 / 7** | **10. PHASE COMPLETE** | **10 / 10** |
+| **Phase 5** | **Synapse Serverless Serving & Trigger Automation** | 🟡 **IN PROGRESS (95%)** | **5 / 5** | **5. PROVIDE EVIDENCE** | **10 / 10** |
+| **Phase 6** | **Power BI Reporting & CV Deliverables** | 🔒 Next | 0 / 5 | Unlocking Soon | -- / 10 |
 
 ```text
 11-STEP PHASE GATE PIPELINE:
-[UNDERSTAND (Phase 4 Active)] -> EXPLAIN BACK -> PLAN -> YOU EXECUTE -> PROVIDE EVIDENCE 
-           -> TECH QUESTIONS -> EVALUATION -> FIX GAPS -> ARCH RECAP -> PHASE COMPLETE -> UNLOCK NEXT
+[Phase 4 Completed ➔ Phase 5 Serving Active] -> PROVIDE EVIDENCE -> ARCH RECAP -> PHASE 6 POWER BI
 ```
 
 ---
@@ -266,3 +265,179 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
 - **Advanced State**: `dbo.etl_watermark_control` for `encounters` updated to `2024-02-23 15:30:00.000` (Status: `SUCCESS`)
 - **Architectural Reference Blueprint**: [docs/phase3_watermark_architecture.drawio](file:///d:/01_Ex_Files_Intermediate_SQL_for_Data_Scientists/Goodly%20PowerBi/Azure-Healthcare-Data-Migration/docs/phase3_watermark_architecture.drawio)
 - **Technical Walkthrough**: [docs/phase3_walkthrough.md](file:///d:/01_Ex_Files_Intermediate_SQL_for_Data_Scientists/Goodly%20PowerBi/Azure-Healthcare-Data-Migration/docs/phase3_walkthrough.md)
+
+---
+
+## 9. Azure Synapse Serverless SQL Serving Layer & Master Script Breakdown (Phase 5)
+
+### 9.1 Why Did We Build Azure Synapse Serverless SQL? (The Business & Technical Purpose)
+
+In our Medallion Lakehouse, Azure Data Factory writes conformed Star Schema datasets as binary Snappy Parquet files into `sthealthcarelake01/gold/`. However, business analysts, clinical researchers, and reporting tools (like Power BI) cannot connect directly to raw file paths over standard database ports, nor do they want to write Apache Spark or Python code for basic SQL analytics.
+
+Azure Synapse Serverless SQL acts as the **Semantic & Query Serving Layer (The SQL Facade)**:
+1. **The "SQL Translator" for Business Users**: Translates binary Parquet files into relational database views over Port 1433 without requiring users to navigate ADLS Gen2 folders.
+2. **Decoupled Compute & Storage ($0 Idle Cost)**: Unlike dedicated SQL instances costing $900+/month, Serverless SQL is true on-demand compute. It costs **$0.00/hour when idle** and only charges $5 per TB of data scanned, preserving cloud budgets.
+3. **Zero Data Duplication (In-Place Querying)**: Reads Parquet files in-place using vectorized readers (`OPENROWSET`). Zero rows are copied or imported into persistent database storage.
+4. **Centralized HIPAA Security & Governance**: Enforces SQL Row-Level Security (RLS) and Column-Level Masking while isolating the underlying storage account credentials.
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                      STORAGE PLANE: ADLS Gen2 (gold/ container)                  │
+│   📁 dim_patient/       📁 dim_provider/        📁 dim_diagnosis/                │
+│   📁 fact_encounters/   📁 fact_claims/                                          │
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         │  Vectorized Parquet Scan (OPENROWSET)
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│              SERVING PLANE: Azure Synapse Serverless SQL (On-Demand)             │
+│   • Built-in distributed T-SQL query engine (Port 1433)                          │
+│   • Database: healthcare_gold_db (Collation: Latin1_General_100_BIN2_UTF8)       │
+│   • External Data Source: gold_lakehouse                                         │
+│   • Views: gold.dim_patient, gold.dim_provider, gold.fact_encounters, etc.       │
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         │  Standard T-SQL (TDS Protocol)
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                             ANALYTICS & BI CONSUMERS                             │
+│   📊 Power BI (DirectQuery/Import)     💻 SSMS / Data Studio     🔬 Python / ML   │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 9.2 Complete Script Section: T-SQL Master Setup & Deep Block-by-Block Explanation
+
+Below is the master provisioning script executed in Synapse Studio (`Built-in` pool) followed by the engineering purpose of each line:
+
+```sql
+-- ============================================================================
+-- SCRIPT: 05_create_synapse_gold_views.sql
+-- PURPOSE: Medallion Gold Lakehouse SQL Serving Views via Synapse Serverless
+-- POOL: Built-in (Serverless SQL On-Demand)
+-- ============================================================================
+
+-- 1. Create the Medallion Gold Serving Database with UTF-8 Collation
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'healthcare_gold_db')
+BEGIN
+    CREATE DATABASE healthcare_gold_db
+    COLLATE Latin1_General_100_BIN2_UTF8;
+END
+GO
+
+USE healthcare_gold_db;
+GO
+
+-- 2. Create Schema for Gold Marts
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'gold')
+BEGIN
+    EXEC('CREATE SCHEMA gold');
+END
+GO
+
+-- 3. Create External Data Source pointing directly to the ADLS Gen2 gold/ container
+IF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'gold_lakehouse')
+BEGIN
+    CREATE EXTERNAL DATA SOURCE gold_lakehouse
+    WITH (
+        LOCATION = 'https://sthealthcarelake01.dfs.core.windows.net/gold/'
+    );
+END
+GO
+
+-- 4. Create View for Dim_Patient
+CREATE OR ALTER VIEW gold.dim_patient AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'dim_patient/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO
+
+-- 5. Create View for Dim_Provider
+CREATE OR ALTER VIEW gold.dim_provider AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'dim_provider/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO
+
+-- 6. Create View for Dim_Diagnosis
+CREATE OR ALTER VIEW gold.dim_diagnosis AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'dim_diagnosis/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO
+
+-- 7. Create View for Fact_Encounters
+CREATE OR ALTER VIEW gold.fact_encounters AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'fact_encounters/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO
+
+-- 8. Create View for Fact_Claims
+CREATE OR ALTER VIEW gold.fact_claims AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'fact_claims/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO
+```
+
+---
+
+### 9.3 In-Depth Block-by-Block Technical Explanation
+
+#### Block 1: Database Creation & Collation Optimization
+* `CREATE DATABASE healthcare_gold_db COLLATE Latin1_General_100_BIN2_UTF8;`:
+  - **Why UTF-8 Collation?**: Parquet encodes strings natively in UTF-8. Standard SQL databases default to non-UTF8 collations (such as `SQL_Latin1_General_CP1_CI_AS`). When querying Parquet files, a non-UTF8 database must convert every string column from UTF-8 to UTF-16 in memory on every query, causing CPU bottlenecks and collation mismatch errors during `JOIN` or `WHERE` operations.
+  - `Latin1_General_100_BIN2_UTF8` enables direct, zero-conversion vectorized memory reads from Parquet files into Synapse.
+* `IF NOT EXISTS`: Enforces idempotency, ensuring the script can run repeatedly without error.
+* `USE healthcare_gold_db;`:
+  - Sets the active database execution context for the subsequent DDL commands. Serverless SQL scripts execute against the `master` database by default; explicit switching guarantees that the `gold` schema, external data sources, and views are scoped exclusively to `healthcare_gold_db`.
+
+#### Block 2: Medallion Schema Namespace (`gold`)
+* `EXEC('CREATE SCHEMA gold');`:
+  - Enforces logical segregation. Rather than placing all objects into `dbo`, the `gold` schema clearly designates conformed dimensional marts. If internal audit tables or silver reconciliation views are added later, they can use `silver.` or `audit.` schemas without collision.
+
+#### Block 3: External Data Source Definition (`gold_lakehouse`)
+* `CREATE EXTERNAL DATA SOURCE gold_lakehouse WITH (LOCATION = 'https://sthealthcarelake01.dfs.core.windows.net/gold/');`:
+  - **DRY Principle**: Avoids hardcoding the full DFS URL in every single view definition.
+  - **Single Point of Maintenance**: If the storage account name or container ever changes, updating this single data source updates all downstream views instantly.
+  - **Zero-Secret Identity**: Connects via the Synapse System-Assigned Managed Identity (`syn-healthcare-punit01`) using Entra ID OAuth tokens without requiring storage keys, SAS tokens, or passwords in the SQL code.
+
+#### Blocks 4 Through 8: Serving Views via `OPENROWSET`
+* `CREATE OR ALTER VIEW`: Idempotent DDL; creates the view or updates it without dropping existing object permissions.
+* `OPENROWSET(...)`: The distributed table-valued function in Serverless SQL that reads remote cloud files.
+* `BULK '<folder>/*.parquet'`: The wildcard pattern instructs Synapse to scan all Parquet files in that folder. If Spark wrote multiple partition part files (`part-00000...`, `part-00001...`), Synapse automatically unions them into a single tabular result set.
+* `DATA_SOURCE = 'gold_lakehouse'`: Directs the engine to the base URI configured in Block 3.
+* `FORMAT = 'PARQUET'`: Tells the engine to use the vectorized columnar Parquet reader. Because Parquet includes embedded metadata schemas (column names and data types), Synapse discovers columns automatically without manual column type mapping.
+* `AS [rows]`: Standard SQL syntax requirement for table-valued expressions.
+
+#### Physical Storage vs. Serverless Ephemeral Query Execution (Key Engineering Mental Model)
+* **Physical Data Resides in ADLS Gen2 Storage Only**: Synapse Serverless SQL does **NOT** duplicate, copy, or ingest data into persistent relational storage tables (`.mdf`/`.ldf` files). The Parquet files remain purely in the `gold/` container of `sthealthcarelake01`.
+* **Temporary In-Memory Execution Structures**: When a user or Power BI runs a `SELECT` query against `gold.dim_patient`, Synapse Serverless dynamically pulls the columnar Parquet blocks from ADLS Gen2 over the Azure backbone network into temporary in-memory data structures, processes aggregations and filters on-the-fly, streams tabular rows back over Port 1433 (TDS protocol), and immediately releases memory once the query completes.
+* **Cost Efficiency ($0 Idle vs $900+/mo)**: Serverless pool charges only for running queries ($5.00 per TB of data scanned) and **$0.00 when idle**. In contrast, a Dedicated SQL Pool provisions fixed compute nodes that cost money 24/7 even when zero queries are running.
+
+

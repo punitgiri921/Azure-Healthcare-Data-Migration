@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Azure Healthcare Data Migration — Master Engineering & Learning Tracker</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+        });
+    </script>
     <style>
         :root {
             --bg-base: #090d16;
@@ -676,8 +682,8 @@
                 <p>Enterprise On-Prem EMR to ADLS Gen2 Medallion Lakehouse Migration & Clinical Analytics</p>
             </div>
             <div style="display: flex; gap: 0.75rem; align-items: center;">
-                <span class="badge badge-done">PHASES 1-3 VERIFIED</span>
-                <span class="badge badge-progress">PHASE 4 ACTIVE • MEDALLION LAKEHOUSE</span>
+                <span class="badge badge-done">PHASES 1-4 VERIFIED</span>
+                <span class="badge badge-progress">PHASE 5 SERVING ACTIVE • SYNAPSE SERVERLESS</span>
             </div>
         </div>
     </header>
@@ -686,13 +692,13 @@
     <div class="kpi-strip">
         <div class="kpi-card">
             <div class="kpi-label">Overall Progress</div>
-            <div class="kpi-value" id="kpi-progress">66%</div>
-            <div class="kpi-sub">Phase 4 Stage A Verified (25/38 Tasks)</div>
+            <div class="kpi-value" id="kpi-progress">95%</div>
+            <div class="kpi-sub">Phase 5 Synapse Serving Complete (33/35 Tasks)</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Active Phase Gate</div>
-            <div class="kpi-value" style="font-size: 1.25rem; color: var(--primary);">4. YOU EXECUTE</div>
-            <div class="kpi-sub">Phase 4 Gate: Silver Verified ➔ Gold Dim_Patient Next</div>
+            <div class="kpi-value" style="font-size: 1.15rem; color: var(--primary);">10. COMPLETE ➔ PHASE 6</div>
+            <div class="kpi-sub">Gold Serving Layer Live ➔ Power BI Dashboard Next</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Azure Free Budget</div>
@@ -701,12 +707,12 @@
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Components Active</div>
-            <div class="kpi-value" id="kpi-concepts">8</div>
-            <div class="kpi-sub">SQL Express, SHIR, Key Vault, SMI, ADF, Bronze ADLS, Datasets, Watermark Engine</div>
+            <div class="kpi-value" id="kpi-concepts">9</div>
+            <div class="kpi-sub">SQL Express, SHIR, Key Vault, SMI, ADF, Bronze, Silver, Gold, Synapse Serverless</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Technical Questions (TQ)</div>
-            <div class="kpi-value" id="kpi-tq">6 / 6</div>
+            <div class="kpi-value" id="kpi-tq">10 / 10</div>
             <div class="kpi-sub">Rated: 100% Correct (Interview-Grade)</div>
         </div>
     </div>
@@ -782,6 +788,610 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                                                         │   ├─ silver/   [Cleaned, Deduplicated, SHA-256 PII Masked]  │
                                                         │   └─ gold/     [Dimensional Star Schema Marts for Power BI] │
                                                         └─────────────────────────────────────────────────────────────┘
+                </div>
+            </div>
+
+            <!-- Phase 4 Silver Architecture Specification -->
+            <div class="section-card">
+                <div class="section-title">⚡ Phase 4: Master Medallion Silver Pipeline & Data Flow Architecture (PL_Bronze_To_Silver)</div>
+                <p style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 0.85rem;">
+                    Full architectural specification of the parallel multi-stream Spark orchestration pipeline, dataset linkages, dynamic parameter bindings, and HIPAA de-identification rules executed on Azure IR.
+                </p>
+
+                <!-- High-Resolution Architecture Infographic -->
+                <div style="margin-bottom: 1.5rem; text-align: center; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); background: #060911; padding: 0.75rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; text-align: left;">
+                        🖼️ High-Resolution Pipeline & Data Flow Visual Lineage
+                    </div>
+                    <img src="docs/images/adf_bronze_to_silver_architecture.png" alt="End-to-End Pipeline & Data Flow Architecture" style="max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 8px;">
+                </div>
+
+                <!-- Visual Mermaid Diagram -->
+                <div style="background: #070b14; border: 1px solid var(--border-color); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
+                        📊 Interactive Orchestration DAG & Data Flow Lineage
+                    </div>
+                    <div class="mermaid">
+flowchart TD
+    subgraph OnPrem["🏢 On-Premises SQL Server (via SHIR: shir-onprem-gateway-01)"]
+        CTL[("dbo.etl_watermark_control<br/>(Tracks bronze & silver watermarks)")]
+    end
+
+    subgraph ADF["⚡ Azure Data Factory: PL_Bronze_To_Silver"]
+        LKP["🔍 LKP_Silver_Watermark<br/><b>Type:</b> Lookup (firstRowOnly: false)<br/><b>Dataset:</b> DS_SQL_Source<br/><b>Query:</b> PIVOT MAX(last_watermark_value)<br/><b>Output:</b> value[0].silver_*"]
+        
+        subgraph SparkCluster["🔥 Azure Integration Runtime (Spark 8/16-Core General Compute)"]
+            direction TB
+            
+            subgraph DF1["DF_Patients_Bronze_To_Silver"]
+                S1["SrcBronzePatients<br/>wildcard: patients/*.parquet"] --> F1["FltNewOrUpdated<br/>updated_at > watermark"]
+                F1 --> D1["DrvMaskPHI<br/>• ssn = sha2(256, ssn+'Salt#99')<br/>• first_name = concat(left(1),'***')<br/>• last_name = concat(left(1),'*')"]
+                D1 --> K1["SNKSilverPatients<br/>DS_ADLS_Silver_Patients"]
+            end
+
+            subgraph DF2["DF_Providers_Bronze_To_Silver"]
+                S2["SrcBronzeProviders<br/>wildcard: providers/*.parquet"] --> F2["FltNewOrUpdated<br/>updated_at > watermark"]
+                F2 --> D2["DrvCleanProviders<br/>• trim(provider_name)<br/>• trim(department)<br/>• ingested_at = currentUTC()"]
+                D2 --> K2["SNKSilverProviders<br/>DS_ADLS_Silver_Providers"]
+            end
+
+            subgraph DF3["DF_Encounters_Bronze_To_Silver"]
+                S3["SrcBronzeEncounters<br/>wildcard: encounters/*.parquet"] --> F3["FltNewOrUpdated<br/>updated_at > watermark"]
+                F3 --> D3["DrvCleanEncounters<br/>• length_of_stay_days =<br/>minus(toDate(discharge), toDate(admission))<br/>• ingested_at = currentUTC()"]
+                D3 --> K3["SNKSilverEncounters<br/>DS_ADLS_Silver_Encounters"]
+            end
+
+            subgraph DF4["DF_Diagnoses_Bronze_To_Silver"]
+                S4["SrcBronzeDiagnoses<br/>wildcard: diagnoses/*.parquet"] --> F4["FltNewOrUpdated<br/>updated_at > watermark"]
+                F4 --> D4["DrvCleanDiagnoses<br/>• upper(trim(icd10_code))<br/>• trim(diagnosis_description)<br/>• ingested_at = currentUTC()"]
+                D4 --> K4["SNKSilverDiagnoses<br/>DS_ADLS_Silver_Diagnoses"]
+            end
+
+            subgraph DF5["DF_Claims_Bronze_To_Silver"]
+                S5["SrcBronzeClaims<br/>wildcard: claims/*.parquet"] --> F5["FltNewOrUpdated<br/>updated_at > watermark"]
+                F5 --> D5["DrvCleanClaims<br/>• patient_responsibility = round(billed-paid,2)<br/>• is_denied = iif(status=='Denied',true,false)"]
+                D5 --> K5["SNKSilverClaims<br/>DS_ADLS_Silver_Claims"]
+            end
+        end
+
+        SCR["📝 SCR_Update_Silver_Watermark<br/><b>Type:</b> Script Activity (Barrier)<br/><b>Linked Service:</b> ls_sqlserver_onprem<br/><b>SQL:</b> UPDATE s SET s.last_watermark_value = b.last_watermark_value<br/>FROM silver_* JOIN bronze_*"]
+    end
+
+    subgraph ADLS["☁️ Azure Data Lake Storage Gen2 (sthealthcarelake01)"]
+        subgraph Bronze["Container: bronze/"]
+            B1[("patients/*.parquet")]
+            B2[("providers/*.parquet")]
+            B3[("encounters/*.parquet")]
+            B4[("diagnoses/*.parquet")]
+            B5[("claims/*.parquet")]
+        end
+        subgraph Silver["Container: silver/"]
+            SV1[("silver/patients/")]
+            SV2[("silver/providers/")]
+            SV3[("silver/encounters/")]
+            SV4[("silver/diagnoses/")]
+            SV5[("silver/claims/")]
+        end
+    end
+
+    %% Wiring
+    CTL -.->|Reads state| LKP
+    LKP ==>|Parallel Fan-Out| DF1
+    LKP ==>|Parallel Fan-Out| DF2
+    LKP ==>|Parallel Fan-Out| DF3
+    LKP ==>|Parallel Fan-Out| DF4
+    LKP ==>|Parallel Fan-Out| DF5
+
+    B1 -.-> S1
+    B2 -.-> S2
+    B3 -.-> S3
+    B4 -.-> S4
+    B5 -.-> S5
+
+    K1 -.-> SV1
+    K2 -.-> SV2
+    K3 -.-> SV3
+    K4 -.-> SV4
+    K5 -.-> SV5
+
+    DF1 ==>|Fan-In on Success| SCR
+    DF2 ==>|Fan-In on Success| SCR
+    DF3 ==>|Fan-In on Success| SCR
+    DF4 ==>|Fan-In on Success| SCR
+    DF5 ==>|Fan-In on Success| SCR
+    SCR -.->|Updates state| CTL
+                    </div>
+                </div>
+
+                <!-- Datasets Specification Table -->
+                <div style="margin-top: 1.5rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem;">
+                        📁 Datasets & Lakehouse Path Specification
+                    </div>
+                    <div class="styled-table-wrapper">
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>Dataset Name</th>
+                                    <th>Format / Type</th>
+                                    <th>Linked Service</th>
+                                    <th>Container / Folder</th>
+                                    <th>Parameters</th>
+                                    <th>Downstream Role</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>DS_SQL_Source</code></td>
+                                    <td>SqlServerTable</td>
+                                    <td><code>ls_sqlserver_onprem</code></td>
+                                    <td><code>dbo.@dataset().p_table_name</code></td>
+                                    <td><code>p_table_name</code> (string)</td>
+                                    <td>Watermark Control Query Source</td>
+                                </tr>
+                                <tr>
+                                    <td><code>DS_ADLS_Bronze</code></td>
+                                    <td>Parquet (Snappy)</td>
+                                    <td><code>ls_adls_healthcare</code></td>
+                                    <td><code>bronze/@dataset().p_folder_name/</code></td>
+                                    <td><code>p_folder_name</code>, <code>p_file_name</code></td>
+                                    <td>Universal Bronze Source (with Wildcard)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>DS_ADLS_Silver_Patients</code></td>
+                                    <td>Parquet (Snappy)</td>
+                                    <td><code>ls_adls_healthcare</code></td>
+                                    <td><code>silver/patients/</code></td>
+                                    <td><em>None</em></td>
+                                    <td>Clean, HIPAA-Masked Patient Sink</td>
+                                </tr>
+                                <tr>
+                                    <td><code>DS_ADLS_Silver_Providers</code></td>
+                                    <td>Parquet (Snappy)</td>
+                                    <td><code>ls_adls_healthcare</code></td>
+                                    <td><code>silver/providers/</code></td>
+                                    <td><em>None</em></td>
+                                    <td>Standardized Clinical Providers Sink</td>
+                                </tr>
+                                <tr>
+                                    <td><code>DS_ADLS_Silver_Encounters</code></td>
+                                    <td>Parquet (Snappy)</td>
+                                    <td><code>ls_adls_healthcare</code></td>
+                                    <td><code>silver/encounters/</code></td>
+                                    <td><em>None</em></td>
+                                    <td>Clinical Encounters + Length of Stay</td>
+                                </tr>
+                                <tr>
+                                    <td><code>DS_ADLS_Silver_Diagnoses</code></td>
+                                    <td>Parquet (Snappy)</td>
+                                    <td><code>ls_adls_healthcare</code></td>
+                                    <td><code>silver/diagnoses/</code></td>
+                                    <td><em>None</em></td>
+                                    <td>Standardized ICD-10 Diagnoses Sink</td>
+                                </tr>
+                                <tr>
+                                    <td><code>DS_ADLS_Silver_Claims</code></td>
+                                    <td>Parquet (Snappy)</td>
+                                    <td><code>ls_adls_healthcare</code></td>
+                                    <td><code>silver/claims/</code></td>
+                                    <td><em>None</em></td>
+                                    <td>Enriched Billing Claims Sink</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Parameters & Data Flow Transformation Rules Grid -->
+                <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
+                    <!-- Card 1: Pipeline Parameters -->
+                    <div style="background: var(--bg-elevated); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">
+                            ⚙️ Parameter & Expression Binding
+                        </div>
+                        <ul style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.7; padding-left: 1.2rem;">
+                            <li><strong>Lookup Output Binding:</strong> <code>@activity('LKP_Silver_Watermark').output.value[0].&lt;col&gt;</code></li>
+                            <li><strong>Array Accessor Rationale:</strong> <code>firstRowOnly: false</code> outputs an array in <code>value[]</code>; Row 0 is referenced via <code>[0]</code>.</li>
+                            <li><strong>Dataset Dummy Values:</strong> Data Flows pass <code>'dummy'</code> to <code>p_folder_name</code> & <code>p_file_name</code> to pass ADF compile-time validation while <code>wildcardPaths</code> resolves runtime data.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 2: Transformations & Expressions -->
+                    <div style="background: var(--bg-elevated); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--success); font-weight: 700; text-transform: uppercase;">
+                            🛡️ HIPAA & Transformation Expressions
+                        </div>
+                        <ul style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.7; padding-left: 1.2rem;">
+                            <li><strong>Salted SSN Hash:</strong> <code>sha2(256, concat(ssn, 'Salt#99'))</code> (Blocks rainbow tables)</li>
+                            <li><strong>Name Masking:</strong> <code>concat(substring(first_name, 1, 1), '***')</code></li>
+                            <li><strong>Length of Stay:</strong> <code>minus(toDate(discharge_date), toDate(admission_date))</code></li>
+                            <li><strong>Patient Responsibility:</strong> <code>round(billed_amount - paid_amount, 2)</code></li>
+                            <li><strong>Watermark Filter:</strong> Strips <code>'T'</code> & <code>'Z'</code> before Spark <code>toTimestamp()</code></li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 3: Barrier & Failure Safety -->
+                    <div style="background: var(--bg-elevated); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--warning); font-weight: 700; text-transform: uppercase;">
+                            🚦 Atomic DAG Barrier (Failure Handling)
+                        </div>
+                        <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            <code>SCR_Update_Silver_Watermark</code> has 5 incoming dependency arrows set to <strong>Succeeded</strong>. In ADF, multiple incoming arrows create an <strong>AND condition</strong>: if even one Data Flow fails, ADF <strong>skips</strong> the script activity. No watermarks advance, preserving state consistency for clean replay!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Parameter Hierarchy & Dependency Infographic -->
+                <div style="margin-top: 1.75rem; margin-bottom: 1.5rem; text-align: center; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); background: #060911; padding: 0.75rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; text-align: left;">
+                        📐 Parameter Hierarchy, Scope Levels & Dependency Flow Architecture
+                    </div>
+                    <img src="docs/images/adf_parameter_levels_diagram.png" alt="Azure Data Factory Parameter Hierarchy and Dependency Flow Architecture" style="max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 8px;">
+                </div>
+
+                <!-- Parameter Traceability Matrix Table -->
+                <div style="margin-top: 1.5rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem;">
+                        📋 End-to-End Parameter Dependency & Traceability Matrix
+                    </div>
+                    <div class="styled-table-wrapper">
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter Name</th>
+                                    <th>Scope Level</th>
+                                    <th>Declared In</th>
+                                    <th>Supplied By / Bound At</th>
+                                    <th>Consumed In</th>
+                                    <th>Function & Execution Role</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>p_table_name</code></td>
+                                    <td><span class="badge" style="background: rgba(56,189,248,0.15); color: var(--primary);">Level 1: Dataset</span></td>
+                                    <td><code>DS_SQL_Source</code></td>
+                                    <td>Pipeline Canvas (<code>LKP_Silver_Watermark</code>)</td>
+                                    <td><code>dbo.@dataset().p_table_name</code></td>
+                                    <td>Makes SQL dataset reusable across all metadata and source tables</td>
+                                </tr>
+                                <tr>
+                                    <td><code>p_folder_name</code></td>
+                                    <td><span class="badge" style="background: rgba(56,189,248,0.15); color: var(--primary);">Level 1: Dataset</span></td>
+                                    <td><code>DS_ADLS_Bronze</code></td>
+                                    <td>Pipeline Canvas (<code>ExecuteDataFlow</code>)</td>
+                                    <td><code>bronze/@dataset().p_folder_name/</code></td>
+                                    <td>Generic folder pointer (Satisfied with <code>'dummy'</code> in Data Flows)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>p_file_name</code></td>
+                                    <td><span class="badge" style="background: rgba(56,189,248,0.15); color: var(--primary);">Level 1: Dataset</span></td>
+                                    <td><code>DS_ADLS_Bronze</code></td>
+                                    <td>Pipeline Canvas (<code>ExecuteDataFlow</code>)</td>
+                                    <td><code>@dataset().p_file_name</code></td>
+                                    <td>Generic file pointer (Satisfied with <code>'dummy'</code> in Data Flows)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>output.value[0].*</code></td>
+                                    <td><span class="badge" style="background: rgba(129,140,248,0.15); color: var(--accent);">Level 2: Activity</span></td>
+                                    <td><code>LKP_Silver_Watermark</code></td>
+                                    <td>SQL Server PIVOT Query Output</td>
+                                    <td><code>ExecuteDataFlow</code> Parameters Tab</td>
+                                    <td>Dynamically extracts and passes entity-specific high watermarks into Spark</td>
+                                </tr>
+                                <tr>
+                                    <td><code>p_silver_last_watermark</code></td>
+                                    <td><span class="badge" style="background: rgba(52,211,153,0.15); color: var(--success);">Level 3: Data Flow</span></td>
+                                    <td>All 5 Data Flows</td>
+                                    <td>Pipeline Canvas Parameter Mapping</td>
+                                    <td>Filter Transformation (<code>FltNewOrUpdated</code>)</td>
+                                    <td>Spark job parameter defining delta cutoff timestamp</td>
+                                </tr>
+                                <tr>
+                                    <td><code>wildcardPaths</code></td>
+                                    <td><span class="badge" style="background: rgba(52,211,153,0.15); color: var(--success);">Level 3: Data Flow</span></td>
+                                    <td>Data Flow Source Options</td>
+                                    <td>Data Flow JSON Configuration</td>
+                                    <td>Spark Parquet Reader</td>
+                                    <td>Bypasses dataset file parameters at runtime to glob all incremental files</td>
+                                </tr>
+                                <tr>
+                                    <td><code>$p_silver_last_watermark</code></td>
+                                    <td><span class="badge" style="background: rgba(251,191,36,0.15); color: var(--warning);">Level 4: Row Scope</span></td>
+                                    <td>Filter Expression</td>
+                                    <td>Spark Expression Engine</td>
+                                    <td><code>FltNewOrUpdated</code></td>
+                                    <td>Strips <code>'T'</code>/<code>'Z'</code> and executes <code>updated_at > watermark</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>Salt#99</code></td>
+                                    <td><span class="badge" style="background: rgba(248,113,113,0.15); color: var(--danger);">Level 4: Security</span></td>
+                                    <td>Derived Column</td>
+                                    <td><code>DrvMaskPHI</code> Expression</td>
+                                    <td>Spark SHA-256 Hasher</td>
+                                    <td>Cryptographic salt preventing rainbow table reversal under HIPAA</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Phase 5 Azure Synapse Serverless SQL Serving Layer & Master Script Breakdown -->
+            <div class="section-card">
+                <div class="section-title">⚡ Phase 5: Azure Synapse Serverless SQL Serving Layer & Master Script Breakdown</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                    In our Medallion Lakehouse, conformed Star Schema datasets reside as Snappy-compressed columnar Parquet files in the <code>gold/</code> container of <code>sthealthcarelake01</code>. Azure Synapse Serverless SQL serves as the <strong>Semantic & Analytical Serving Layer</strong>—acting as a high-performance relational facade that virtualizes raw lakehouse files into standard T-SQL database views without duplicating storage or incurring idle compute costs.
+                </p>
+
+                <!-- 3-Pillar Value Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: var(--bg-elevated); padding: 1.15rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">
+                            🌐 1. The SQL Facade & BI Compatibility
+                        </div>
+                        <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            Power BI dashboards, clinical data scientists, and reporting analysts cannot query deep ADLS folder paths over raw files without PySpark. Synapse exposes standard <strong>Port 1433 TDS endpoints</strong>, presenting raw Parquet files as relational views (<code>gold.dim_patient</code>, <code>gold.fact_encounters</code>) instantly queryable with standard SQL.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--bg-elevated); padding: 1.15rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--success); font-weight: 700; text-transform: uppercase;">
+                            💰 2. Decoupled Compute & $0 Idle Cost
+                        </div>
+                        <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            Unlike a Dedicated SQL Pool (DW100c) that burns <strong>$900+/month 24/7</strong> even when idle, Synapse Serverless SQL costs <strong>$0.00/hour when idle</strong> and charges strictly <strong>$5.00 per TB of data scanned</strong>. This completely protects the project's $200 Azure student/trial credit while providing petabyte-scale distributed query execution.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--bg-elevated); padding: 1.15rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--warning); font-weight: 700; text-transform: uppercase;">
+                            🛡️ 3. Zero-Secret Managed Identity Security
+                        </div>
+                        <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            Synapse queries ADLS Gen2 via its <strong>System-Assigned Managed Identity</strong> (<code>syn-healthcare-punit01</code>) using Entra ID OAuth tokens (<code>Storage Blob Data Contributor</code>). No storage account master keys, SAS tokens, or passwords exist in the SQL DDL, satisfying HIPAA § 164.312 access controls.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Serverless Serving Architecture Topology Box -->
+                <div style="margin-bottom: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color); background: #060911; padding: 1rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+                        📐 Serverless Serving Layer Data Flow & In-Memory Execution Topology
+                    </div>
+                    <pre class="code-box" style="color: #e2e8f0; font-size: 0.785rem; line-height: 1.45; border: none; padding: 0;">
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                        STORAGE PLANE: Azure Data Lake Storage Gen2 (gold/)                  │
+│   📁 dim_patient/*.parquet      📁 dim_provider/*.parquet     📁 dim_diagnosis/*.parquet    │
+│   📁 fact_encounters/*.parquet  📁 fact_claims/*.parquet      (Snappy Columnar Storage)     │
+└──────────────────────────────────────────────┬──────────────────────────────────────────────┘
+                                               │ Vectorized Columnar Scan (OPENROWSET)
+                                               ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                 SERVING PLANE: Azure Synapse Serverless SQL Pool (Built-in)                 │
+│   • Serverless Endpoint: syn-healthcare-punit01-ondemand.sql.azuresynapse.net:1433          │
+│   • Database: healthcare_gold_db  |  Collation: Latin1_General_100_BIN2_UTF8                │
+│   • External Data Source: gold_lakehouse (https://sthealthcarelake01.dfs.core.windows.net)  │
+│   • Virtual SQL Views: gold.dim_patient, gold.dim_provider, gold.fact_encounters, etc.     │
+│   • Ephemeral Execution: Dynamically reads Parquet into temp memory; $0 idle cost!           │
+└──────────────────────────────────────────────┬──────────────────────────────────────────────┘
+                                               │ TDS Protocol (Port 1433 Standard T-SQL)
+                                               ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   ANALYTICS & BI CONSUMERS                                  │
+│   📊 Power BI Desktop / Service    💻 SSMS / Azure Data Studio     🔬 Python / ML Notebooks  │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘</pre>
+                </div>
+
+                <!-- Complete Master T-SQL Script Box -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">
+                            📜 Script Section: Complete T-SQL Master Provisioning Script (05_create_synapse_gold_views.sql)
+                        </div>
+                        <span class="badge badge-done">EXECUTED & VALIDATED IN SYNAPSE STUDIO</span>
+                    </div>
+                    <pre class="code-box">-- ============================================================================
+-- SCRIPT: 05_create_synapse_gold_views.sql
+-- PURPOSE: Medallion Gold Lakehouse SQL Serving Views via Synapse Serverless
+-- POOL: Built-in (Serverless SQL On-Demand)
+-- ENDPOINT: syn-healthcare-punit01-ondemand.sql.azuresynapse.net
+-- ============================================================================
+
+-- 1. Create the Medallion Gold Serving Database with UTF-8 Collation
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'healthcare_gold_db')
+BEGIN
+    CREATE DATABASE healthcare_gold_db
+    COLLATE Latin1_General_100_BIN2_UTF8;
+END
+GO
+
+USE healthcare_gold_db;
+GO
+
+-- 2. Create Schema for Gold Marts
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'gold')
+BEGIN
+    EXEC('CREATE SCHEMA gold');
+END
+GO
+
+-- 3. Create External Data Source pointing directly to the ADLS Gen2 gold/ container
+IF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'gold_lakehouse')
+BEGIN
+    CREATE EXTERNAL DATA SOURCE gold_lakehouse
+    WITH (
+        LOCATION = 'https://sthealthcarelake01.dfs.core.windows.net/gold/'
+    );
+END
+GO
+
+-- 4. Create View for Dim_Patient (Conformed Patient Dimension)
+CREATE OR ALTER VIEW gold.dim_patient AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'dim_patient/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO
+
+-- 5. Create View for Dim_Provider (Conformed Provider Dimension)
+CREATE OR ALTER VIEW gold.dim_provider AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'dim_provider/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO
+
+-- 6. Create View for Dim_Diagnosis (ICD-10 Clinical Diagnosis Dimension)
+CREATE OR ALTER VIEW gold.dim_diagnosis AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'dim_diagnosis/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO
+
+-- 7. Create View for Fact_Encounters (Clinical Encounters & Metrics Fact)
+CREATE OR ALTER VIEW gold.fact_encounters AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'fact_encounters/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO
+
+-- 8. Create View for Fact_Claims (Billing, Reimbursements & Denials Fact)
+CREATE OR ALTER VIEW gold.fact_claims AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'fact_claims/*.parquet',
+        DATA_SOURCE = 'gold_lakehouse',
+        FORMAT = 'PARQUET'
+    ) AS [rows];
+GO</pre>
+                </div>
+
+                <!-- In-Depth Block-by-Block Technical Explanation -->
+                <div>
+                    <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.85rem;">
+                        🔍 In-Depth Block-by-Block Technical Breakdown & Architectural Rationale
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Block 1 Card -->
+                        <div style="background: var(--bg-elevated); padding: 1.25rem; border-radius: 8px; border-left: 4px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="color: var(--primary); font-family: var(--font-mono); font-size: 0.85rem;">BLOCK 1 • Database Creation & Collation Optimization</strong>
+                                <span class="comp-code">CREATE DATABASE + COLLATE</span>
+                            </div>
+                            <div style="margin-top: 0.6rem; font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6;">
+                                <p style="margin-bottom: 0.5rem;">
+                                    <code>CREATE DATABASE healthcare_gold_db COLLATE Latin1_General_100_BIN2_UTF8;</code>
+                                </p>
+                                <ul style="padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                                    <li><strong>Why UTF-8 Collation?</strong> Parquet files encode string data natively using UTF-8. Standard SQL Server databases default to non-UTF8 collations (such as <code>SQL_Latin1_General_CP1_CI_AS</code>). If a database without a UTF-8 collation queries Parquet, Synapse is forced to perform expensive runtime in-memory conversions from UTF-8 to UTF-16 on every single string column during query execution. This creates severe CPU bottlenecks, query throttling, and fatal collation mismatch errors during <code>JOIN</code> or <code>WHERE</code> operations.</li>
+                                    <li><strong>Binary <code>BIN2</code> Performance:</strong> The <code>BIN2</code> (binary code point) collation enables direct, zero-conversion vectorized memory reads from Parquet files straight into the Synapse query processor.</li>
+                                    <li><strong>Idempotency:</strong> Wrapped with <code>IF NOT EXISTS (SELECT * FROM sys.databases...)</code> to guarantee safe, repeatable execution without pipeline failure.</li>
+                                    <li><strong>Context Switch (<code>USE healthcare_gold_db;</code>):</strong> Serverless queries default to the <code>master</code> database. Explicitly switching the session context ensures all downstream schemas, data sources, and views are scoped exclusively to our clinical lakehouse database.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Block 2 Card -->
+                        <div style="background: var(--bg-elevated); padding: 1.25rem; border-radius: 8px; border-left: 4px solid var(--accent); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="color: var(--accent); font-family: var(--font-mono); font-size: 0.85rem;">BLOCK 2 • Conformed Marts Schema Namespace</strong>
+                                <span class="comp-code">EXEC('CREATE SCHEMA gold')</span>
+                            </div>
+                            <div style="margin-top: 0.6rem; font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6;">
+                                <p style="margin-bottom: 0.5rem;">
+                                    <code>IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'gold') BEGIN EXEC('CREATE SCHEMA gold'); END</code>
+                                </p>
+                                <ul style="padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                                    <li><strong>Medallion Namespace Segregation:</strong> Instead of dumping all analytical views into the default <code>dbo</code> schema, creating a dedicated <code>gold</code> schema establishes clear boundary segregation for Kimball Star Schema marts.</li>
+                                    <li><strong>Future-Proofing Lakehouse Evolution:</strong> Allows the lakehouse to introduce other logical namespaces in the future (e.g., <code>silver.reconciliation_audit</code>, <code>staging.data_quality</code>) without object naming collisions.</li>
+                                    <li><strong>Dynamic DDL Execution:</strong> In T-SQL, <code>CREATE SCHEMA</code> must be the first statement in a query batch. Using <code>EXEC('CREATE SCHEMA gold')</code> allows it to be evaluated inside an idempotent conditional block.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Block 3 Card -->
+                        <div style="background: var(--bg-elevated); padding: 1.25rem; border-radius: 8px; border-left: 4px solid var(--success); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="color: var(--success); font-family: var(--font-mono); font-size: 0.85rem;">BLOCK 3 • External Data Source Definition</strong>
+                                <span class="comp-code">CREATE EXTERNAL DATA SOURCE gold_lakehouse</span>
+                            </div>
+                            <div style="margin-top: 0.6rem; font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6;">
+                                <p style="margin-bottom: 0.5rem;">
+                                    <code>CREATE EXTERNAL DATA SOURCE gold_lakehouse WITH (LOCATION = 'https://sthealthcarelake01.dfs.core.windows.net/gold/');</code>
+                                </p>
+                                <ul style="padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                                    <li><strong>DRY (Don't Repeat Yourself) Abstraction:</strong> Prevents hardcoding the full ADLS Gen2 DFS URL inside every single view definition. Downstream views reference clean relative paths like <code>BULK 'dim_patient/*.parquet'</code>.</li>
+                                    <li><strong>Single Point of Maintenance:</strong> If the lakehouse storage account name, DNS, or container layout changes during environment promotion (dev ➔ staging ➔ prod), changing this single external data source updates all analytical views instantly.</li>
+                                    <li><strong>Entra ID Pass-Through RBAC:</strong> By omitting explicit credential blocks (like SAS keys or DB master keys), Synapse automatically routes storage authentication through the Synapse Workspace System-Assigned Managed Identity via Microsoft Entra ID OAuth tokens.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Blocks 4-8 Card -->
+                        <div style="background: var(--bg-elevated); padding: 1.25rem; border-radius: 8px; border-left: 4px solid var(--warning); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="color: var(--warning); font-family: var(--font-mono); font-size: 0.85rem;">BLOCKS 4 - 8 • Star Schema Serving Views via OPENROWSET</strong>
+                                <span class="comp-code">OPENROWSET + BULK + PARQUET</span>
+                            </div>
+                            <div style="margin-top: 0.6rem; font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6;">
+                                <p style="margin-bottom: 0.5rem;">
+                                    <code>CREATE OR ALTER VIEW gold.dim_patient AS SELECT * FROM OPENROWSET(BULK 'dim_patient/*.parquet', DATA_SOURCE = 'gold_lakehouse', FORMAT = 'PARQUET') AS [rows];</code>
+                                </p>
+                                <ul style="padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                                    <li><strong><code>CREATE OR ALTER VIEW</code>:</strong> Idempotent DDL that updates the SQL view definition in-place without dropping the object or destroying user permissions and Power BI bindings.</li>
+                                    <li><strong><code>OPENROWSET(...)</code>:</strong> Synapse Serverless SQL's distributed table-valued function. It acts as an on-the-fly streaming connector that bridges T-SQL clients to remote cloud file storage.</li>
+                                    <li><strong>Wildcard Globbing (<code>BULK '&lt;folder&gt;/*.parquet'</code>):</strong> When ADF Spark Data Flows write output, Spark distributes the partition writes into part files (e.g. <code>part-00000...snappy.parquet</code>, <code>part-00001...</code>). The wildcard <code>*.parquet</code> instructs the Synapse engine to automatically scan, union, and virtualize all part files in that directory into a single consolidated table.</li>
+                                    <li><strong>Schema Self-Discovery (<code>FORMAT = 'PARQUET'</code>):</strong> Because Apache Parquet embeds columnar schema metadata (column names, physical types, nullability) in its file footers, Synapse automatically discovers the schema on-the-fly without requiring manual column type definitions in SQL.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Key Mental Model Highlight Card -->
+                        <div style="background: rgba(56, 189, 248, 0.05); padding: 1.25rem; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.3);">
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                                💡 Critical Senior Mental Model: Physical Storage vs. Ephemeral Query Processing
+                            </div>
+                            <p style="font-size: 0.825rem; color: #e2e8f0; line-height: 1.6;">
+                                <strong>Physically, data resides in ADLS Gen2 storage only.</strong> Synapse Serverless does <em>not</em> copy, ingest, or persist rows into relational tables or disk files (no <code>.mdf</code> or <code>.ldf</code> files exist). Instead, when a query runs:
+                            </p>
+                            <div style="margin-top: 0.6rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem;">
+                                <div style="background: var(--bg-card); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.775rem;">
+                                    <strong style="color: var(--primary);">1. On-the-Fly Memory Allocation</strong><br>
+                                    Synapse spins up dynamic compute worker nodes that read columnar Parquet chunks directly from ADLS Gen2 into temporary memory.
+                                </div>
+                                <div style="background: var(--bg-card); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.775rem;">
+                                    <strong style="color: var(--accent);">2. Vectorized Processing</strong><br>
+                                    Calculations, joins, and aggregations run at lightning speed in-memory using vectorized instruction sets.
+                                </div>
+                                <div style="background: var(--bg-card); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.775rem;">
+                                    <strong style="color: var(--success);">3. Immediate Resource Release</strong><br>
+                                    Tabular rows stream to Power BI over Port 1433, and the temporary memory structures are instantly purged. You pay strictly $5/TB scanned with $0 idle cost!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -901,6 +1511,13 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                                 <td><span class="without-bad">❌ Power BI reports must execute complex multi-table joins across raw layers, stalling dashboards.</span></td>
                             </tr>
                             <tr>
+                                <td><span class="comp-code">Synapse Serverless SQL</span></td>
+                                <td>Directly querying raw ADLS Gen2 Parquet files from BI tools is slow, complex, and insecure.</td>
+                                <td>Serve relational SQL views over lakehouse files with zero data copy and zero idle compute billing.</td>
+                                <td>Exposes Port 1433 TDS endpoint using <code>OPENROWSET</code>; reads Parquet into temporary memory structures on-demand.</td>
+                                <td><span class="without-bad">❌ Must provision Dedicated SQL Pool costing $900+/mo, or force Power BI to load raw files without centralized governance.</span></td>
+                            </tr>
+                            <tr>
                                 <td><span class="comp-code">GitHub Integration</span></td>
                                 <td>Pipeline changes made directly in cloud UI risk untracked outages or collisions.</td>
                                 <td>Infrastructure-as-Code (IaC), peer review, and automated CI/CD deployment.</td>
@@ -965,28 +1582,28 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                 <div class="gate-flow">
                     <div class="gate-step completed">1. UNDERSTAND</div>
                     <div class="gate-arrow">→</div>
-                    <div class="gate-step active">2. EXPLAIN BACK</div>
+                    <div class="gate-step completed">2. EXPLAIN BACK</div>
                     <div class="gate-arrow">→</div>
-                    <div class="gate-step">3. PLAN</div>
+                    <div class="gate-step completed">3. PLAN</div>
                     <div class="gate-arrow">→</div>
-                    <div class="gate-step">4. YOU EXECUTE</div>
+                    <div class="gate-step completed">4. YOU EXECUTE</div>
                     <div class="gate-arrow">→</div>
-                    <div class="gate-step">5. PROVIDE EVIDENCE</div>
+                    <div class="gate-step completed">5. PROVIDE EVIDENCE</div>
                     <div class="gate-arrow">→</div>
-                    <div class="gate-step">6. TECH QUESTIONS</div>
+                    <div class="gate-step completed">6. TECH QUESTIONS</div>
                     <div class="gate-arrow">→</div>
-                    <div class="gate-step">7. EVALUATION</div>
+                    <div class="gate-step completed">7. EVALUATION</div>
                     <div class="gate-arrow">→</div>
-                    <div class="gate-step">8. FIX GAPS</div>
+                    <div class="gate-step completed">8. FIX GAPS</div>
                     <div class="gate-arrow">→</div>
-                    <div class="gate-step">9. ARCH RECAP</div>
+                    <div class="gate-step completed">9. ARCH RECAP</div>
                     <div class="gate-arrow">→</div>
-                    <div class="gate-step">10. COMPLETE</div>
+                    <div class="gate-step active">10. COMPLETE</div>
                     <div class="gate-arrow">→</div>
                     <div class="gate-step">11. UNLOCK NEXT</div>
                 </div>
                 <div style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;">
-                    📍 <strong>Current Phase 4 Gate Position:</strong> Stage 1 (Understand Medallion Transformation Architecture & HIPAA Safe Harbor De-identification).
+                    📍 <strong>Current Phase 5 Gate Position:</strong> Stage 10 (Serving Layer Verified & Trigger Automation Active ➔ Unlocking Phase 6 Power BI).
                 </div>
             </div>
 
@@ -1050,33 +1667,42 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                 </div>
 
                 <!-- Phase 4 -->
-                <div class="phase-box in-progress">
+                <div class="phase-box completed">
                     <div class="phase-header">
                         <span class="phase-num">Phase 4</span>
-                        <span class="badge badge-progress">ACTIVE / CURRENT</span>
+                        <span class="badge badge-done">COMPLETED (8/8)</span>
                     </div>
                     <div class="phase-name">Medallion Transformations & HIPAA Masking</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Two-Stage Progression: Stage A (Static Single-Table Fundamentals) followed by Stage B (Dynamic Parameterized Automation).</p>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Spark-driven Silver de-identification and conformed Gold Star Schema marts with Lakehouse idempotency.</p>
                     <ul class="task-list">
-                        <li class="task-item done">✓ Generic Ingestion Datasets (DS_SQL_Source & DS_ADLS_Bronze)</li>
-                        <li class="task-item done">✓ Master Ingestion Pipeline (PL_Ingest_Bronze + SCR_Update_Watermark)</li>
-                        <li class="task-item done">✓ Silver Parquet Dataset (DS_ADLS_Silver_Patients -> silver/patients)</li>
-                        <li class="task-item done">✓ Mapping Data Flow: DF_Patients_Bronze_To_Silver (SHA-256 Masking)</li>
-                        <li class="task-item done">✓ Pipeline Execution: PL_Bronze_To_Silver (Spark 8-Core General Run)</li>
-                        <li class="task-item done">✓ Incremental / Watermark Filtering for Bronze -> Silver Processing</li>
-                        <li class="task-item active">⏳ Gold Data Flow: DF_Patients_Silver_To_Gold (Dim_Patient Surrogate Key)</li>
-                        <li class="task-item">⏳ Multi-Entity Star Schema Integration (Encounters, Providers, Diagnoses)</li>
+                        <li class="task-item done">✅ Generic Ingestion Datasets (DS_SQL_Source & DS_ADLS_Bronze)</li>
+                        <li class="task-item done">✅ Master Ingestion Pipeline (PL_Ingest_Bronze + SCR_Update_Watermark)</li>
+                        <li class="task-item done">✅ 5 Silver Datasets Landed (Patients, Providers, Encounters, Diagnoses, Claims)</li>
+                        <li class="task-item done">✅ 5 Mapping Data Flows with HIPAA Masking & Clinical Metrics</li>
+                        <li class="task-item done">✅ Master Parallel Orchestrator (PL_Bronze_To_Silver with 5 Concurrent Data Flows)</li>
+                        <li class="task-item done">✅ ARM Templates Published to Branch adf_publish</li>
+                        <li class="task-item done">✅ 5 Gold Data Flows: Conformed Dimensions & Star Schema Facts</li>
+                        <li class="task-item done">✅ Lakehouse Idempotency: DEL_Clear_Gold_Marts activity in PL_Silver_To_Gold</li>
                     </ul>
                 </div>
 
                 <!-- Phase 5 -->
-                <div class="phase-box locked">
+                <div class="phase-box in-progress">
                     <div class="phase-header">
                         <span class="phase-num">Phase 5</span>
-                        <span class="badge badge-locked">LOCKED</span>
+                        <span class="badge badge-progress">ACTIVE / 95% COMPLETE</span>
                     </div>
                     <div class="phase-name">Synapse Serverless Serving & Automation</div>
-                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Serverless SQL views over Gold Delta tables + ADF scheduled execution triggers.</p>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary);">Serverless SQL views over Gold Parquet + Master Orchestration Pipeline with Daily Triggers.</p>
+                    <ul class="task-list">
+                        <li class="task-item done">✅ Provisioned Synapse Workspace (syn-healthcare-punit01)</li>
+                        <li class="task-item done">✅ Entra ID RBAC (Storage Blob Data Contributor) for Synapse MSI</li>
+                        <li class="task-item done">✅ Created healthcare_gold_db with Latin1_General_100_BIN2_UTF8 Collation</li>
+                        <li class="task-item done">✅ Defined External Data Source gold_lakehouse targeting ADLS Gen2</li>
+                        <li class="task-item done">✅ Created 5 Serverless SQL Views (dim_patient, provider, diagnosis, encounters, claims)</li>
+                        <li class="task-item done">✅ Validated live SQL joins & aggregations directly over Parquet (4s execution)</li>
+                        <li class="task-item done">✅ Master Pipeline PL_Master_Healthcare_Pipeline with Trigger TRG_Daily_Healthcare_ETL</li>
+                    </ul>
                 </div>
 
                 <!-- Phase 6 -->
@@ -1180,6 +1806,26 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                         </div>
                     </div>
                 </div>
+
+                <!-- CL-05 -->
+                <div class="concept-card">
+                    <span class="concept-tag">CL-05 • Semantic Serving</span>
+                    <div class="concept-title">In-Place Parquet Virtualization via Synapse Serverless SQL</div>
+                    <div class="levels-container">
+                        <div class="level-box level-1">
+                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            Putting a restaurant menu in front of the kitchen so customers can order food in English without having to walk into the walk-in freezer and chop raw ingredients themselves.
+                        </div>
+                        <div class="level-box level-2">
+                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            Synapse Serverless uses <code>OPENROWSET</code> to stream columnar Parquet chunks into temporary memory structures on-the-fly. It exposes standard TDS Port 1433, discovers schemas from file footers, and utilizes <code>Latin1_General_100_BIN2_UTF8</code> to prevent costly runtime character conversions.
+                        </div>
+                        <div class="level-box level-3">
+                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            Decouples storage and compute completely. Storage is charged at cheap ADLS Gen2 blob rates ($0.02/GB/mo), while compute is purely on-demand ($5/TB scanned with $0 idle cost), eliminating the massive $900+/mo baseline expense of Dedicated SQL Pools while complying with HIPAA role-based query isolation.
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1239,9 +1885,81 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                     <div class="defense-box">
                         "We enforce strict pipeline idempotency through a two-phase watermark pattern. In the first phase, we capture the static maximum source timestamp into an ADF pipeline variable before starting the copy. In the second phase, the Copy Activity sinks the data to partitioned Bronze storage. Crucially, the stored procedure that updates etl_watermark_control executes only upon successful completion of the Copy Activity. If the pipeline crashes mid-stream, the watermark remains unchanged and the subsequent run re-evaluates the same delta window, eliminating silent data loss."
                     </div>
+                <!-- TQ-05 -->
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-05 • Snapshot Isolation • Evaluated: Correct</span>
+                    <div class="concept-title">How does the upper watermark boundary enforce snapshot isolation if new rows arrive during an active Copy Activity?</div>
+                    <div class="defense-box">
+                        "The pipeline explicitly binds the extraction query to `updated_at <= new_watermark`. Any transaction occurring after the snapshot timestamp is excluded from the current batch and safely picked up in the next run when the old watermark advances to that exact snapshot boundary."
+                    </div>
                     <div class="defense-breakdown">
-                        <div class="defense-pill"><strong>Pattern:</strong> 2-Phase Watermark commit</div>
-                        <div class="defense-pill"><strong>Resilience:</strong> Idempotent retry guarantee</div>
+                        <div class="defense-pill"><strong>Isolation:</strong> Snapshot upper boundary</div>
+                        <div class="defense-pill"><strong>Safety:</strong> Zero missing transactions</div>
+                    </div>
+                </div>
+
+                <!-- TQ-06 -->
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-06 • Compute & Serialization • Evaluated: Correct</span>
+                    <div class="concept-title">Where does compute and data serialization occur during on-premise to cloud data ingestion via SHIR?</div>
+                    <div class="defense-box">
+                        "The on-premise SHIR compute node queries the local SQL Server, serializes relational records into Parquet format in-memory, and pushes the payload over outbound port 443 to ADLS Gen2. Azure never initiates an inbound connection into the corporate hospital network."
+                    </div>
+                    <div class="defense-breakdown">
+                        <div class="defense-pill"><strong>Engine:</strong> Local SHIR node serialization</div>
+                        <div class="defense-pill"><strong>Security:</strong> Outbound HTTPS port 443</div>
+                    </div>
+                </div>
+
+                <!-- TQ-07 -->
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-07 • ADF Expression Engine • Evaluated: Correct</span>
+                    <div class="concept-title">Why did ADF throw 'property last_watermark_value doesn't exist' and how does output.firstRow vs output.value[0] work?</div>
+                    <div class="defense-box">
+                        "The PIVOT query unpivoted the rows into 5 entity-specific columns (`silver_patients`, `silver_providers`, etc.), replacing `last_watermark_value`. Furthermore, when 'First row only' is unchecked, ADF wraps the SQL results in a JSON array under `value[]`, requiring array indexing `@activity('LKP').output.value[0].&lt;column&gt;` instead of `output.firstRow.&lt;column&gt;`."
+                    </div>
+                    <div class="defense-breakdown">
+                        <div class="defense-pill"><strong>Schema:</strong> PIVOT column dynamic alias</div>
+                        <div class="defense-pill"><strong>JSON Access:</strong> output.value[0] array syntax</div>
+                    </div>
+                </div>
+
+                <!-- TQ-08 -->
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-08 • Parallel DAG Orchestration • Evaluated: Reinforced</span>
+                    <div class="concept-title">In a parallel DAG where SCR_Update_Silver_Watermark depends on all 5 Data Flows, what happens if one Data Flow fails?</div>
+                    <div class="defense-box">
+                        "Multiple incoming dependency arrows with condition 'Succeeded' in ADF create a logical AND barrier. If even one Data Flow fails, ADF immediately skips `SCR_Update_Silver_Watermark`. None of the watermarks advance in SQL Server, preserving transactional integrity and ensuring that a subsequent pipeline run will safely reprocess the uncommitted batch."
+                    </div>
+                    <div class="defense-breakdown">
+                        <div class="defense-pill"><strong>DAG Logic:</strong> Logical AND barrier</div>
+                        <div class="defense-pill"><strong>Integrity:</strong> Atomic watermark commit</div>
+                    </div>
+                </div>
+
+                <!-- TQ-09 -->
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-09 • HIPAA Compliance • Evaluated: Correct</span>
+                    <div class="concept-title">Why is salting mandatory when hashing SSNs under HIPAA Safe Harbor rather than raw SHA-256?</div>
+                    <div class="defense-box">
+                        "A standard 9-digit SSN has only 1 billion possible combinations. Because the search space is so small, attackers can precompute all 1 billion SHA-256 hashes into a Rainbow Table and reverse any patient SSN in seconds. Appending a high-entropy secret salt (e.g. `ssn + 'Salt#99'`) before hashing completely invalidates precomputed tables and complies with HIPAA de-identification standards."
+                    </div>
+                    <div class="defense-breakdown">
+                        <div class="defense-pill"><strong>Security:</strong> Rainbow table defense</div>
+                        <div class="defense-pill"><strong>HIPAA:</strong> Irreversible de-identification</div>
+                    </div>
+                </div>
+
+                <!-- TQ-10 -->
+                <div class="concept-card">
+                    <span class="concept-tag">TQ-10 • Serving Layer & FinOps • Evaluated: Correct</span>
+                    <div class="concept-title">Why use Synapse Serverless SQL over Dedicated SQL Pools, and why is Latin1_General_100_BIN2_UTF8 collation required for Parquet?</div>
+                    <div class="defense-box">
+                        "Dedicated SQL Pools provision continuous compute clusters that incur fixed billing 24/7 (~$900+/month for DW100c), which is cost-prohibitive for reporting workloads that experience intermittent query spikes. Synapse Serverless SQL decouples compute from storage completely: data physically resides in ADLS Gen2 Parquet files, while Serverless SQL spins up ephemeral query execution nodes on-demand that read Parquet into temporary memory structures, charging strictly $5 per TB scanned and $0.00/hour when idle. Furthermore, because Parquet natively stores strings in UTF-8, configuring the database with `Latin1_General_100_BIN2_UTF8` collation enables direct zero-conversion vectorized memory reads, avoiding the severe CPU spikes, memory throttling, and collation mismatch errors that occur when converting UTF-8 to UTF-16 in standard databases."
+                    </div>
+                    <div class="defense-breakdown">
+                        <div class="defense-pill"><strong>FinOps:</strong> $0 Idle vs $900/mo Dedicated</div>
+                        <div class="defense-pill"><strong>Performance:</strong> Zero-conversion UTF-8 reads</div>
                     </div>
                 </div>
             </div>
@@ -1331,6 +2049,11 @@ PRIVATE ON-PREM ENVIRONMENT                             AZURE CLOUD DATA PLATFOR
                         <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Azure Data Factory</div>
                         <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--primary); margin-top: 0.25rem;">adf-healthcare-punit01</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Git Branch: main | Directory: /adf</div>
+                    </div>
+                    <div style="background: var(--bg-elevated); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.725rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Azure Synapse Workspace</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--success); margin-top: 0.25rem;">syn-healthcare-punit01</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Serverless SQL: ondemand.sql.azuresynapse.net:1433</div>
                     </div>
                 </div>
             </div>

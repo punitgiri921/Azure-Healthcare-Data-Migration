@@ -1,14 +1,14 @@
 {
   "project_name": "Azure Healthcare Data Migration & Medallion Lakehouse",
   "budget_credit_usd": 200,
-  "current_phase": 4,
-  "current_phase_name": "Phase 4: Medallion Transformations & HIPAA Compliance (Silver & Gold)",
-  "overall_progress_percent": 66,
-  "last_updated": "2026-09-15",
+  "current_phase": 6,
+  "current_phase_name": "Phase 6: Power BI Reporting & CV Portfolio Deliverables",
+  "overall_progress_percent": 95,
+  "last_updated": "2026-09-19",
   "phase_gate_status": {
-    "current_phase_id": 4,
-    "current_step": "YOU EXECUTE",
-    "step_number": 4,
+    "current_phase_id": 6,
+    "current_step": "1. UNDERSTAND",
+    "step_number": 1,
     "total_steps": 11,
     "steps_flow": [
       "1. UNDERSTAND",
@@ -23,15 +23,22 @@
       "10. PHASE COMPLETE",
       "11. UNLOCK NEXT PHASE"
     ],
-    "gate_requirement": "Master the Medallion progression (Bronze -> Silver -> Gold), HIPAA Safe Harbor de-identification rules, and Star Schema modeling."
+    "gate_requirement": "Connect Power BI Desktop to Synapse Serverless SQL TDS endpoint, configure 1-to-many Star Schema dimensional relationships, build clinical & financial DAX measures, and author executive dashboard."
   },
   "next_task": {
-    "task_id": "P4-T6",
-    "name": "Stage A Gold: Build Data Flow DF_Patients_Silver_To_Gold (Dim_Patient)",
-    "target_pipeline": "PL_Silver_To_Gold",
-    "description": "Add surrogateKey() transformation (patient_sk), calculate patient age from dob, and sink conformed dimension table to gold/dim_patient/ container."
+    "task_id": "P6-T1",
+    "name": "Connect Power BI to Synapse Serverless & Establish Star Schema Model",
+    "target": "syn-healthcare-punit01-ondemand.sql.azuresynapse.net / healthcare_gold_db",
+    "description": "Establish DirectQuery or Import connection to gold views, define 1-to-many relationships (Dim_Patient, Dim_Provider, Dim_Diagnosis -> Fact_Encounters, Fact_Claims), and verify surrogate keys."
   },
   "current_azure_resources": [
+    {
+      "type": "Microsoft.Synapse/workspaces",
+      "name": "syn-healthcare-punit01",
+      "location": "Central India",
+      "sql_serverless_endpoint": "syn-healthcare-punit01-ondemand.sql.azuresynapse.net",
+      "status": "PROVISIONED"
+    },
     {
       "type": "Microsoft.Resources/resourceGroups",
       "name": "rg-healthcare-migration-prod",
@@ -160,7 +167,37 @@
     },
     {
       "phase_id": 4,
-      "item": "Azure Storage Explorer verification of silver/patients container showing part files generated with 20+ HIPAA SHA-256 masked patient records via DF_Patients_Bronze_To_Silver",
+      "item": "Azure Storage Explorer and ADF Studio run ae7fdfd3-84f6-44eb-a9bf-df926fa707ea verifying all 5 Silver Data Flows (Patients, Providers, Encounters, Diagnoses, Claims) executed concurrently and generated clean Parquet datasets in ADLS Gen2 silver/ container",
+      "verified": true
+    },
+    {
+      "phase_id": 4,
+      "item": "ADF Studio Debug Data Preview and Git commit 224caed verifying Data Flow DF_Patients_Silver_To_Gold generating patient_sk surrogate keys, age calculation, age_group banding, and gold/dim_patient sink",
+      "verified": true
+    },
+    {
+      "phase_id": 4,
+      "item": "ADF Studio Run 47ce9184-ff06-4b2d-89e8-281eb845f957 and Storage Explorer verification confirming DEL_Clear_Gold_Marts and all 5 Gold Data Flows executed with 100% success and 0 duplicates in ADLS Gen2 gold/ container",
+      "verified": true
+    },
+    {
+      "phase_id": 4,
+      "item": "ADF ARM templates generated and successfully pushed to branch adf_publish for enterprise CI/CD deployment",
+      "verified": true
+    },
+    {
+      "phase_id": 5,
+      "item": "Azure Portal verification of syn-healthcare-punit01 provisioned in rg-healthcare-migration-prod (Central India) with Serverless SQL on-demand pool active",
+      "verified": true
+    },
+    {
+      "phase_id": 5,
+      "item": "Synapse Studio execution of 05_create_synapse_gold_views.sql creating healthcare_gold_db, gold_lakehouse external data source, and all 5 virtual SQL views with successful live queries in 4s",
+      "verified": true
+    },
+    {
+      "phase_id": 5,
+      "item": "ADF Studio verification of PL_Master_Healthcare_Pipeline chaining Bronze, Silver, and Gold pipelines with active scheduled daily trigger TRG_Daily_Healthcare_ETL",
       "verified": true
     }
   ],
@@ -174,7 +211,11 @@
     "CL-07: Delta Pipeline Dynamic Extraction Expressions & Parameterized Queries",
     "CL-08: Atomic Watermark Advancement via Stored Procedure & Service Account Roles",
     "CL-09: Spark Partitioning & Parallel Executor Parquet File Writing (part-00000 / part-00001)",
-    "CL-10: ADF Lookup Result Set Referencing (output.firstRow vs output.value[0])"
+    "CL-10: ADF Lookup Result Set Referencing (output.firstRow vs output.value[0])",
+    "CL-11: Star Schema Conformed Dimensions & Surrogate Key Generation in Medallion Gold",
+    "CL-12: Lakehouse Idempotency & Pre-Execution Delete Cleanup Pattern for Parquet Marts",
+    "CL-13: Azure Synapse Serverless SQL On-Demand Architecture ($5/TB, In-Place Parquet Querying)",
+    "CL-14: In-Memory Ephemeral Execution vs Persistent Storage in Serverless Query Engines"
   ],
   "concepts_requiring_reinforcement": [
     "Handling late-arriving clinical events and watermark lookback buffers",
@@ -220,35 +261,47 @@
         { "task_id": "P3-T4", "name": "Implement sequential FE_Table_Load ForEach loop", "status": "COMPLETED" },
         { "task_id": "P3-T5", "name": "Implement LKP_Current_Watermark dynamic MAX timestamp query", "status": "COMPLETED" },
         { "task_id": "P3-T6", "name": "Implement COPY_SQL_To_Bronze timestamped Parquet extraction", "status": "COMPLETED" },
-        { "task_id": "P3-T7", "name": "Advance high-watermark timestamp via stored procedure usp_update_watermark", "status": "PENDING" },
+        { "task_id": "P3-T7", "name": "Advance high-watermark timestamp via stored procedure usp_update_watermark", "status": "COMPLETED" },
         { "task_id": "P3-T8", "name": "Validate Bronze lakehouse ingestion per entity folder", "status": "COMPLETED" }
       ]
     },
     {
       "phase_id": 4,
       "title": "Medallion Transformations & HIPAA Compliance (Silver & Gold)",
-      "status": "IN_PROGRESS",
+      "status": "COMPLETED",
       "tasks": [
         { "task_id": "P4-T1", "name": "Design HIPAA Safe Harbor PII/PHI de-identification specification", "status": "COMPLETED" },
         { "task_id": "P4-T2", "name": "Configure Azure Integration Runtime compute (8 cores General)", "status": "COMPLETED" },
         { "task_id": "P4-T3", "name": "Build Mapping Data Flow: DF_Patients_Bronze_To_Silver (SHA-256 SSN & Name initial masking)", "status": "COMPLETED" },
-        { "task_id": "P4-T4", "name": "Build Orchestrator Pipeline PL_Bronze_To_Silver and sink to DS_ADLS_Silver_Patients", "status": "COMPLETED" },
-        { "task_id": "P4-T5", "name": "Execute & validate Silver Parquet output and schema conformance", "status": "COMPLETED" },
-        { "task_id": "P4-T6", "name": "Build Data Flow: DF_Patients_Silver_To_Gold (Surrogate Key & Age calculation)", "status": "PENDING" },
-        { "task_id": "P4-T7", "name": "Build Star Schema Dimensional Marts for remaining clinical entities", "status": "PENDING" }
+        { "task_id": "P4-T4", "name": "Build Master Parallel Pipeline PL_Bronze_To_Silver orchestrating all 5 Data Flows", "status": "COMPLETED" },
+        { "task_id": "P4-T5", "name": "Execute & validate all 5 Silver Parquet datasets (Patients, Providers, Encounters, Diagnoses, Claims)", "status": "COMPLETED" },
+        { "task_id": "P4-T6", "name": "Build Data Flow: DF_Patients_Silver_To_Gold (Surrogate Key & Age calculation)", "status": "COMPLETED" },
+        { "task_id": "P4-T7", "name": "Build Star Schema Dimensional Marts for remaining clinical entities & PL_Silver_To_Gold", "status": "COMPLETED" }
       ]
     },
     {
       "phase_id": 5,
       "title": "Synapse Serverless Serving & Trigger Automation",
-      "status": "LOCKED",
-      "tasks": []
+      "status": "COMPLETED",
+      "tasks": [
+        { "task_id": "P5-T1", "name": "Provision Azure Synapse Analytics Workspace (syn-healthcare-punit01)", "status": "COMPLETED" },
+        { "task_id": "P5-T2", "name": "Configure Synapse RBAC & Managed Identity access to ADLS Gen2", "status": "COMPLETED" },
+        { "task_id": "P5-T3", "name": "Create Serverless SQL Database (healthcare_gold_db) & External Data Source", "status": "COMPLETED" },
+        { "task_id": "P5-T4", "name": "Create External Tables / Views over Gold Lakehouse Parquet", "status": "COMPLETED" },
+        { "task_id": "P5-T5", "name": "Configure ADF Master Orchestration & Event/Schedule Triggers", "status": "COMPLETED" }
+      ]
     },
     {
       "phase_id": 6,
       "title": "Power BI Reporting & CV Portfolio Deliverables",
-      "status": "LOCKED",
-      "tasks": []
+      "status": "IN_PROGRESS",
+      "tasks": [
+        { "task_id": "P6-T1", "name": "Connect Power BI Desktop to Synapse Serverless SQL TDS Endpoint", "status": "IN_PROGRESS" },
+        { "task_id": "P6-T2", "name": "Model Kimball Star Schema (1-to-many relationships from Dims to Facts)", "status": "PENDING" },
+        { "task_id": "P6-T3", "name": "Develop Healthcare Clinical & Financial DAX Measures", "status": "PENDING" },
+        { "task_id": "P6-T4", "name": "Design Executive Hospital Operational & Financial Report", "status": "PENDING" },
+        { "task_id": "P6-T5", "name": "Publish to Power BI Service & Create Portfolio Deliverables", "status": "PENDING" }
+      ]
     }
   ],
   "technical_questions": [
@@ -287,6 +340,36 @@
       "question": "Where does compute and data serialization occur during on-premise to cloud data ingestion via SHIR?",
       "evaluation": "Correct",
       "core_rationale": "The on-premise SHIR compute node queries the local SQL Server, serializes relational records into Parquet format in-memory, and pushes the payload over outbound port 443 to ADLS Gen2. Azure never initiates an inbound connection into the corporate hospital network."
+    },
+    {
+      "id": "TQ-07",
+      "question": "Why did ADF throw 'property last_watermark_value doesn't exist' and how does output.firstRow vs output.value[0] work?",
+      "evaluation": "Correct",
+      "core_rationale": "The PIVOT query generated 5 entity-specific columns (silver_patients, silver_providers, etc.), replacing the unpivoted last_watermark_value. When firstRowOnly is false, ADF outputs an array under value[], requiring array indexing output.value[0].<column>."
+    },
+    {
+      "id": "TQ-08",
+      "question": "In a parallel DAG where SCR_Update_Silver_Watermark depends on all 5 Data Flows with 'Succeeded', what happens if one Data Flow fails?",
+      "evaluation": "Reinforced / Clarified",
+      "core_rationale": "Multiple incoming dependency arrows in ADF form an AND condition. If one Data Flow fails, the downstream script is skipped entirely. None of the watermarks advance, preserving transactional state consistency for automatic retry."
+    },
+    {
+      "id": "TQ-09",
+      "question": "Why is salting mandatory when hashing SSNs under HIPAA Safe Harbor rather than raw SHA-256?",
+      "evaluation": "Correct",
+      "core_rationale": "With a finite space of 1 billion 9-digit SSNs, raw SHA-256 hashes can be reversed instantly using precomputed rainbow tables. Salting introduces cryptographic entropy, making dictionary and rainbow table lookups impossible."
+    },
+    {
+      "id": "TQ-10",
+      "question": "Why use an artificial surrogate key (patient_sk) in the Gold Star Schema instead of natural key patient_id?",
+      "evaluation": "Correct",
+      "core_rationale": "Surrogate keys enable Slowly Changing Dimensions (SCD Type 2) history tracking where multiple versions of a patient record share the same patient_id but have unique surrogate keys, preventing historical fact table joins from breaking. It also shields the lakehouse from upstream key reassignments or multi-system ID collisions."
+    },
+    {
+      "id": "TQ-11",
+      "question": "Why compute age and cohort banding in the Lakehouse Spark pipeline rather than using DAX or Power Query in Power BI?",
+      "evaluation": "Correct",
+      "core_rationale": "Centralizing feature engineering in the lakehouse ensures a single source of truth across all analytics consumers (Power BI, Synapse, Python/ML), eliminating conflicting departmental definitions. Furthermore, pre-computing on write preserves VertiPaq memory and avoids expensive runtime row-by-row compute during dashboard interactions."
     }
   ]
 }
