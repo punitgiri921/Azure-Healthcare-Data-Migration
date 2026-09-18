@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "SELECT\n    table_name,\n    watermark_column,\n    last_watermark_value\nFROM dbo.etl_watermark_control\nWHERE status = 'SUCCESS';",
+						"sqlReaderQuery": "SELECT\n    table_name,\n    watermark_column,\n    last_watermark_value\nFROM dbo.etl_watermark_control\nWHERE status = 'SUCCESS'\n  AND table_name NOT LIKE 'silver_%'\n  AND table_name NOT LIKE 'gold_%';",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
