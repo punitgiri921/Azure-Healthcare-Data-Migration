@@ -389,7 +389,7 @@
 						"typeProperties": {
 							"source": {
 								"type": "SqlServerSource",
-								"sqlReaderQuery": "SELECT\n    table_name,\n    watermark_column,\n    last_watermark_value\nFROM dbo.etl_watermark_control\nWHERE status = 'SUCCESS';",
+								"sqlReaderQuery": "SELECT\n    table_name,\n    watermark_column,\n    last_watermark_value\nFROM dbo.etl_watermark_control\nWHERE status = 'SUCCESS'\n  AND table_name NOT LIKE 'silver_%'\n  AND table_name NOT LIKE 'gold_%';",
 								"queryTimeout": "02:00:00",
 								"partitionOption": "None"
 							},
@@ -583,6 +583,90 @@
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_Source')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Bronze')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_sqlserver_onprem')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_Master_Healthcare_Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "End-to-end Master Orchestration: Bronze -> Silver -> Gold",
+				"activities": [
+					{
+						"name": "EP_Run_Bronze_Ingestion",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_Ingest_Bronze",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "P_Run_Silver_Transformations",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "EP_Run_Bronze_Ingestion",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_Bronze_To_Silver",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "EP_Run_Gold_Star_Schema",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "P_Run_Silver_Transformations",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_Silver_To_Gold",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/PL_Ingest_Bronze')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_Bronze_To_Silver')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_Silver_To_Gold')]"
 			]
 		},
 		{
@@ -1364,6 +1448,36 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/integrationRuntimes/shir-onprem-gateway-01')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_keyvault_healthcare')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TRG_Daily_Healthcare_ETL')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "PL_Master_Healthcare_Pipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2026-09-19T02:00:00",
+						"timeZone": "India Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/PL_Master_Healthcare_Pipeline')]"
 			]
 		},
 		{
@@ -2293,121 +2407,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Silver_Providers')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Gold_Dim_Provider')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/PL_Master_Healthcare_Pipeline')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "End-to-end Master Orchestration: Bronze -> Silver -> Gold",
-				"activities": [
-					{
-						"name": "EP_Run_Bronze_Ingestio",
-						"type": "ExecutePipeline",
-						"dependsOn": [],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "PL_Ingest_Bronze",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "P_Run_Silver_Transformations",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "EP_Run_Bronze_Ingestio",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "PL_Bronze_To_Silver",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "EP_Run_Gold_Star_Schema",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "P_Run_Silver_Transformations",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "PL_Silver_To_Gold",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/PL_Ingest_Bronze')]",
-				"[concat(variables('factoryId'), '/pipelines/PL_Bronze_To_Silver')]",
-				"[concat(variables('factoryId'), '/pipelines/PL_Silver_To_Gold')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TRG_Daily_Healthcare_ETL')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "PL_Master_Healthcare_Pipeline",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2026-09-19T02:00:00",
-						"timeZone": "India Standard Time",
-						"schedule": {}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/PL_Master_Healthcare_Pipeline')]"
 			]
 		}
 	]
