@@ -12,12 +12,12 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 | **Phase 2** | **On-Prem Database & SHIR Gateway Setup** | 🟢 **COMPLETED** | **7 / 7** | **10. PHASE COMPLETE** | **10 / 10** |
 | **Phase 3** | **Metadata-Driven Watermark Ingestion (Bronze)** | 🟢 **COMPLETED** | **8 / 8** | **10. PHASE COMPLETE** | **10 / 10** |
 | **Phase 4** | **Medallion Transformations & HIPAA (Silver & Gold)** | 🟢 **COMPLETED** | **7 / 7** | **10. PHASE COMPLETE** | **10 / 10** |
-| **Phase 5** | **Synapse Serverless Serving & Trigger Automation** | 🟡 **IN PROGRESS (95%)** | **5 / 5** | **5. PROVIDE EVIDENCE** | **10 / 10** |
-| **Phase 6** | **Power BI Reporting & CV Deliverables** | 🔒 Next | 0 / 5 | Unlocking Soon | -- / 10 |
+| **Phase 5** | **Synapse Serverless Serving & Trigger Automation** | 🟢 **COMPLETED** | **5 / 5** | **10. PHASE COMPLETE** | **10 / 10** |
+| **Phase 6** | **Power BI Reporting & CV Deliverables** | 🟡 **ACTIVE (10%)** | **0 / 5** | **1. UNDERSTAND** | -- / 10 |
 
 ```text
 11-STEP PHASE GATE PIPELINE:
-[Phase 4 Completed ➔ Phase 5 Serving Active] -> PROVIDE EVIDENCE -> ARCH RECAP -> PHASE 6 POWER BI
+[Phase 5 Serving Completed ➔ Phase 6 Power BI Active] -> 1. UNDERSTAND -> 2. EXPLAIN BACK -> 3. PLAN -> 4. EXECUTE
 ```
 
 ---
@@ -439,5 +439,38 @@ GO
 * **Physical Data Resides in ADLS Gen2 Storage Only**: Synapse Serverless SQL does **NOT** duplicate, copy, or ingest data into persistent relational storage tables (`.mdf`/`.ldf` files). The Parquet files remain purely in the `gold/` container of `sthealthcarelake01`.
 * **Temporary In-Memory Execution Structures**: When a user or Power BI runs a `SELECT` query against `gold.dim_patient`, Synapse Serverless dynamically pulls the columnar Parquet blocks from ADLS Gen2 over the Azure backbone network into temporary in-memory data structures, processes aggregations and filters on-the-fly, streams tabular rows back over Port 1433 (TDS protocol), and immediately releases memory once the query completes.
 * **Cost Efficiency ($0 Idle vs $900+/mo)**: Serverless pool charges only for running queries ($5.00 per TB of data scanned) and **$0.00 when idle**. In contrast, a Dedicated SQL Pool provisions fixed compute nodes that cost money 24/7 even when zero queries are running.
+
+---
+
+### 9.4 Verified Master Orchestration Run Evidence
+* **Pipeline Name**: `PL_Master_Healthcare_Pipeline`
+* **Pipeline Run ID**: `4c16ba7b-2782-4ed5-9890-d3ab16b48013`
+* **Status**: 🟢 **Succeeded** (All 3 Stages Verified End-to-End)
+* **Activity Execution Breakdown**:
+  1. `EP_Run_Bronze_Ingestion`: 🟢 **Succeeded** (Duration: 4m 14s) — Successfully filtered out downstream prefixes and incrementally extracted SQL Server tables to Bronze Parquet.
+  2. `P_Run_Silver_Transformations`: 🟢 **Succeeded** (Duration: 3m 28s) — Spark concurrent execution of all 5 de-identification and cleansing Data Flows.
+  3. `EP_Run_Gold_Star_Schema`: 🟢 **Succeeded** (Duration: 1m 8s) — Pre-cleared gold directories (`DEL_Clear_Gold_Marts`) and rebuilt fresh conformed dimension and fact tables with 0 duplicate part files.
+* **Automation Trigger**: `TRG_Daily_Healthcare_ETL` scheduled for daily recurring pipeline execution.
+
+---
+
+## 10. Phase 6: Power BI Semantic Modeling & Executive Clinical Reporting (Active)
+
+### 10.1 Power BI Star Schema Model Architecture
+* **Endpoint**: `syn-healthcare-punit01-ondemand.sql.azuresynapse.net` (Port: 1433)
+* **Database**: `healthcare_gold_db`
+* **Authentication**: Microsoft Entra ID (OAuth 2.0)
+* **Tables / Views**:
+  - `gold.dim_patient` (Conformed Dimension)
+  - `gold.dim_provider` (Conformed Dimension)
+  - `gold.dim_diagnosis` (Conformed Dimension)
+  - `gold.fact_encounters` (Clinical Encounters Fact)
+  - `gold.fact_claims` (Financial Billing & Claims Fact)
+* **Cardinality & Relationships**:
+  - `gold.dim_patient [patient_sk]` (1) $\rightarrow$ `gold.fact_encounters [patient_sk]` (*)
+  - `gold.dim_provider [provider_id]` (1) $\rightarrow$ `gold.fact_encounters [provider_id]` (*)
+  - `gold.dim_diagnosis [diagnosis_code]` (1) $\rightarrow$ `gold.fact_encounters [diagnosis_code]` (*)
+  - `gold.fact_encounters [encounter_id]` (1) $\rightarrow$ `gold.fact_claims [encounter_id]` (*)
+
 
 

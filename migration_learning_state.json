@@ -197,7 +197,7 @@
     },
     {
       "phase_id": 5,
-      "item": "ADF Studio verification of PL_Master_Healthcare_Pipeline chaining Bronze, Silver, and Gold pipelines with active scheduled daily trigger TRG_Daily_Healthcare_ETL",
+      "item": "ADF Studio Debug Run 4c16ba7b-2782-4ed5-9890-d3ab16b48013 verifying end-to-end PL_Master_Healthcare_Pipeline orchestration: EP_Run_Bronze_Ingestion (4m 14s), P_Run_Silver_Transformations (3m 28s), and EP_Run_Gold_Star_Schema (1m 8s) all Succeeded",
       "verified": true
     }
   ],
