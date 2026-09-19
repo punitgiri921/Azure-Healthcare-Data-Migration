@@ -1,40 +1,40 @@
 {
-    "position":  {
-                     "width":  1840,
-                     "y":  20,
-                     "z":  1,
-                     "x":  40,
-                     "tabOrder":  1,
-                     "height":  65
-                 },
-    "name":  "01000000000000000001",
-    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-    "visual":  {
-                   "drillFilterOtherVisuals":  true,
-                   "objects":  {
-                                   "general":  [
-                                                   {
-                                                       "properties":  {
-                                                                          "paragraphs":  [
-                                                                                             {
-                                                                                                 "horizontalTextAlignment":  "left",
-                                                                                                 "textRuns":  [
-                                                                                                                  {
-                                                                                                                      "textStyle":  {
-                                                                                                                                        "color":  "#004B87",
-                                                                                                                                        "fontFamily":  "Segoe UI, sans-serif",
-                                                                                                                                        "fontWeight":  "bold",
-                                                                                                                                        "fontSize":  "22px"
-                                                                                                                                    },
-                                                                                                                      "value":  "Hospital Operations \u0026 Financial Intelligence | Azure Medallion Lakehouse"
-                                                                                                                  }
-                                                                                                              ]
-                                                                                             }
-                                                                                         ]
-                                                                      }
-                                                   }
-                                               ]
-                               },
-                   "visualType":  "textbox"
-               }
+  "position": {
+    "width": 1840,
+    "y": 20,
+    "z": 1,
+    "x": 40,
+    "tabOrder": 1,
+    "height": 65
+  },
+  "name": "01000000000000000001",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "visual": {
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "horizontalTextAlignment": "left",
+                "textRuns": [
+                  {
+                    "textStyle": {
+                      "color": "#004B87",
+                      "fontFamily": "Segoe UI, sans-serif",
+                      "fontWeight": "bold",
+                      "fontSize": "22px"
+                    },
+                    "value": "Hospital Operations & Financial Intelligence | Azure Medallion Lakehouse"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualType": "textbox"
+  }
 }

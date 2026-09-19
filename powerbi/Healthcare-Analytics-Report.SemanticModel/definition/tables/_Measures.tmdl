@@ -30,11 +30,11 @@ table _Measures
 		lineageTag: 6d2cb4b1-7b07-4e7a-9370-3d94dac6936f
 
 	measure 'Denial Rate' = ```
-			VAR TotalClaims = COUNTROWS('gold fact_claims')
-			VAR DeniedClaims = CALCULATE(COUNTROWS('gold fact_claims'), 'gold fact_claims'[is_denied] = TRUE())
-			RETURN
-				DIVIDE(DeniedClaims, TotalClaims, 0)
-		```
+				VAR TotalClaims = COUNTROWS('gold fact_claims')
+				VAR DeniedClaims = CALCULATE(COUNTROWS('gold fact_claims'), 'gold fact_claims'[is_denied] = TRUE())
+				RETURN
+					DIVIDE(DeniedClaims, TotalClaims, 0)
+			```
 		formatString: 0.0%
 		lineageTag: abbd66a7-f8f8-42ef-abaa-f22b503ea5df
 
@@ -61,3 +61,4 @@ table _Measures
 				 Source
 
 	annotation PBI_ResultType = Table
+

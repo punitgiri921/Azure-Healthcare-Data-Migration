@@ -1,38 +1,38 @@
 {
-    "position":  {
-                     "width":  345,
-                     "y":  100,
-                     "z":  3,
-                     "x":  415,
-                     "tabOrder":  3,
-                     "height":  120
-                 },
-    "name":  "03000000000000000003",
-    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-    "visual":  {
-                   "query":  {
-                                 "queryState":  {
-                                                    "Fields":  {
-                                                                   "projections":  [
-                                                                                       {
-                                                                                           "field":  {
-                                                                                                         "Measure":  {
-                                                                                                                         "Expression":  {
-                                                                                                                                            "SourceRef":  {
-                                                                                                                                                              "Entity":  "_Measures"
-                                                                                                                                                          }
-                                                                                                                                        },
-                                                                                                                         "Property":  "Total Encounters"
-                                                                                                                     }
-                                                                                                     },
-                                                                                           "nativeQueryRef":  "Total Encounters",
-                                                                                           "queryRef":  "_Measures.Total Encounters"
-                                                                                       }
-                                                                                   ]
-                                                               }
-                                                }
-                             },
-                   "visualType":  "card",
-                   "drillFilterOtherVisuals":  true
-               }
+  "position": {
+    "width": 345,
+    "y": 100,
+    "z": 3,
+    "x": 415,
+    "tabOrder": 3,
+    "height": 120
+  },
+  "name": "03000000000000000003",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "visual": {
+    "query": {
+      "queryState": {
+        "Fields": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Total Encounters"
+                }
+              },
+              "nativeQueryRef": "Total Encounters",
+              "queryRef": "_Measures.Total Encounters"
+            }
+          ]
+        }
+      }
+    },
+    "visualType": "card",
+    "drillFilterOtherVisuals": true
+  }
 }

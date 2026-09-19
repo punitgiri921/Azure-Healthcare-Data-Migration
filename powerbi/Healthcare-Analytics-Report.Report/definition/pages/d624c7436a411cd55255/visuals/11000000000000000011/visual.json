@@ -1,39 +1,64 @@
 {
-    "position":  {
-                     "width":  530,
-                     "y":  660,
-                     "z":  11,
-                     "x":  1350,
-                     "tabOrder":  11,
-                     "height":  390
-                 },
-    "name":  "11000000000000000011",
-    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-    "visual":  {
-                   "query":  {
-                                 "queryState":  {
-                                                    "Values":  {
-                                                                   "projections":  [
-                                                                                       {
-                                                                                           "field":  {
-                                                                                                         "Column":  {
-                                                                                                                        "Expression":  {
-                                                                                                                                           "SourceRef":  {
-                                                                                                                                                             "Entity":  "gold dim_provider"
-                                                                                                                                                         }
-                                                                                                                                       },
-                                                                                                                        "Property":  "specialty"
-                                                                                                                    }
-                                                                                                     },
-                                                                                           "nativeQueryRef":  "Provider Specialty Filter",
-                                                                                           "active":  true,
-                                                                                           "queryRef":  "gold dim_provider.specialty"
-                                                                                       }
-                                                                                   ]
-                                                               }
-                                                }
-                             },
-                   "visualType":  "listSlicer",
-                   "drillFilterOtherVisuals":  true
-               }
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "11000000000000000011",
+  "position": {
+    "x": 1350,
+    "y": 660,
+    "z": 11,
+    "height": 390,
+    "width": 530,
+    "tabOrder": 11
+  },
+  "visual": {
+    "visualType": "listSlicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "gold dim_provider"
+                    }
+                  },
+                  "Property": "specialty"
+                }
+              },
+              "queryRef": "gold dim_provider.specialty",
+              "nativeQueryRef": "Provider Specialty Filter",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "general": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "536358290278ee0e6a08",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "gold dim_provider"
+              }
+            },
+            "Property": "specialty"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
 }
