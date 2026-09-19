@@ -457,20 +457,92 @@ GO
 ## 10. Phase 6: Power BI Semantic Modeling & Executive Clinical Reporting (Active)
 
 ### 10.1 Power BI Star Schema Model Architecture
-* **Endpoint**: `syn-healthcare-punit01-ondemand.sql.azuresynapse.net` (Port: 1433)
+* **Endpoint**: `syn-healthcare-punit01-ondemand.sql.azuresynapse.net` (Port: 1433 TDS)
 * **Database**: `healthcare_gold_db`
-* **Authentication**: Microsoft Entra ID (OAuth 2.0)
+* **Mode**: Import Mode (Vectorized VertiPaq in-memory engine)
+* **Authentication**: Database / SQL Authentication (`sqladminuser`)
 * **Tables / Views**:
-  - `gold.dim_patient` (Conformed Dimension)
-  - `gold.dim_provider` (Conformed Dimension)
-  - `gold.dim_diagnosis` (Conformed Dimension)
-  - `gold.fact_encounters` (Clinical Encounters Fact)
-  - `gold.fact_claims` (Financial Billing & Claims Fact)
-* **Cardinality & Relationships**:
-  - `gold.dim_patient [patient_sk]` (1) $\rightarrow$ `gold.fact_encounters [patient_sk]` (*)
-  - `gold.dim_provider [provider_id]` (1) $\rightarrow$ `gold.fact_encounters [provider_id]` (*)
-  - `gold.dim_diagnosis [diagnosis_code]` (1) $\rightarrow$ `gold.fact_encounters [diagnosis_code]` (*)
-  - `gold.fact_encounters [encounter_id]` (1) $\rightarrow$ `gold.fact_claims [encounter_id]` (*)
+  - `gold.dim_patient` (Conformed Dimension: demographics, age groups, patient surrogate keys)
+  - `gold.dim_provider` (Conformed Dimension: provider specialty, department, NPI numbers)
+  - `gold.dim_diagnosis` (Auxiliary Reference Dimension: ICD-10 codes & clinical descriptions)
+  - `gold.fact_encounters` (Clinical Encounters Fact: admissions, discharges, length of stay)
+  - `gold.fact_claims` (Financial Billing & Claims Fact: billed amount, paid amount, denials)
+* **Star Schema Relationships Configured**:
+  - `gold.dim_patient [patient_sk]` (1) $\rightarrow$ `gold.fact_encounters [patient_sk]` (*) — **Active**, Single Cross-Filter
+  - `gold.dim_provider [provider_sk]` (1) $\rightarrow$ `gold.fact_encounters [provider_sk]` (*) — **Active**, Single Cross-Filter
+  - `gold.fact_encounters [encounter_id]` (1) $\rightarrow$ `gold.fact_claims [encounter_id]` (*) — **Active**, Single Cross-Filter
+
+### 10.2 Dedicated `_Measures` Table & Healthcare DAX KPIs
+All core business calculations are centralized within a dedicated `_Measures` table:
+
+1. **Total Encounters (Clinical Volume)**:
+   ```dax
+   Total Encounters = COUNTROWS('gold fact_encounters')
+   ```
+2. **Total Patients (Active Unique Population)**:
+   ```dax
+   Total Patients = DISTINCTCOUNT('gold dim_patient'[patient_sk])
+   ```
+3. **Average Length of Stay (Bed Utilization / Hospital Efficiency)**:
+   ```dax
+   Avg Length of Stay = ROUND(AVERAGE('gold fact_encounters'[length_of_stay_days]), 1)
+   ```
+4. **Total Billed Amount (Gross Revenue)**:
+   ```dax
+   Total Billed = SUM('gold fact_claims'[billed_amount])
+   ```
+5. **Total Paid Amount (Net Realized Revenue)**:
+   ```dax
+   Total Paid = SUM('gold fact_claims'[paid_amount])
+   ```
+6. **Total Patient Responsibility (Out-of-Pocket Liability)**:
+   ```dax
+   Total Patient Responsibility = SUM('gold fact_claims'[patient_responsibility])
+   ```
+7. **Total Denied Claims (Claim Exception Volume)**:
+   ```dax
+   Total Denied Claims = CALCULATE(COUNTROWS('gold fact_claims'), 'gold fact_claims'[is_denied] = TRUE())
+   ```
+8. **Denial Rate (Revenue Cycle Health KPI)**:
+   ```dax
+   Denial Rate = 
+   VAR TotalClaims = COUNTROWS('gold fact_claims')
+   VAR DeniedClaims = CALCULATE(COUNTROWS('gold fact_claims'), 'gold fact_claims'[is_denied] = TRUE())
+   RETURN
+       DIVIDE(DeniedClaims, TotalClaims, 0)
+   ```
+9. **Net Collection Rate (Realization Efficiency)**:
+   ```dax
+   Net Collection Rate = DIVIDE([Total Paid], [Total Billed], 0)
+   ```
+10. **Average Billed per Encounter (Unit Economics)**:
+    ```dax
+    Avg Billed per Encounter = DIVIDE([Total Billed], [Total Encounters], 0)
+    ```
+
+### 10.3 Power BI Project (PBIP) & Developer Mode Architecture
+* **Directory Structure**: All report and semantic model source code is stored under `powerbi/`:
+  - `Healthcare-Analytics-Report.pbip`: Top-level project manifest.
+  - `Healthcare-Analytics-Report.SemanticModel/`: TMDL (Tabular Model Definition Language) files tracking tables, partitions, columns, and relationships in git-friendly plain text.
+  - `Healthcare-Analytics-Report.Report/`: PBIR (Power BI Enhanced Report) JSON definitions tracking visual layouts, containers, themes, and canvas properties.
+* **11 Visual Components Scaffolded in PBIR**:
+  1. Header Banner Textbox (`Hospital Operations & Financial Intelligence`)
+  2. KPI Card: `Total Patients`
+  3. KPI Card: `Total Encounters`
+  4. KPI Card: `Avg Length of Stay`
+  5. KPI Card: `Total Billed`
+  6. KPI Card: `Denial Rate`
+  7. Bar Chart: Encounters by `encounter_type`
+  8. Clustered Column Chart: `Total Billed` vs `Total Paid` by `specialty`
+  9. Bar Chart: Patients by `age_group`
+  10. Bar Chart: Denials by `denial_reason`
+  11. Interactive Slicer: Filter by Provider `specialty`
+
+### 10.4 Gotcha & Engineering Resolution: UTF-8 BOM Encoding in PBIR
+* **Issue Encountered**: Power BI Desktop displayed: *"A formatting issue was found in report definition file... Only text with UTF8 encoding without BOM (byte order marks) is supported. Detected BOM: 'UTF-8'"*.
+* **Root Cause**: Windows PowerShell `[System.Text.Encoding]::UTF8` defaults to writing the 3-byte Byte Order Mark (`0xEF, 0xBB, 0xBF`). Microsoft Fabric's PBIR JSON parser strictly enforces clean UTF-8 without BOM.
+* **Resolution**: Re-encoded all `.json` files using `New-Object System.Text.UTF8Encoding($false)`, eliminating the preamble and restoring full native compatibility with Power BI Desktop.
+
 
 
 
