@@ -1,0 +1,38 @@
+﻿{
+    "position":  {
+                     "width":  340,
+                     "y":  100,
+                     "z":  6,
+                     "x":  1540,
+                     "tabOrder":  6,
+                     "height":  120
+                 },
+    "name":  "06000000000000000006",
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+    "visual":  {
+                   "query":  {
+                                 "queryState":  {
+                                                    "Fields":  {
+                                                                   "projections":  [
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Measure":  {
+                                                                                                                         "Expression":  {
+                                                                                                                                            "SourceRef":  {
+                                                                                                                                                              "Entity":  "_Measures"
+                                                                                                                                                          }
+                                                                                                                                        },
+                                                                                                                         "Property":  "Denial Rate"
+                                                                                                                     }
+                                                                                                     },
+                                                                                           "nativeQueryRef":  "Denial Rate (%)",
+                                                                                           "queryRef":  "_Measures.Denial Rate"
+                                                                                       }
+                                                                                   ]
+                                                               }
+                                                }
+                             },
+                   "visualType":  "card",
+                   "drillFilterOtherVisuals":  true
+               }
+}

@@ -1,0 +1,143 @@
+table 'gold fact_claims'
+	lineageTag: b0549ad0-b1b1-4ea8-be4d-69cc37e3c24d
+
+	column GenClaimSK
+		dataType: int64
+		formatString: 0
+		lineageTag: b7d3ca62-33ff-49d2-b9e7-9936624df793
+		summarizeBy: sum
+		sourceColumn: GenClaimSK
+
+		annotation SummarizationSetBy = Automatic
+
+	column claim_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 6923695c-bec7-413e-b5c2-44c75f65275c
+		summarizeBy: sum
+		sourceColumn: claim_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column encounter_id
+		dataType: int64
+		formatString: 0
+		lineageTag: db9edf53-99a6-40db-8d55-bc171217fca0
+		summarizeBy: none
+		sourceColumn: encounter_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column submitted_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8add69c1-822b-405f-9597-6f390d73637b
+		summarizeBy: none
+		sourceColumn: submitted_date
+
+		variation Variation
+			isDefault
+			relationship: 2ddd87f8-d2cb-4b32-b0c3-bf8171846c68
+			defaultHierarchy: LocalDateTable_dbf3d398-d89c-4801-a21d-be927d134666.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column paid_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 26d64f7b-d8eb-479c-bb8d-d042e89e05d9
+		summarizeBy: none
+		sourceColumn: paid_date
+
+		variation Variation
+			isDefault
+			relationship: 5b22090f-55d6-4d81-86b3-1bb849accc32
+			defaultHierarchy: LocalDateTable_a23deefe-0f7f-4e79-8fb0-0bf5613e223f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column billed_amount
+		dataType: double
+		lineageTag: ffadb825-8a9a-40d0-baa3-5dc71a078c78
+		summarizeBy: sum
+		sourceColumn: billed_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column paid_amount
+		dataType: double
+		lineageTag: 7ca80a73-95a8-4ed9-b9b6-c873ccabca0d
+		summarizeBy: sum
+		sourceColumn: paid_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column claim_status
+		dataType: string
+		lineageTag: 1d7c86a8-934f-4eec-9eae-1c15f7e62b82
+		summarizeBy: none
+		sourceColumn: claim_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column denial_reason
+		dataType: string
+		lineageTag: 0d335cfb-637f-4622-9a10-4273f798f577
+		summarizeBy: none
+		sourceColumn: denial_reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column patient_responsibility
+		dataType: double
+		lineageTag: 38c745bd-cf29-46bc-954f-5a14208196f1
+		summarizeBy: sum
+		sourceColumn: patient_responsibility
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column is_denied
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 4cb0b28b-a3ca-421d-a29e-fd0f9b9306af
+		summarizeBy: none
+		sourceColumn: is_denied
+
+		annotation SummarizationSetBy = Automatic
+
+	column gold_created_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f307860e-4e30-4ec9-9a3e-0d7111b97bdb
+		summarizeBy: none
+		sourceColumn: gold_created_at
+
+		variation Variation
+			isDefault
+			relationship: 93ebb510-416c-4ee1-a84d-8b010073f601
+			defaultHierarchy: LocalDateTable_8c911631-3ff8-4131-b1f7-85b2698a3530.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold fact_claims' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("syn-healthcare-punit01-ondemand.sql.azuresynapse.net"),
+				  #"Navigation 1" = Source{[Name = "healthcare_gold_db"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "gold", Item = "fact_claims"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

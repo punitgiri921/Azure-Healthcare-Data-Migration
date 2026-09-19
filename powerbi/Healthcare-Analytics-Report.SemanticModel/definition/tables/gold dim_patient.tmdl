@@ -1,0 +1,180 @@
+table 'gold dim_patient'
+	lineageTag: 727b445b-36fb-4a9b-bc50-f7f897a06d36
+
+	column patient_sk
+		dataType: int64
+		formatString: 0
+		lineageTag: e887adbc-76b9-4b0c-9fd9-4dfa5aeb01c4
+		summarizeBy: none
+		sourceColumn: patient_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column patient_id
+		dataType: int64
+		formatString: 0
+		lineageTag: a202189c-c620-4fa8-b88e-5818c494d0ca
+		summarizeBy: sum
+		sourceColumn: patient_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column ssn
+		dataType: string
+		lineageTag: 42bb2843-ef28-4f21-a893-6b6a4c5f68b8
+		summarizeBy: none
+		sourceColumn: ssn
+
+		annotation SummarizationSetBy = Automatic
+
+	column first_name
+		dataType: string
+		lineageTag: d473239c-c1e4-44cb-b81a-77bbd43e2cca
+		summarizeBy: none
+		sourceColumn: first_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_name
+		dataType: string
+		lineageTag: f3928c7e-bdde-429a-9f83-50604be6601c
+		summarizeBy: none
+		sourceColumn: last_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column gender
+		dataType: string
+		lineageTag: 7c9ddbfa-e521-4c04-a116-a50bc50cc468
+		summarizeBy: none
+		sourceColumn: gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column dob
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: acd02449-d749-40a0-ac75-864d346479e0
+		summarizeBy: none
+		sourceColumn: dob
+
+		variation Variation
+			isDefault
+			relationship: 3e7085a1-d8f9-403b-808b-b86c240c2bb0
+			defaultHierarchy: LocalDateTable_e7903934-32c2-468e-b1ce-8ca26f06b115.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column current_age
+		dataType: int64
+		formatString: 0
+		lineageTag: 2403949c-3335-4c75-859b-001be8cc96b2
+		summarizeBy: sum
+		sourceColumn: current_age
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_group
+		dataType: string
+		lineageTag: a622fc62-c781-425d-8535-3f91435d6446
+		summarizeBy: none
+		sourceColumn: age_group
+
+		annotation SummarizationSetBy = Automatic
+
+	column address
+		dataType: string
+		lineageTag: fc2f98eb-8e09-4eec-868c-3516dc75d048
+		summarizeBy: none
+		sourceColumn: address
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: d9dba81e-c127-4fdf-9dbb-87e1397a5601
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: 751088c1-f8aa-4ef9-94ca-553e691cdfdd
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column zip
+		dataType: string
+		lineageTag: a695b02a-2ad2-4fc6-ad8a-dae76a35886e
+		summarizeBy: none
+		sourceColumn: zip
+
+		annotation SummarizationSetBy = Automatic
+
+	column insurance_id
+		dataType: string
+		lineageTag: 9e50348a-9101-4182-a57b-40816d3c32c7
+		summarizeBy: none
+		sourceColumn: insurance_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column created_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8794bb92-78a2-4a4e-a0aa-7927ef05291b
+		summarizeBy: none
+		sourceColumn: created_at
+
+		variation Variation
+			isDefault
+			relationship: 5c1f3c96-3a51-413c-9558-791455acac12
+			defaultHierarchy: LocalDateTable_b3abd5ab-abbb-441a-814d-fd5db90c948a.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column updated_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 2837eb6c-4e63-4bfa-9b4c-084237a956c1
+		summarizeBy: none
+		sourceColumn: updated_at
+
+		variation Variation
+			isDefault
+			relationship: db45673e-e894-4260-b526-04cb6b22f44e
+			defaultHierarchy: LocalDateTable_12145551-235d-4e6f-b3a4-91809d2d8ba0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column gold_created_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: a87f1740-0762-4911-be51-ad7c3acd7d01
+		summarizeBy: none
+		sourceColumn: gold_created_at
+
+		variation Variation
+			isDefault
+			relationship: 72b69c34-dfcc-401b-a767-bb79c912afac
+			defaultHierarchy: LocalDateTable_12ba7dd5-3472-4313-984f-0b551808cfb0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold dim_patient' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("syn-healthcare-punit01-ondemand.sql.azuresynapse.net"),
+				  #"Navigation 1" = Source{[Name = "healthcare_gold_db"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "gold", Item = "dim_patient"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

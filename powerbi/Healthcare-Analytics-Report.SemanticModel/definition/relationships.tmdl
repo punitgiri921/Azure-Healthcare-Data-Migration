@@ -1,0 +1,72 @@
+relationship 2ab89e00-c5bd-4073-98be-4ae3f0b24557
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold dim_diagnosis'.gold_created_at
+	toColumn: LocalDateTable_642e147e-0bc4-4112-a590-5226ca3853b5.Date
+
+relationship 3e7085a1-d8f9-403b-808b-b86c240c2bb0
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold dim_patient'.dob
+	toColumn: LocalDateTable_e7903934-32c2-468e-b1ce-8ca26f06b115.Date
+
+relationship 5c1f3c96-3a51-413c-9558-791455acac12
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold dim_patient'.created_at
+	toColumn: LocalDateTable_b3abd5ab-abbb-441a-814d-fd5db90c948a.Date
+
+relationship db45673e-e894-4260-b526-04cb6b22f44e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold dim_patient'.updated_at
+	toColumn: LocalDateTable_12145551-235d-4e6f-b3a4-91809d2d8ba0.Date
+
+relationship 72b69c34-dfcc-401b-a767-bb79c912afac
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold dim_patient'.gold_created_at
+	toColumn: LocalDateTable_12ba7dd5-3472-4313-984f-0b551808cfb0.Date
+
+relationship 56cd8c61-b762-4643-ab30-fe574db5e10f
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold dim_provider'.gold_created_at
+	toColumn: LocalDateTable_2d605fd8-1d55-4cd2-a02a-e913d919d37b.Date
+
+relationship 2ddd87f8-d2cb-4b32-b0c3-bf8171846c68
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold fact_claims'.submitted_date
+	toColumn: LocalDateTable_dbf3d398-d89c-4801-a21d-be927d134666.Date
+
+relationship 5b22090f-55d6-4d81-86b3-1bb849accc32
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold fact_claims'.paid_date
+	toColumn: LocalDateTable_a23deefe-0f7f-4e79-8fb0-0bf5613e223f.Date
+
+relationship 93ebb510-416c-4ee1-a84d-8b010073f601
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold fact_claims'.gold_created_at
+	toColumn: LocalDateTable_8c911631-3ff8-4131-b1f7-85b2698a3530.Date
+
+relationship 38c1447c-b691-4a3e-ae66-d3357d413346
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold fact_encounters'.admission_date
+	toColumn: LocalDateTable_f116546a-c2f9-4fc9-b9ff-1e84b2980869.Date
+
+relationship a7974ce3-2405-4696-825e-4e93983d5388
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold fact_encounters'.discharge_date
+	toColumn: LocalDateTable_4dd90dc8-5902-4820-9d5a-59259b65c9b7.Date
+
+relationship a549b97f-965c-46d6-a998-c4be0d2b00e2
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'gold fact_encounters'.gold_created_at
+	toColumn: LocalDateTable_e0e7be30-3805-4689-a2e7-205483840315.Date
+
+relationship AutoDetected_5afb5684-a505-45ea-9094-5f6938cc0577
+	fromColumn: 'gold fact_encounters'.provider_sk
+	toColumn: 'gold dim_provider'.provider_sk
+
+relationship AutoDetected_fac09c4f-d2b5-4913-8c57-32d08606258e
+	fromColumn: 'gold fact_claims'.encounter_id
+	toColumn: 'gold fact_encounters'.encounter_id
+
+relationship 82839341-833d-c3e3-3cbb-7ac618a47aee
+	fromColumn: 'gold fact_encounters'.patient_sk
+	toColumn: 'gold dim_patient'.patient_sk
+

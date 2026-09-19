@@ -1,0 +1,57 @@
+﻿{
+    "position":  {
+                     "width":  680,
+                     "y":  660,
+                     "z":  10,
+                     "x":  645,
+                     "tabOrder":  10,
+                     "height":  390
+                 },
+    "name":  "10000000000000000010",
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+    "visual":  {
+                   "query":  {
+                                 "queryState":  {
+                                                    "Category":  {
+                                                                     "projections":  [
+                                                                                         {
+                                                                                             "field":  {
+                                                                                                           "Column":  {
+                                                                                                                          "Expression":  {
+                                                                                                                                             "SourceRef":  {
+                                                                                                                                                               "Entity":  "gold fact_claims"
+                                                                                                                                                           }
+                                                                                                                                         },
+                                                                                                                          "Property":  "denial_reason"
+                                                                                                                      }
+                                                                                                       },
+                                                                                             "nativeQueryRef":  "Denial Reason",
+                                                                                             "active":  true,
+                                                                                             "queryRef":  "gold fact_claims.denial_reason"
+                                                                                         }
+                                                                                     ]
+                                                                 },
+                                                    "Y":  {
+                                                              "projections":  [
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "_Measures"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "Total Denied Claims"
+                                                                                                                }
+                                                                                                },
+                                                                                      "nativeQueryRef":  "Denied Claims",
+                                                                                      "queryRef":  "_Measures.Total Denied Claims"
+                                                                                  }
+                                                                              ]
+                                                          }
+                                                }
+                             },
+                   "visualType":  "barChart",
+                   "drillFilterOtherVisuals":  true
+               }
+}

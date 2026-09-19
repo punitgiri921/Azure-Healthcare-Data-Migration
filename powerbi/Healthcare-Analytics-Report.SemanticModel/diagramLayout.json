@@ -1,0 +1,87 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 33.368493139060128
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1004.3723814289474,
+            "y": 122.153539609137
+          },
+          "nodeIndex": "gold dim_diagnosis",
+          "nodeLineageTag": "7cc2da03-286b-43fe-a905-8337ea655687",
+          "size": {
+            "height": 315.36611631568928,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 1150.299186566491,
+            "y": 523.916707288104
+          },
+          "nodeIndex": "gold dim_patient",
+          "nodeLineageTag": "727b445b-36fb-4a9b-bc50-f7f897a06d36",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 641.38335637974956,
+            "y": 134.822860541407
+          },
+          "nodeIndex": "gold dim_provider",
+          "nodeLineageTag": "7048de5e-bc19-4eb7-bfd0-b2311c44e096",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 999.71893634686694,
+            "y": 938.1993379914137
+          },
+          "nodeIndex": "gold fact_claims",
+          "nodeLineageTag": "b0549ad0-b1b1-4ea8-be4d-69cc37e3c24d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 608.43036675046847,
+            "y": 562.83055665109657
+          },
+          "nodeIndex": "gold fact_encounters",
+          "nodeLineageTag": "f7e1de5b-2f52-4173-b774-adde52ae602f",
+          "size": {
+            "height": 454.92515375269056,
+            "width": 234
+          },
+          "zIndex": 4
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 50.346892102823148,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

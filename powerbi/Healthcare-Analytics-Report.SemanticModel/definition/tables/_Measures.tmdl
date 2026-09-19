@@ -1,0 +1,63 @@
+table _Measures
+	lineageTag: 58be3331-a052-46cd-84cd-d050bb0a215d
+
+	measure 'Total Encounters' = COUNTROWS('gold fact_encounters')
+		formatString: #,0
+		lineageTag: f6943393-d8ba-4c99-b15e-400cdc46d7f9
+
+	measure 'Total Patients' = DISTINCTCOUNT('gold dim_patient'[patient_sk])
+		formatString: #,0
+		lineageTag: 73a8475c-b741-4866-acff-707aa1a31b8c
+
+	measure 'Avg Length of Stay' = ROUND(AVERAGE('gold fact_encounters'[length_of_stay_days]), 1)
+		formatString: 0.0
+		lineageTag: 817c3f38-ef0a-4d84-9c23-aa963af50f95
+
+	measure 'Total Billed' = SUM('gold fact_claims'[billed_amount])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: eca3e5c1-3881-49e3-8886-b11a37f35666
+
+	measure 'Total Paid' = SUM('gold fact_claims'[paid_amount])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 096ae15e-3b8a-416a-9f18-5510236123c5
+
+	measure 'Total Patient Responsibility' = SUM('gold fact_claims'[patient_responsibility])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 973b7e20-5857-47fe-b72b-07f8db8d593d
+
+	measure 'Total Denied Claims' = CALCULATE(COUNTROWS('gold fact_claims'), 'gold fact_claims'[is_denied] = TRUE())
+		formatString: #,0
+		lineageTag: 6d2cb4b1-7b07-4e7a-9370-3d94dac6936f
+
+	measure 'Denial Rate' = ```
+			VAR TotalClaims = COUNTROWS('gold fact_claims')
+			VAR DeniedClaims = CALCULATE(COUNTROWS('gold fact_claims'), 'gold fact_claims'[is_denied] = TRUE())
+			RETURN
+				DIVIDE(DeniedClaims, TotalClaims, 0)
+		```
+		formatString: 0.0%
+		lineageTag: abbd66a7-f8f8-42ef-abaa-f22b503ea5df
+
+	measure 'Net Collection Rate' = DIVIDE([Total Paid], [Total Billed], 0)
+		formatString: 0.0%
+		lineageTag: 7d4dfc5f-88f3-4eb9-ae47-d3a901e300aa
+
+	measure 'Avg Billed per Encounter' = DIVIDE([Total Billed], [Total Encounters], 0)
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 79db1b0c-d40a-48e6-84a3-983b321557cf
+
+	column RowId
+		dataType: int64
+		isHidden
+		lineageTag: 6f776849-3297-46f7-8b47-e7e11cdcde08
+		sourceColumn: RowId
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				 Source = #table(type table [RowId = Int64.Type], {{1}})
+				in
+				 Source
+
+	annotation PBI_ResultType = Table

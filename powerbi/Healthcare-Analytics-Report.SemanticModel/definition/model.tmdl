@@ -1,0 +1,37 @@
+model Model
+	culture: en-IN
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-IN
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["gold dim_diagnosis","gold dim_patient","gold dim_provider","gold fact_claims","gold fact_encounters","_Measures"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table DateTableTemplate_495ed759-023c-45c9-858d-3fadbe221d8b
+ref table 'gold dim_diagnosis'
+ref table LocalDateTable_642e147e-0bc4-4112-a590-5226ca3853b5
+ref table 'gold dim_patient'
+ref table LocalDateTable_e7903934-32c2-468e-b1ce-8ca26f06b115
+ref table LocalDateTable_b3abd5ab-abbb-441a-814d-fd5db90c948a
+ref table LocalDateTable_12145551-235d-4e6f-b3a4-91809d2d8ba0
+ref table LocalDateTable_12ba7dd5-3472-4313-984f-0b551808cfb0
+ref table 'gold dim_provider'
+ref table LocalDateTable_2d605fd8-1d55-4cd2-a02a-e913d919d37b
+ref table 'gold fact_claims'
+ref table LocalDateTable_dbf3d398-d89c-4801-a21d-be927d134666
+ref table LocalDateTable_a23deefe-0f7f-4e79-8fb0-0bf5613e223f
+ref table LocalDateTable_8c911631-3ff8-4131-b1f7-85b2698a3530
+ref table 'gold fact_encounters'
+ref table LocalDateTable_f116546a-c2f9-4fc9-b9ff-1e84b2980869
+ref table LocalDateTable_4dd90dc8-5902-4820-9d5a-59259b65c9b7
+ref table LocalDateTable_e0e7be30-3805-4689-a2e7-205483840315
+ref table _Measures
+
+ref cultureInfo en-IN
+

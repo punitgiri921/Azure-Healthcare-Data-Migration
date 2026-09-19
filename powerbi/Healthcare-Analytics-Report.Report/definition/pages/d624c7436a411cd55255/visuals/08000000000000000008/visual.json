@@ -1,0 +1,71 @@
+﻿{
+    "position":  {
+                     "width":  935,
+                     "y":  240,
+                     "z":  8,
+                     "x":  945,
+                     "tabOrder":  8,
+                     "height":  400
+                 },
+    "name":  "08000000000000000008",
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+    "visual":  {
+                   "query":  {
+                                 "queryState":  {
+                                                    "Category":  {
+                                                                     "projections":  [
+                                                                                         {
+                                                                                             "field":  {
+                                                                                                           "Column":  {
+                                                                                                                          "Expression":  {
+                                                                                                                                             "SourceRef":  {
+                                                                                                                                                               "Entity":  "gold dim_provider"
+                                                                                                                                                           }
+                                                                                                                                         },
+                                                                                                                          "Property":  "specialty"
+                                                                                                                      }
+                                                                                                       },
+                                                                                             "nativeQueryRef":  "Provider Specialty",
+                                                                                             "active":  true,
+                                                                                             "queryRef":  "gold dim_provider.specialty"
+                                                                                         }
+                                                                                     ]
+                                                                 },
+                                                    "Y":  {
+                                                              "projections":  [
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "_Measures"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "Total Billed"
+                                                                                                                }
+                                                                                                },
+                                                                                      "nativeQueryRef":  "Total Billed ($)",
+                                                                                      "queryRef":  "_Measures.Total Billed"
+                                                                                  },
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "_Measures"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "Total Paid"
+                                                                                                                }
+                                                                                                },
+                                                                                      "nativeQueryRef":  "Total Paid ($)",
+                                                                                      "queryRef":  "_Measures.Total Paid"
+                                                                                  }
+                                                                              ]
+                                                          }
+                                                }
+                             },
+                   "visualType":  "clusteredColumnChart",
+                   "drillFilterOtherVisuals":  true
+               }
+}

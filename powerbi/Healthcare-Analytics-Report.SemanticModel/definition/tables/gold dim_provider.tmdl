@@ -1,0 +1,79 @@
+table 'gold dim_provider'
+	lineageTag: 7048de5e-bc19-4eb7-bfd0-b2311c44e096
+
+	column provider_sk
+		dataType: int64
+		formatString: 0
+		lineageTag: c4e71303-df85-4d3e-80aa-e06221f1a0dd
+		summarizeBy: none
+		sourceColumn: provider_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column provider_id
+		dataType: int64
+		formatString: 0
+		lineageTag: cd114753-d158-4c5c-b856-bfc85f239016
+		summarizeBy: sum
+		sourceColumn: provider_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column provider_name
+		dataType: string
+		lineageTag: e7c35aaa-5ef5-455f-aeb8-33fbde01a13c
+		summarizeBy: none
+		sourceColumn: provider_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column specialty
+		dataType: string
+		lineageTag: 0b05d139-0dda-4b36-a545-1495c456574b
+		summarizeBy: none
+		sourceColumn: specialty
+
+		annotation SummarizationSetBy = Automatic
+
+	column department
+		dataType: string
+		lineageTag: f07f8964-0c3c-45bb-ba41-14a0efe47989
+		summarizeBy: none
+		sourceColumn: department
+
+		annotation SummarizationSetBy = Automatic
+
+	column npi_number
+		dataType: string
+		lineageTag: c55533f0-0d48-4d2d-9338-864b8bf85da2
+		summarizeBy: none
+		sourceColumn: npi_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column gold_created_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 7791de91-79bf-4815-81d7-fe4e9bcb50d2
+		summarizeBy: none
+		sourceColumn: gold_created_at
+
+		variation Variation
+			isDefault
+			relationship: 56cd8c61-b762-4643-ab30-fe574db5e10f
+			defaultHierarchy: LocalDateTable_2d605fd8-1d55-4cd2-a02a-e913d919d37b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold dim_provider' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("syn-healthcare-punit01-ondemand.sql.azuresynapse.net"),
+				  #"Navigation 1" = Source{[Name = "healthcare_gold_db"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "gold", Item = "dim_provider"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

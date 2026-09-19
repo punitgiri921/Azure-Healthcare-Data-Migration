@@ -1,0 +1,57 @@
+﻿{
+    "position":  {
+                     "width":  880,
+                     "y":  240,
+                     "z":  7,
+                     "x":  40,
+                     "tabOrder":  7,
+                     "height":  400
+                 },
+    "name":  "07000000000000000007",
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+    "visual":  {
+                   "query":  {
+                                 "queryState":  {
+                                                    "Category":  {
+                                                                     "projections":  [
+                                                                                         {
+                                                                                             "field":  {
+                                                                                                           "Column":  {
+                                                                                                                          "Expression":  {
+                                                                                                                                             "SourceRef":  {
+                                                                                                                                                               "Entity":  "gold fact_encounters"
+                                                                                                                                                           }
+                                                                                                                                         },
+                                                                                                                          "Property":  "encounter_type"
+                                                                                                                      }
+                                                                                                       },
+                                                                                             "nativeQueryRef":  "Encounter Type",
+                                                                                             "active":  true,
+                                                                                             "queryRef":  "gold fact_encounters.encounter_type"
+                                                                                         }
+                                                                                     ]
+                                                                 },
+                                                    "Y":  {
+                                                              "projections":  [
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "_Measures"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "Total Encounters"
+                                                                                                                }
+                                                                                                },
+                                                                                      "nativeQueryRef":  "Total Encounters",
+                                                                                      "queryRef":  "_Measures.Total Encounters"
+                                                                                  }
+                                                                              ]
+                                                          }
+                                                }
+                             },
+                   "visualType":  "barChart",
+                   "drillFilterOtherVisuals":  true
+               }
+}

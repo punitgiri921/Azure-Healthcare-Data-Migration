@@ -1,0 +1,126 @@
+table 'gold fact_encounters'
+	lineageTag: f7e1de5b-2f52-4173-b774-adde52ae602f
+
+	column encounter_id
+		dataType: int64
+		formatString: 0
+		lineageTag: c3030240-4a13-4831-81fb-89034ea5f32a
+		summarizeBy: none
+		sourceColumn: encounter_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column patient_sk
+		dataType: int64
+		formatString: 0
+		lineageTag: 64489e7e-aa89-454d-8511-8a047ceb5c25
+		summarizeBy: none
+		sourceColumn: patient_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column provider_sk
+		dataType: int64
+		formatString: 0
+		lineageTag: a73be313-2fd2-46bf-9eaf-0af07a978386
+		summarizeBy: none
+		sourceColumn: provider_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column admission_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9548ed23-a06c-4a03-bf2e-743bc5b43081
+		summarizeBy: none
+		sourceColumn: admission_date
+
+		variation Variation
+			isDefault
+			relationship: 38c1447c-b691-4a3e-ae66-d3357d413346
+			defaultHierarchy: LocalDateTable_f116546a-c2f9-4fc9-b9ff-1e84b2980869.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column discharge_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 1a0b3d32-bda0-4e6c-b07f-de606ba5eb86
+		summarizeBy: none
+		sourceColumn: discharge_date
+
+		variation Variation
+			isDefault
+			relationship: a7974ce3-2405-4696-825e-4e93983d5388
+			defaultHierarchy: LocalDateTable_4dd90dc8-5902-4820-9d5a-59259b65c9b7.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column encounter_type
+		dataType: string
+		lineageTag: 2599ef2c-c2f0-4b66-bcc5-ebd262da6c9d
+		summarizeBy: none
+		sourceColumn: encounter_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column department
+		dataType: string
+		lineageTag: 4923841d-ed42-4913-a0b3-6ec4c7a21fb5
+		summarizeBy: none
+		sourceColumn: department
+
+		annotation SummarizationSetBy = Automatic
+
+	column discharge_disposition
+		dataType: string
+		lineageTag: 6300556c-476a-4ba7-97fc-359b306aa24e
+		summarizeBy: none
+		sourceColumn: discharge_disposition
+
+		annotation SummarizationSetBy = Automatic
+
+	column length_of_stay_days
+		dataType: int64
+		formatString: 0
+		lineageTag: 0f691eb5-c91e-439f-8078-254f2d0c2075
+		summarizeBy: sum
+		sourceColumn: length_of_stay_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column encounter_sk
+		dataType: int64
+		formatString: 0
+		lineageTag: 9c34abb8-8f5f-4508-99d9-46fd8bd91312
+		summarizeBy: sum
+		sourceColumn: encounter_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column gold_created_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: db37eab6-3483-4a3c-ad44-e3b934f26f9a
+		summarizeBy: none
+		sourceColumn: gold_created_at
+
+		variation Variation
+			isDefault
+			relationship: a549b97f-965c-46d6-a998-c4be0d2b00e2
+			defaultHierarchy: LocalDateTable_e0e7be30-3805-4689-a2e7-205483840315.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold fact_encounters' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("syn-healthcare-punit01-ondemand.sql.azuresynapse.net"),
+				  #"Navigation 1" = Source{[Name = "healthcare_gold_db"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "gold", Item = "fact_encounters"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

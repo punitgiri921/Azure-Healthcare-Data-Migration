@@ -1,0 +1,72 @@
+table 'gold dim_diagnosis'
+	lineageTag: 7cc2da03-286b-43fe-a905-8337ea655687
+
+	column diagnosis_sk
+		dataType: int64
+		formatString: 0
+		lineageTag: 8532fb24-1ff6-493b-90e2-b23ebbda41ef
+		summarizeBy: sum
+		sourceColumn: diagnosis_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column diagnosis_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 88721789-866f-402c-9909-2246231ea715
+		summarizeBy: sum
+		sourceColumn: diagnosis_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column icd10_code
+		dataType: string
+		lineageTag: ed5d3aff-31d8-473a-8836-82a3713335eb
+		summarizeBy: none
+		sourceColumn: icd10_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column diagnosis_description
+		dataType: string
+		lineageTag: 3c4006f7-6af5-412c-b446-e90a26eb248c
+		summarizeBy: none
+		sourceColumn: diagnosis_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_primary
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: cedc4b2f-4495-44b3-b2ff-bf10be8609b7
+		summarizeBy: none
+		sourceColumn: is_primary
+
+		annotation SummarizationSetBy = Automatic
+
+	column gold_created_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 766ae1bc-4b92-479a-88f8-d90e2b2f75e8
+		summarizeBy: none
+		sourceColumn: gold_created_at
+
+		variation Variation
+			isDefault
+			relationship: 2ab89e00-c5bd-4073-98be-4ae3f0b24557
+			defaultHierarchy: LocalDateTable_642e147e-0bc4-4112-a590-5226ca3853b5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'gold dim_diagnosis' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("syn-healthcare-punit01-ondemand.sql.azuresynapse.net"),
+				  #"Navigation 1" = Source{[Name = "healthcare_gold_db"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "gold", Item = "dim_diagnosis"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+
