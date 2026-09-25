@@ -1474,7 +1474,7 @@
 						"typeProperties": {
 							"source": {
 								"type": "SqlServerSource",
-								"sqlReaderQuery": "SELECT * FROM FakeTableNonExistent_12345;\n",
+								"sqlReaderQuery": "SELECT * FROM FakeTableNonExistent_999995;\n",
 								"queryTimeout": "02:00:00",
 								"partitionOption": "None"
 							},
