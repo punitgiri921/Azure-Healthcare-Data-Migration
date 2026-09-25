@@ -3,8 +3,6 @@
 .DS_Store
 Thumbs.db
 *.html
-!migration_learning_tracker.html
-!index.html
 .env
 .venv/
 __pycache__/
