@@ -459,7 +459,14 @@ def run_sentinel(monitor_live=False, simulate=None, pipeline_name=None, activity
     print("\n🔒 [Audit & Persistence]")
     log_incident(incident_to_process, decision, execution_results)
 
-    print("\n✅ [Remediation Complete] Incident resolved autonomously without human intervention.")
+    policy = plan.get("policy_selected")
+    if policy == "NOTIFY_AND_HALT":
+        print("\n🛑 [Circuit Breaker Active] Pipeline execution safely halted to prevent corruption.")
+        print("   👉 Human Action Required: A human engineer must fix the missing table/code before re-running.")
+    elif policy in ["AUTO_HEAL_WATERMARK", "ISOLATE_AND_QUARANTINE", "RETRY_ACTIVITY"]:
+        print("\n✅ [Remediation Complete] Incident auto-healed autonomously without human intervention.")
+    else:
+        print("\nℹ️ [Triage Complete] Incident evaluated and recorded in audit ledger.")
     print("=" * 80)
 
 
