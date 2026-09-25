@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Azure Healthcare Data Migration — Master Engineering & Learning Tracker</title>
+    <title>Azure Healthcare Data Migration - Master Engineering & Learning Tracker</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>
@@ -678,7 +678,7 @@
     <header>
         <div class="header-container">
             <div class="header-title">
-                <h1>🏥 <span>Apex Health Lakehouse</span> — Azure Migration Engine</h1>
+                <h1>🏥 <span>Apex Health Lakehouse</span> - Azure Migration Engine</h1>
                 <p>Enterprise On-Prem EMR to ADLS Gen2 Medallion Lakehouse Migration & Clinical Analytics</p>
             </div>
             <div style="display: flex; gap: 0.75rem; align-items: center;">
@@ -1217,7 +1217,7 @@ flowchart TD
             <div class="section-card">
                 <div class="section-title">⚡ Phase 5: Azure Synapse Serverless SQL Serving Layer & Master Script Breakdown</div>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
-                    In our Medallion Lakehouse, conformed Star Schema datasets reside as Snappy-compressed columnar Parquet files in the <code>gold/</code> container of <code>sthealthcarelake01</code>. Azure Synapse Serverless SQL serves as the <strong>Semantic & Analytical Serving Layer</strong>—acting as a high-performance relational facade that virtualizes raw lakehouse files into standard T-SQL database views without duplicating storage or incurring idle compute costs.
+                    In our Medallion Lakehouse, conformed Star Schema datasets reside as Snappy-compressed columnar Parquet files in the <code>gold/</code> container of <code>sthealthcarelake01</code>. Azure Synapse Serverless SQL serves as the <strong>Semantic & Analytical Serving Layer</strong>-acting as a high-performance relational facade that virtualizes raw lakehouse files into standard T-SQL database views without duplicating storage or incurring idle compute costs.
                 </p>
 
                 <!-- 3-Pillar Value Grid -->
@@ -1856,15 +1856,15 @@ GO</pre>
                     <div class="concept-title">Hierarchical Namespace (HNS) vs Flat Blob Storage</div>
                     <div class="levels-container">
                         <div class="level-box level-1">
-                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            <span class="level-label" style="color: var(--primary);">Level 1 - Simple Intuition</span>
                             Flat storage pretends folders exist by putting slashes in file names. HNS creates real physical file cabinets and directories.
                         </div>
                         <div class="level-box level-2">
-                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            <span class="level-label" style="color: var(--accent);">Level 2 - Technical Mechanics</span>
                             ADLS Gen2 HNS implements POSIX-compliant directory trees. Renaming a directory updates an internal inode pointer in constant time $O(1)$ rather than copying thousands of individual blobs ($O(N)$).
                         </div>
                         <div class="level-box level-3">
-                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            <span class="level-label" style="color: var(--success);">Level 3 - Senior Enterprise Architecture</span>
                             Essential for Spark/Data Flow partition commits. Without HNS, distributed writes experience massive latency and partial file write risks during folder commit phases.
                         </div>
                     </div>
@@ -1876,15 +1876,15 @@ GO</pre>
                     <div class="concept-title">Zero-Secret Architecture via Managed Identity (SMI)</div>
                     <div class="levels-container">
                         <div class="level-box level-1">
-                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            <span class="level-label" style="color: var(--primary);">Level 1 - Simple Intuition</span>
                             Instead of giving ADF a physical password or API key to Azure Storage, Azure recognizes ADF by its own facial recognition / passport.
                         </div>
                         <div class="level-box level-2">
-                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            <span class="level-label" style="color: var(--accent);">Level 2 - Technical Mechanics</span>
                             System-Assigned Managed Identity generates a Service Principal in Microsoft Entra ID. Azure acquires internal OAuth 2.0 bearer tokens on behalf of ADF that auto-rotate every few hours.
                         </div>
                         <div class="level-box level-3">
-                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            <span class="level-label" style="color: var(--success);">Level 3 - Senior Enterprise Architecture</span>
                             Complies with HIPAA § 164.312(d). Eliminates credential theft attack vectors from git leaks, removes key rotation operational overhead, and logs individual service principal IDs in Azure Monitor.
                         </div>
                     </div>
@@ -1896,15 +1896,15 @@ GO</pre>
                     <div class="concept-title">Outbound-Only Self-Hosted Integration Runtime (SHIR)</div>
                     <div class="levels-container">
                         <div class="level-box level-1">
-                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            <span class="level-label" style="color: var(--primary);">Level 1 - Simple Intuition</span>
                             Instead of letting outsiders knock on your hospital door, a dedicated courier inside steps outside to check the cloud mailbox for work orders.
                         </div>
                         <div class="level-box level-2">
-                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            <span class="level-label" style="color: var(--accent);">Level 2 - Technical Mechanics</span>
                             Windows daemon <code>DIAHostService</code> initiates outbound HTTPS calls on TCP port 443 over TLS 1.3 to ADF service bus queues. It pulls the query instruction, queries <code>localhost:1433</code>, compresses data into Parquet, and streams it straight to ADLS.
                         </div>
                         <div class="level-box level-3">
-                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            <span class="level-label" style="color: var(--success);">Level 3 - Senior Enterprise Architecture</span>
                             Zero attack surface on enterprise firewalls. Eliminates costly dedicated ExpressRoute VPN requirements for initial data migration batches while maintaining strict network perimeter isolation.
                         </div>
                     </div>
@@ -1916,15 +1916,15 @@ GO</pre>
                     <div class="concept-title">Two-Phase High-Watermark Incremental Ingestion</div>
                     <div class="levels-container">
                         <div class="level-box level-1">
-                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            <span class="level-label" style="color: var(--primary);">Level 1 - Simple Intuition</span>
                             Bookmarking where you stopped reading so tomorrow you only read new pages instead of starting from page 1 every single morning.
                         </div>
                         <div class="level-box level-2">
-                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            <span class="level-label" style="color: var(--accent);">Level 2 - Technical Mechanics</span>
                             Lookup reads `last_watermark_timestamp` from `etl_watermark_control`. A second lookup gets `MAX(updated_at)` from source. Copy extracts `WHERE updated_at > Last AND updated_at <= Max`. Watermark table updates strictly upon Copy success.
                         </div>
                         <div class="level-box level-3">
-                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            <span class="level-label" style="color: var(--success);">Level 3 - Senior Enterprise Architecture</span>
                             Guarantees idempotency. If network drops mid-stream during a 50GB extract, the watermark never updates. The next run gracefully retries the exact same window with zero silent record drop.
                         </div>
                     </div>
@@ -1936,15 +1936,15 @@ GO</pre>
                     <div class="concept-title">In-Place Parquet Virtualization via Synapse Serverless SQL</div>
                     <div class="levels-container">
                         <div class="level-box level-1">
-                            <span class="level-label" style="color: var(--primary);">Level 1 — Simple Intuition</span>
+                            <span class="level-label" style="color: var(--primary);">Level 1 - Simple Intuition</span>
                             Putting a restaurant menu in front of the kitchen so customers can order food in English without having to walk into the walk-in freezer and chop raw ingredients themselves.
                         </div>
                         <div class="level-box level-2">
-                            <span class="level-label" style="color: var(--accent);">Level 2 — Technical Mechanics</span>
+                            <span class="level-label" style="color: var(--accent);">Level 2 - Technical Mechanics</span>
                             Synapse Serverless uses <code>OPENROWSET</code> to stream columnar Parquet chunks into temporary memory structures on-the-fly. It exposes standard TDS Port 1433, discovers schemas from file footers, and utilizes <code>Latin1_General_100_BIN2_UTF8</code> to prevent costly runtime character conversions.
                         </div>
                         <div class="level-box level-3">
-                            <span class="level-label" style="color: var(--success);">Level 3 — Senior Enterprise Architecture</span>
+                            <span class="level-label" style="color: var(--success);">Level 3 - Senior Enterprise Architecture</span>
                             Decouples storage and compute completely. Storage is charged at cheap ADLS Gen2 blob rates ($0.02/GB/mo), while compute is purely on-demand ($5/TB scanned with $0 idle cost), eliminating the massive $900+/mo baseline expense of Dedicated SQL Pools while complying with HIPAA role-based query isolation.
                         </div>
                     </div>
@@ -2008,6 +2008,8 @@ GO</pre>
                     <div class="defense-box">
                         "We enforce strict pipeline idempotency through a two-phase watermark pattern. In the first phase, we capture the static maximum source timestamp into an ADF pipeline variable before starting the copy. In the second phase, the Copy Activity sinks the data to partitioned Bronze storage. Crucially, the stored procedure that updates etl_watermark_control executes only upon successful completion of the Copy Activity. If the pipeline crashes mid-stream, the watermark remains unchanged and the subsequent run re-evaluates the same delta window, eliminating silent data loss."
                     </div>
+                </div>
+
                 <!-- TQ-05 -->
                 <div class="concept-card">
                     <span class="concept-tag">TQ-05 • Snapshot Isolation • Evaluated: Correct</span>
@@ -2466,7 +2468,7 @@ WHERE table_name = 'patients' AND last_watermark = TIMESTAMP '2026-09-23T00:00:0
                 <!-- 11.5 Decoupled Testing Flow -->
                 <div style="background: #060911; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 0.75rem;">
-                        🔬 Section 11.5: Decoupled Testing Workflow (tests/test_sentinel_agent.py — 4/4 Passed in 56s)
+                        🔬 Section 11.5: Decoupled Testing Workflow (tests/test_sentinel_agent.py - 4/4 Passed in 56s)
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.75rem; font-size: 0.8rem;">
                         <div style="background: var(--bg-card); padding: 0.85rem; border-radius: 6px; border: 1px solid var(--border-color);">
@@ -2729,7 +2731,7 @@ WHERE table_name = 'patients' AND last_watermark = TIMESTAMP '2026-09-23T00:00:0
     </main>
 
     <footer>
-        Azure Healthcare Data Migration & Medallion Lakehouse — Engineered by Punit Giri • Master Learning Tracker
+        Azure Healthcare Data Migration & Medallion Lakehouse - Engineered by Punit Giri • Master Learning Tracker
     </footer>
 
     <script>
