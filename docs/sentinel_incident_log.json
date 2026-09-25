@@ -68,5 +68,139 @@
       }
     ],
     "model_used": "gpt-5-mini"
+  },
+  {
+    "timestamp": "2026-09-25T14:13:26.096417+00:00",
+    "incident_id": "INC-1790345606",
+    "raw_telemetry": {
+      "pipeline_name": "PL_Master_Healthcare_Pipeline",
+      "run_id": "sim-run-849204-wm-fail",
+      "status": "Failed",
+      "failed_activities": [
+        {
+          "activity_name": "EP_Run_Bronze_Ingestion",
+          "activity_type": "ExecutePipeline",
+          "error_code": "2100",
+          "error_message": "Failure occurred while updating etl_watermark_control. Transaction rolled back due to dead-letter socket timeout. 1,420 delta records landed in bronze/patients/2026/09/24/ but control table last_watermark remains at 2026-09-23T00:00:00. Next scheduled run will cause duplicate primary key collisions in Silver.",
+          "duration_ms": 142000
+        }
+      ],
+      "watermark_state": {
+        "table_name": "patients",
+        "control_table_watermark": "2026-09-23T00:00:00Z",
+        "latest_bronze_file_max_ts": "2026-09-24T18:30:00Z",
+        "delta_records_accumulated": 1420
+      }
+    },
+    "ai_diagnosis": {
+      "root_cause_category": "WATERMARK_DESYNC",
+      "severity": "HIGH",
+      "technical_root_cause": "The bronze ingestion wrote 1,420 delta records to the bronze path (bronze/patients/2026/09/24/) with a max event timestamp of 2026-09-24T18:30:00Z, but the etl_watermark_control update failed and was rolled back due to a dead-letter socket timeout on the control DB transaction. As a result the control table still reports last_watermark = 2026-09-23T00:00:00Z. This desynchronization will cause the next scheduled ingestion/transform to reprocess the same delta and produce duplicate primary-key collisions in Silver. There is no evidence from telemetry of data exfiltration or PII leakage; the primary risk is data integrity and downstream processing failures.",
+      "affected_medallion_layer": "Bronze"
+    },
+    "ai_decision": {
+      "policy_selected": "AUTO_HEAL_WATERMARK",
+      "rationale": "Idempotently advancing the control-table watermark to match the already-landed bronze files is the safest immediate corrective action: it prevents duplicate re-processing of the same bronze delta on the next run and allows downstream Silver processing to continue deterministically. The update uses a conditional WHERE (current watermark value) to avoid clobbering any concurrent legitimate changes. Actions include recording an audit entry and then triggering the downstream Silver transform to process the landed delta once the control state is consistent.",
+      "remediation_actions": [
+        {
+          "action_type": "EXECUTE_SQL",
+          "target": "control_db.etl_watermark_control (table_name = 'patients')",
+          "command_or_payload": "BEGIN TRANSACTION; UPDATE control_db.etl_watermark_control SET last_watermark = TIMESTAMP '2026-09-24T18:30:00Z', updated_at = CURRENT_TIMESTAMP WHERE table_name = 'patients' AND last_watermark = TIMESTAMP '2026-09-23T00:00:00Z'; COMMIT;"
+        },
+        {
+          "action_type": "LOG_AUDIT",
+          "target": "audit.etl_audit_log",
+          "command_or_payload": "INSERT INTO audit.etl_audit_log (run_id, pipeline_name, activity, action, details, performed_at) VALUES ('sim-run-849204-wm-fail','PL_Master_Healthcare_Pipeline','EP_Run_Bronze_Ingestion','AUTO_HEAL_WATERMARK','Updated last_watermark to 2026-09-24T18:30:00Z to reflect bronze files; original control update rolled back due to socket timeout; delta_records=1420', CURRENT_TIMESTAMP);"
+        },
+        {
+          "action_type": "ADF_RERUN_ACTIVITY",
+          "target": "EP_Run_Silver_Transform activity in PL_Master_Healthcare_Pipeline",
+          "command_or_payload": "az datafactory pipeline-run create --factory-name <factory> --resource-group <rg> --pipeline-name PL_Master_Healthcare_Pipeline --parameters '{\"target_activity\":\"EP_Run_Silver_Transform\",\"start_watermark\":\"2026-09-23T00:00:00Z\",\"end_watermark\":\"2026-09-24T18:30:00Z\",\"source_run_id\":\"sim-run-849204-wm-fail\"}'"
+        }
+      ],
+      "verification_check": "1) Confirm control table advanced: SELECT last_watermark, updated_at FROM control_db.etl_watermark_control WHERE table_name = 'patients'; expected last_watermark = '2026-09-24T18:30:00Z'. 2) Confirm no duplicate PKs in Silver for the window: SELECT pk, COUNT(*) FROM silver.patients WHERE ingestion_timestamp >= '2026-09-23T00:00:00Z' AND ingestion_timestamp <= '2026-09-24T18:30:00Z' GROUP BY pk HAVING COUNT(*) > 1; expected 0 rows. 3) Confirm Silver processed the 1,420 delta records (or equivalent upsert count): SELECT SUM(processed_count) FROM pipeline.metrics WHERE pipeline_run_id = '<new_silver_run_id>' AND table_name = 'patients'; expected processed_count >= 1420."
+    },
+    "execution_results": [
+      {
+        "status": "SUCCESS",
+        "action": "EXECUTE_SQL",
+        "detail": "Applied SQL to control_db.etl_watermark_control (table_name = 'patients')"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "LOG_AUDIT",
+        "detail": "Logged audit"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "ADF_RERUN_ACTIVITY",
+        "detail": "Restarted EP_Run_Silver_Transform activity in PL_Master_Healthcare_Pipeline"
+      }
+    ],
+    "model_used": "gpt-5-mini"
+  },
+  {
+    "timestamp": "2026-09-25T14:31:49.080117+00:00",
+    "incident_id": "INC-1790346709",
+    "raw_telemetry": {
+      "pipeline_name": "PL_Test_Failure",
+      "run_id": "ca79c034-0b83-4821-bca2-ffc7933c77f6",
+      "status": "Failed",
+      "failed_activities": [
+        {
+          "activity_name": "LKP_Simulate_Fail",
+          "activity_type": "Lookup",
+          "error_code": "SQL_ERROR",
+          "error_message": "Cannot find the table 'FakeTableNonExistent_12345' because it does not exist or you do not have permission.",
+          "duration_ms": 27000
+        }
+      ]
+    },
+    "ai_diagnosis": {
+      "root_cause_category": "SPARK_TRANSFORMATION_ERROR",
+      "severity": "HIGH",
+      "technical_root_cause": "The Lookup activity LKP_Simulate_Fail failed with a SQL_ERROR because the referenced table 'FakeTableNonExistent_12345' cannot be found or is inaccessible. This is most commonly caused by: (a) the table was never created or was dropped/renamed, (b) the activity is pointing at the wrong database/schema, or (c) the service principal/identity used by the pipeline lacks SELECT permission on the table. There is no evidence in the telemetry of a data exfiltration or HIPAA/PII leak; this is an availability/metadata/permission failure preventing the pipeline from reading a lookup table.",
+      "affected_medallion_layer": "Silver"
+    },
+    "ai_decision": {
+      "policy_selected": "NOTIFY_AND_HALT",
+      "rationale": "Automatic creation of a stub table or blind retry risks silent data corruption or propagation of incomplete reference data. The safest idempotent action is to halt further dependent processing, record an auditable incident, perform non-destructive checks to confirm the missing object and permissions, and require human remediation before rerunning. This preserves patient-data integrity and HIPAA compliance while enabling a deterministic re-run once the underlying issue is fixed.",
+      "remediation_actions": [
+        {
+          "action_type": "LOG_AUDIT",
+          "target": "audit.IncidentLog (pipeline PL_Test_Failure / run ca79c034-0b83-4821-bca2-ffc7933c77f6 / activity LKP_Simulate_Fail)",
+          "command_or_payload": "INSERT INTO audit.IncidentLog (pipeline_name, run_id, activity_name, error_code, error_message, detected_at) VALUES ('PL_Test_Failure','ca79c034-0b83-4821-bca2-ffc7933c77f6','LKP_Simulate_Fail','SQL_ERROR','Cannot find table FakeTableNonExistent_12345','{{utc_now}}');"
+        },
+        {
+          "action_type": "EXECUTE_SQL",
+          "target": "Database (check existence and permissions for dbo.FakeTableNonExistent_12345)",
+          "command_or_payload": "IF OBJECT_ID('dbo.FakeTableNonExistent_12345','U') IS NULL SELECT 'MISSING' AS TableStatus; ELSE SELECT 'EXISTS' AS TableStatus, HAS_PERMS_BY_NAME('dbo.FakeTableNonExistent_12345','OBJECT','SELECT') AS HasSelectPermission;"
+        },
+        {
+          "action_type": "ADF_RERUN_ACTIVITY",
+          "target": "Activity LKP_Simulate_Fail in pipeline PL_Test_Failure",
+          "command_or_payload": "Trigger manual rerun after fix: az datafactory pipeline-run create --factory-name <factory> --resource-group <rg> --pipeline-name PL_Test_Failure --parameters '{\"_rerunFromActivity\":\"LKP_Simulate_Fail\"}'  --reference-pipeline-run-id ca79c034-0b83-4821-bca2-ffc7933c77f6"
+        }
+      ],
+      "verification_check": "1) Run: SELECT OBJECT_ID('dbo.FakeTableNonExistent_12345') IS NOT NULL AS TableExists; expected true. 2) Verify permissions: SELECT HAS_PERMS_BY_NAME('dbo.FakeTableNonExistent_12345','OBJECT','SELECT') = 1. 3) Re-run pipeline PL_Test_Failure (or rerun failed activity) and confirm pipeline run status = 'Succeeded' with failed_activities = 0 and watermarks synchronized."
+    },
+    "execution_results": [
+      {
+        "status": "SUCCESS",
+        "action": "LOG_AUDIT",
+        "detail": "Logged audit"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "EXECUTE_SQL",
+        "detail": "Applied SQL to Database (check existence and permissions for dbo.FakeTableNonExistent_12345)"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "ADF_RERUN_ACTIVITY",
+        "detail": "Restarted Activity LKP_Simulate_Fail in pipeline PL_Test_Failure"
+      }
+    ],
+    "model_used": "gpt-5-mini"
   }
 ]
