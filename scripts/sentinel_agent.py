@@ -83,7 +83,7 @@ def get_openai_client():
 # Proactively polls Azure Data Factory for pipeline execution status,
 # activity failures, and error stack traces.
 
-def check_pipeline_health(pipeline_name="PL_Master_Healthcare_Pipeline", lookback_hours=24):
+def check_pipeline_health(pipeline_name=None, lookback_hours=24):
     """
     Polls Azure Data Factory for recent pipeline runs and extracts detailed telemetry.
     Returns: List of pipeline run objects with status and error metadata.
@@ -95,10 +95,11 @@ def check_pipeline_health(pipeline_name="PL_Master_Healthcare_Pipeline", lookbac
     filter_params = {
         "last_updated_after": start_time,
         "last_updated_before": end_time,
-        "filters": [
+    }
+    if pipeline_name:
+        filter_params["filters"] = [
             {"operand": "PipelineName", "operator": "Equals", "values": [pipeline_name]}
         ]
-    }
 
     runs = client.pipeline_runs.query_by_factory(
         resource_group_name=AZURE_RESOURCE_GROUP,
@@ -370,27 +371,43 @@ def simulate_incident(scenario_type):
 # BLOCK 7: Main Autonomous Loop
 # -----------------------------------------------------------------------------
 
-def run_sentinel(monitor_live=False, simulate=None):
+def run_sentinel(monitor_live=False, simulate=None, pipeline_name=None, activity_name=None, error_msg=None, run_id=None):
     """Main execution loop for Sentinel Agent."""
     print("=" * 80)
     print("🏥 AZURE HEALTHCARE LAKEHOUSE SENTINEL AGENT (GPT-5-mini POWERED)")
     print("=" * 80)
     print(f"📅 Timestamp:         {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"🎯 Target Pipeline:   PL_Master_Healthcare_Pipeline")
+    print(f"🎯 Target Pipeline:   {pipeline_name or 'All Pipelines / Incident'}")
     print(f"🏭 Data Factory:      {AZURE_DATA_FACTORY_NAME}")
     print(f"🧠 Reasoning Brain:   Azure OpenAI ({AZURE_OPENAI_DEPLOYMENT})")
     print("=" * 80)
 
     incident_to_process = None
 
-    if simulate:
+    if error_msg:
+        print(f"\n📥 [Direct Telemetry Input] Processing failure from user command...")
+        incident_to_process = {
+            "pipeline_name": pipeline_name or "PL_Test_Failure",
+            "run_id": run_id or f"manual-{int(time.time())}",
+            "status": "Failed",
+            "failed_activities": [
+                {
+                    "activity_name": activity_name or "LKP_Simulate_Fail",
+                    "activity_type": "Lookup",
+                    "error_code": "SQL_ERROR",
+                    "error_message": error_msg,
+                    "duration_ms": 27000
+                }
+            ]
+        }
+    elif simulate:
         incident_to_process = simulate_incident(simulate)
     elif monitor_live:
-        print("\n🔍 [Self-Monitoring] Polling live ADF telemetry...")
-        runs = check_pipeline_health()
+        print(f"\n🔍 [Self-Monitoring] Polling live ADF telemetry for {pipeline_name or 'all pipelines'}...")
+        runs = check_pipeline_health(pipeline_name=pipeline_name)
         print(f"   Found {len(runs)} recent pipeline runs in last 24 hours.")
         for r in runs:
-            print(f"   • Run ID: {r['run_id'][:12]}... | Status: {r['status']} | Duration: {r['duration_ms']//1000}s")
+            print(f"   • Pipeline: {r['pipeline_name']} | Run ID: {r['run_id'][:12]}... | Status: {r['status']}")
             if r['status'] in ['Failed', 'TimedOut']:
                 incident_to_process = r
                 break
@@ -398,7 +415,7 @@ def run_sentinel(monitor_live=False, simulate=None):
             print("\n🟢 All recent pipeline runs are 100% HEALTHY. No anomalies detected.")
             return
     else:
-        print("Please specify --simulate <watermark_desync|hipaa_leak|spark_oom> or --monitor")
+        print("Please specify --simulate <watermark_desync|hipaa_leak|spark_oom>, --monitor, or --error <message>")
         return
 
     # Process Incident
@@ -439,13 +456,21 @@ def run_sentinel(monitor_live=False, simulate=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Azure Healthcare Lakehouse Sentinel Agent")
     parser.add_argument("--monitor", action="store_true", help="Poll live Azure Data Factory runs")
+    parser.add_argument("--pipeline", type=str, default=None, help="Filter by specific ADF pipeline name")
+    parser.add_argument("--run-id", type=str, default=None, help="Specific pipeline run ID")
+    parser.add_argument("--activity", type=str, default=None, help="Activity name that failed")
+    parser.add_argument("--error", type=str, default=None, help="Error message to diagnose directly")
     parser.add_argument("--simulate", type=str, choices=["watermark_desync", "hipaa_leak", "spark_oom"],
                         help="Simulate a chaos scenario to test self-healing")
 
     args = parser.parse_args()
 
-    # Default to watermark_desync simulation if no flags provided
-    if not args.monitor and not args.simulate:
-        run_sentinel(simulate="watermark_desync")
+    if args.error:
+        run_sentinel(pipeline_name=args.pipeline, activity_name=args.activity, error_msg=args.error, run_id=args.run_id)
+    elif args.monitor:
+        run_sentinel(monitor_live=True, pipeline_name=args.pipeline)
+    elif args.simulate:
+        run_sentinel(simulate=args.simulate)
     else:
-        run_sentinel(monitor_live=args.monitor, simulate=args.simulate)
+        # Default to watermark_desync simulation if no flags provided
+        run_sentinel(simulate="watermark_desync")
