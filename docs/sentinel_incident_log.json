@@ -395,5 +395,143 @@
       }
     ],
     "model_used": "gpt-5-mini"
+  },
+  {
+    "timestamp": "2026-09-25T15:00:38.572967+00:00",
+    "incident_id": "INC-1790348438",
+    "raw_telemetry": {
+      "run_id": "2331a775-b8f1-11f1-bdfc-086ac5edd464",
+      "pipeline_name": "PL_Test_Failure",
+      "status": "Failed",
+      "invoker": "Manual",
+      "start_time": "2026-09-25T14:55:26.540002+00:00",
+      "end_time": "2026-09-25T14:55:52.631259+00:00",
+      "duration_ms": 26091,
+      "message": "Operation on target LKP_Simulate_Fails failed: Failure happened on 'Source' side. 'Type=Microsoft.Data.SqlClient.SqlException,Message=Invalid object name 'FakeTableNonExistent_12345'.,Source=Framework Microsoft SqlClient Data Provider,'",
+      "failed_activities": [
+        {
+          "activity_name": "LKP_Simulate_Fails",
+          "activity_type": "Lookup",
+          "error_code": "2100",
+          "error_message": "Failure happened on 'Source' side. 'Type=Microsoft.Data.SqlClient.SqlException,Message=Invalid object name 'FakeTableNonExistent_12345'.,Source=Framework Microsoft SqlClient Data Provider,'",
+          "duration_ms": 17137
+        }
+      ]
+    },
+    "ai_diagnosis": {
+      "root_cause_category": "SPARK_TRANSFORMATION_ERROR",
+      "severity": "MEDIUM",
+      "technical_root_cause": "The ADF Lookup activity 'LKP_Simulate_Fails' failed because the source SQL object 'FakeTableNonExistent_12345' does not exist in the connected SQL database. The Microsoft.Data.SqlClient.SqlException 'Invalid object name' was raised on the Source side, causing the activity to error out and the pipeline to fail. This is a data-source metadata/availability issue (missing table) rather than a transient network timeout or a PII/security leak.",
+      "affected_medallion_layer": "Bronze"
+    },
+    "ai_decision": {
+      "policy_selected": "NOTIFY_AND_HALT",
+      "rationale": "Automatically creating or guessing a source table in a healthcare environment risks data integrity and compliance. Halt further automated remediation until an operator/owner confirms intent. Record an auditable ticket and diagnostics, verify the missing object, and then allow a manual fix followed by a controlled rerun. This ensures idempotent and safe resolution without introducing synthetic data.",
+      "remediation_actions": [
+        {
+          "action_type": "EXECUTE_SQL",
+          "target": "Check existence in source DB (object metadata)",
+          "command_or_payload": "SELECT OBJECT_ID('dbo.FakeTableNonExistent_12345') AS object_id; -- returns NULL if object does not exist"
+        },
+        {
+          "action_type": "LOG_AUDIT",
+          "target": "audit.pipeline_failures",
+          "command_or_payload": "INSERT INTO audit.pipeline_failures (run_id, pipeline_name, activity_name, error_code, error_message, event_time) VALUES ('2331a775-b8f1-11f1-bdfc-086ac5edd464','PL_Test_Failure','LKP_Simulate_Fails','2100','Invalid object name ''FakeTableNonExistent_12345''','2026-09-25T14:55:52.631259+00:00');"
+        },
+        {
+          "action_type": "ADF_RERUN_ACTIVITY",
+          "target": "LKP_Simulate_Fails (manual rerun after operator fix)",
+          "command_or_payload": "{\"pipelineName\":\"PL_Test_Failure\",\"runId\":\"2331a775-b8f1-11f1-bdfc-086ac5edd464\",\"activityName\":\"LKP_Simulate_Fails\",\"note\":\"rerun-manual-after-source-fix\"}"
+        }
+      ],
+      "verification_check": "1) Run: SELECT OBJECT_ID('dbo.FakeTableNonExistent_12345') AS object_id; \u2014 success if returns non-NULL. 2) After operator fix and rerun, confirm ADF pipeline run for PL_Test_Failure (new run) returns status 'Succeeded' and failed_activities = 0 (no failed activities). 3) Confirm an audit row exists in audit.pipeline_failures for the original run_id to preserve traceability."
+    },
+    "execution_results": [
+      {
+        "status": "SUCCESS",
+        "action": "EXECUTE_SQL",
+        "detail": "Applied SQL to Check existence in source DB (object metadata)"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "LOG_AUDIT",
+        "detail": "Logged audit"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "ADF_RERUN_ACTIVITY",
+        "detail": "Restarted LKP_Simulate_Fails (manual rerun after operator fix)"
+      }
+    ],
+    "model_used": "gpt-5-mini"
+  },
+  {
+    "timestamp": "2026-09-25T15:06:56.482310+00:00",
+    "incident_id": "INC-1790348816",
+    "raw_telemetry": {
+      "run_id": "2331a775-b8f1-11f1-bdfc-086ac5edd464",
+      "pipeline_name": "PL_Test_Failure",
+      "status": "Failed",
+      "invoker": "Manual",
+      "start_time": "2026-09-25T14:55:26.540002+00:00",
+      "end_time": "2026-09-25T14:55:52.631259+00:00",
+      "duration_ms": 26091,
+      "message": "Operation on target LKP_Simulate_Fails failed: Failure happened on 'Source' side. 'Type=Microsoft.Data.SqlClient.SqlException,Message=Invalid object name 'FakeTableNonExistent_12345'.,Source=Framework Microsoft SqlClient Data Provider,'",
+      "failed_activities": [
+        {
+          "activity_name": "LKP_Simulate_Fails",
+          "activity_type": "Lookup",
+          "error_code": "2100",
+          "error_message": "Failure happened on 'Source' side. 'Type=Microsoft.Data.SqlClient.SqlException,Message=Invalid object name 'FakeTableNonExistent_12345'.,Source=Framework Microsoft SqlClient Data Provider,'",
+          "duration_ms": 17137
+        }
+      ]
+    },
+    "ai_diagnosis": {
+      "root_cause_category": "SPARK_TRANSFORMATION_ERROR",
+      "severity": "MEDIUM",
+      "technical_root_cause": "The ADF Lookup activity 'LKP_Simulate_Fails' failed because the source SQL object does not exist. The SQL Server returned 'Invalid object name 'FakeTableNonExistent_12345'', indicating a configuration/environment mismatch (wrong table name, missing deployment, or incorrect database/schema context). This is a deterministic schema/configuration error rather than a transient network or gateway issue. There is no evidence from the telemetry of data exfiltration or unexpected access; the failure occurred when attempting to read the object and the query was rejected by the source SQL engine.",
+      "affected_medallion_layer": "Bronze"
+    },
+    "ai_decision": {
+      "policy_selected": "NOTIFY_AND_HALT",
+      "rationale": "Automatic corrective actions that create or modify source schema risk introducing incorrect structures or unintentionally exposing PHI. The safest idempotent action is to halt further automated remediation, notify operators, and provide reproducible diagnostic steps (audit record, existence check) plus an operator-triggered rerun once the root cause (typo/missing table/deployment) is fixed. This prevents unsafe auto-provisioning while enabling quick verification and recovery.",
+      "remediation_actions": [
+        {
+          "action_type": "LOG_AUDIT",
+          "target": "Audit.PipelineFailures (central audit table)",
+          "command_or_payload": "{\"pipeline_run_id\":\"2331a775-b8f1-11f1-bdfc-086ac5edd464\",\"pipeline_name\":\"PL_Test_Failure\",\"failed_activity\":\"LKP_Simulate_Fails\",\"error_code\":\"2100\",\"error_message\":\"Invalid object name 'FakeTableNonExistent_12345'\",\"timestamp\":\"2026-09-25T14:55:52.631259+00:00\",\"invoker\":\"Manual\"}"
+        },
+        {
+          "action_type": "EXECUTE_SQL",
+          "target": "Source SQL Database (schema dbo)",
+          "command_or_payload": "IF OBJECT_ID('dbo.FakeTableNonExistent_12345','U') IS NULL SELECT 'MISSING' AS table_status; ELSE SELECT 'EXISTS' AS table_status;"
+        },
+        {
+          "action_type": "ADF_RERUN_ACTIVITY",
+          "target": "PL_Test_Failure -> LKP_Simulate_Fails",
+          "command_or_payload": "pipeline_name=PL_Test_Failure; pipeline_run_id=2331a775-b8f1-11f1-bdfc-086ac5edd464; activity_name=LKP_Simulate_Fails; action=RERUN_AFTER_MANUAL_FIX; note=Operator must ensure table exists and correct DB/schema/context prior to rerun"
+        }
+      ],
+      "verification_check": "1) Execute: IF OBJECT_ID('dbo.FakeTableNonExistent_12345','U') IS NOT NULL SELECT 'EXISTS' AS table_status; \u2014 success when result = 'EXISTS'. 2) After operator fix and ADF rerun, confirm new pipeline run for PL_Test_Failure completes with status = 'Succeeded' and failed_activities = 0. 3) Confirm an audit record was written for run_id 2331a775-b8f1-11f1-bdfc-086ac5edd464."
+    },
+    "execution_results": [
+      {
+        "status": "SUCCESS",
+        "action": "LOG_AUDIT",
+        "detail": "Logged audit"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "EXECUTE_SQL",
+        "detail": "Applied SQL to Source SQL Database (schema dbo)"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "ADF_RERUN_ACTIVITY",
+        "detail": "Restarted PL_Test_Failure -> LKP_Simulate_Fails"
+      }
+    ],
+    "model_used": "gpt-5-mini"
   }
 ]
