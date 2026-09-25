@@ -3,3 +3,6 @@
 .DS_Store
 Thumbs.db
 *.html
+.env
+.venv/
+__pycache__/

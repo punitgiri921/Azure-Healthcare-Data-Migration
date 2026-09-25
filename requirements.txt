@@ -1,0 +1,8 @@
+azure-identity
+azure-mgmt-datafactory
+azure-storage-blob
+openai
+pandas
+pyodbc
+python-dotenv
+requests
