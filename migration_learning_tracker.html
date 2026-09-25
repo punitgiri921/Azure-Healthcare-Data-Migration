@@ -2165,6 +2165,8 @@ GO</pre>
 
         <!-- Tab 7: Autonomous Sentinel Agent (GPT-5-mini) -->
         <div id="tab-sentinel" class="tab-pane">
+            
+            <!-- Section 11.1: Executive Overview & The Problem -->
             <div class="section-card">
                 <div class="section-title">🤖 Phase 7: Autonomous Lakehouse Sentinel Agent (GPT-5-mini)</div>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
@@ -2199,6 +2201,42 @@ GO</pre>
                     </div>
                 </div>
 
+                <!-- 11.1 The 3 Enterprise Failures -->
+                <div style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem;">
+                        🚨 The Enterprise Problem: Why Deterministic Pipelines Are Not Enough
+                    </div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+                        Traditional data engineering pipelines (ADF, Airflow, SSIS) are deterministic: if a network socket drops, a database deadlocks, or an upstream EMR changes column names, the pipeline aborts, sends an email alert, and waits for a human engineer. In enterprise healthcare operations, three critical scenarios demand autonomous intelligence:
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                        <div style="background: #060911; padding: 1.1rem; border-radius: 8px; border: 1px solid rgba(248, 113, 113, 0.3);">
+                            <div style="color: var(--danger); font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">
+                                💥 1. Watermark Desynchronization
+                            </div>
+                            <p style="font-size: 0.785rem; color: #cbd5e1; margin-top: 0.4rem; line-height: 1.6;">
+                                Ingestion writes 1,420 delta records to Bronze Parquet, but the stored procedure advancing <code>etl_watermark_control</code> suffers a network socket timeout. Storage advanced to T2, but control-state remains at T1. The next scheduled batch will reprocess the same window, causing duplicate primary key collisions in Silver.
+                            </p>
+                        </div>
+                        <div style="background: #060911; padding: 1.1rem; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                            <div style="color: var(--warning); font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">
+                                🛡️ 2. HIPAA PHI / PII Leaks
+                            </div>
+                            <p style="font-size: 0.785rem; color: #cbd5e1; margin-top: 0.4rem; line-height: 1.6;">
+                                An upstream EHR database admin renames <code>ssn</code> to <code>patient_ssn</code>. Standard ADF Data Flows skip hashing because the column mapping changed, writing unmasked plaintext social security numbers into analytical views. The Sentinel Agent senses this, quarantines the blobs, and alerts compliance.
+                            </p>
+                        </div>
+                        <div style="background: #060911; padding: 1.1rem; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.3);">
+                            <div style="color: var(--primary); font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">
+                                ⚡ 3. Cryptic Spark Failures
+                            </div>
+                            <p style="font-size: 0.785rem; color: #cbd5e1; margin-top: 0.4rem; line-height: 1.6;">
+                                ADF Mapping Data Flow Spark execution errors (<code>DF-EXPR-010</code>, OOM, or Shuffle Skew) produce hundreds of lines of cryptic Java stack traces that take human on-call engineers hours to triage. GPT-5-mini extracts the root cause in milliseconds and prescribes an exact remedy.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Architecture Infographic -->
                 <div style="margin-bottom: 1.75rem; text-align: center; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); background: #060911; padding: 0.75rem;">
                     <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; text-align: left;">
@@ -2208,9 +2246,146 @@ GO</pre>
                 </div>
             </div>
 
-            <!-- Section: Flight Simulator Analogy & Testing -->
+            <!-- Section 11.2: In-Depth 7-Block Code Structure -->
             <div class="section-card">
-                <div class="section-title">✈️ The Flight Simulator Analogy: How We Test AI Agents Without Modifying Production</div>
+                <div class="section-title">🔍 Script Section: In-Depth 7-Block Code Structure (scripts/sentinel_agent.py)</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                    The autonomous agent is implemented in <code>scripts/sentinel_agent.py</code>, engineered around 7 modular blocks strictly adhering to separation of concerns and defense-in-depth:
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Block 1 -->
+                    <div style="background: var(--bg-elevated); padding: 1.15rem; border-radius: 8px; border-left: 4px solid var(--primary); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: var(--primary); font-family: var(--font-mono); font-size: 0.85rem;">BLOCK 1 • Authenticated Cloud Clients & Environment Initialization</strong>
+                            <span class="comp-code">python-dotenv + AzureCliCredential + AzureOpenAI</span>
+                        </div>
+                        <ul style="margin-top: 0.6rem; padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            <li>Loads <code>.env</code> safely via <code>python-dotenv</code>, isolating secrets from version control.</li>
+                            <li>Resolves Windows execution path for Azure CLI (<code>C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin</code>).</li>
+                            <li>Authenticates simultaneously to <strong>Azure Data Factory Management SDK</strong> (via <code>DataFactoryManagementClient</code>) and <strong>Azure OpenAI</strong> (via <code>aoai-healthcare-punit01.openai.azure.com</code>).</li>
+                        </ul>
+                    </div>
+
+                    <!-- Block 2 -->
+                    <div style="background: var(--bg-elevated); padding: 1.15rem; border-radius: 8px; border-left: 4px solid var(--accent); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: var(--accent); font-family: var(--font-mono); font-size: 0.85rem;">BLOCK 2 • Telemetry Ingestion & Pipeline Self-Monitoring (Perception)</strong>
+                            <span class="comp-code">check_pipeline_health() + ADF REST API</span>
+                        </div>
+                        <ul style="margin-top: 0.6rem; padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            <li>Polls ADF pipeline runs over a rolling 24-hour lookback window for <code>PL_Master_Healthcare_Pipeline</code>.</li>
+                            <li>When an execution fails, it queries child activity runs (e.g. <code>EP_Run_Bronze_Ingestion</code>, <code>SCR_Update_Bronze_Watermark</code>) to extract the exact error message, error code (<code>2100</code>), duration, and failure stack trace.</li>
+                            <li>Packages the error telemetry into a structured JSON context for cognitive evaluation.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Block 3 -->
+                    <div style="background: var(--bg-elevated); padding: 1.15rem; border-radius: 8px; border-left: 4px solid #c084fc; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: #c084fc; font-family: var(--font-mono); font-size: 0.85rem;">BLOCK 3 • Cognitive Decision-Making Engine (Azure OpenAI GPT-5-mini)</strong>
+                            <span class="comp-code">diagnose_and_decide() + JSON Schema</span>
+                        </div>
+                        <ul style="margin-top: 0.6rem; padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            <li>Supplies a rigorous system prompt instructing GPT-5-mini to act as a Principal Azure Data Architect and HIPAA Compliance Officer.</li>
+                            <li>Enforces <code>response_format={"type": "json_object"}</code> to eliminate conversational filler and guarantee valid, machine-parseable JSON responses.</li>
+                            <li>Categorizes incidents into strict enums (<code>WATERMARK_DESYNC</code>, <code>HIPAA_PII_LEAK</code>, <code>SCHEMA_DRIFT</code>, <code>SPARK_FAILURE</code>, <code>NONE_HEALTHY</code>) and selects a remediation policy.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Block 4 -->
+                    <div style="background: var(--bg-elevated); padding: 1.15rem; border-radius: 8px; border-left: 4px solid var(--warning); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: var(--warning); font-family: var(--font-mono); font-size: 0.85rem;">BLOCK 4 • Autonomous Remediation (Tool Execution & Self-Healing)</strong>
+                            <span class="comp-code">execute_remediation() + Idempotent SQL</span>
+                        </div>
+                        <ul style="margin-top: 0.6rem; padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            <li><strong><code>EXECUTE_SQL</code>:</strong> Executes atomic conditional SQL: <code>UPDATE etl_watermark_control SET last_watermark = '...' WHERE table_name = '...' AND last_watermark = '...'</code>.</li>
+                            <li><strong><code>AZURE_BLOB_MOVE</code>:</strong> Moves files with unmasked PHI to a secure <code>/quarantine/</code> container, preventing downstream Synapse queries from exposing raw SSNs.</li>
+                            <li><strong><code>ADF_RERUN_ACTIVITY</code>:</strong> Re-triggers failed child activities without re-running the entire master pipeline from scratch.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Block 5 -->
+                    <div style="background: var(--bg-elevated); padding: 1.15rem; border-radius: 8px; border-left: 4px solid var(--success); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: var(--success); font-family: var(--font-mono); font-size: 0.85rem;">BLOCK 5 • Audit Trail & Regulatory Compliance Logging</strong>
+                            <span class="comp-code">log_incident() ➔ sentinel_incident_log.json</span>
+                        </div>
+                        <ul style="margin-top: 0.6rem; padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            <li>Maintains an immutable regulatory ledger in <code>docs/sentinel_incident_log.json</code>.</li>
+                            <li>Records timestamp, run ID, failure category, severity, LLM reasoning, executed SQL, and verification status for HIPAA § 164.312 auditing.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Block 6 & 7 -->
+                    <div style="background: var(--bg-elevated); padding: 1.15rem; border-radius: 8px; border-left: 4px solid #f43f5e; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: #f43f5e; font-family: var(--font-mono); font-size: 0.85rem;">BLOCKS 6 & 7 • Chaos Simulator Harness & CLI Runner</strong>
+                            <span class="comp-code">simulate_incident() + argparse CLI</span>
+                        </div>
+                        <ul style="margin-top: 0.6rem; padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6;">
+                            <li>Simulates synthetic failures (<code>watermark_desync</code>, <code>hipaa_leak</code>, <code>spark_oom</code>) with realistic error signatures.</li>
+                            <li>Exposes clean CLI flags: <code>--monitor</code> for real-time polling and <code>--simulate &lt;type&gt;</code> for non-destructive chaos testing.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 11.3: Verified Live Execution Telemetry -->
+            <div class="section-card">
+                <div class="section-title">⚡ Section 11.3: Verified Live Execution Telemetry (Watermark Desync Incident)</div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.85rem;">
+                    The live terminal output captured during real execution of the Sentinel Agent against Azure OpenAI (<code>gpt-5-mini</code>) responding to a simulated watermark desynchronization incident:
+                </p>
+                <pre class="code-box" style="font-size: 0.775rem; color: #bae6fd; line-height: 1.55;">================================================================================
+🏥 AZURE HEALTHCARE LAKEHOUSE SENTINEL AGENT (GPT-5-mini POWERED)
+================================================================================
+📅 Timestamp:         2026-09-24 23:19:16
+🎯 Target Pipeline:   PL_Master_Healthcare_Pipeline
+🏭 Data Factory:      adf-healthcare-punit01
+🧠 Reasoning Brain:   Azure OpenAI (gpt-5-mini)
+================================================================================
+
+⚡ [Chaos Harness] Generating Simulated Incident: WATERMARK_DESYNC
+
+🚨 [Incident Detected]
+   Pipeline: PL_Master_Healthcare_Pipeline
+   Run ID:   sim-run-849204-wm-fail
+
+🧠 [Cognitive Evaluation] Querying GPT-5-mini for Root Cause & Remediation Plan...
+
+📋 [Autonomous Diagnosis]
+   • Category:       WATERMARK_DESYNC
+   • Severity:       HIGH
+   • Layer Affected: Bronze
+   • Root Cause:     The ingestion activity wrote 1,420 delta files/records into the Bronze partition (bronze/patients/2026/09/24/) but failed to commit the etl_watermark_control update due to a dead-letter socket timeout while updating the control table; the transaction rolled back leaving control.last_watermark at 2026-09-23T00:00:00Z while Bronze contains records up to 2026-09-24T18:30:00Z. This creates a state desynchronization: the storage layer advanced but the control-state did not, so a subsequent scheduled run that uses the control table to determine the next delta will attempt to reprocess the same records and may produce duplicate-primary-key collisions in Silver.
+
+🛡️ [Self-Healing Action Plan]
+   • Policy:         AUTO_HEAL_WATERMARK
+   • Rationale:      Advance the etl_watermark_control idempotently to the actual max timestamp observed in Bronze only after verifying the expected delta files/counts. The conditional (WHERE last_watermark = previous_value) update is idempotent and atomic: it will only move the watermark if the control table is still at the pre-failure value, avoiding data-loss or skipping data.
+   • Verification:   1) Verify Bronze verification query returned cnt = 1420 and max_ts = '2026-09-24T18:30:00Z'. 2) Verify UPDATE affected exactly 1 row: SELECT last_watermark FROM medallion.etl_watermark_control WHERE table_name = 'patients'; expected = '2026-09-24T18:30:00Z'. 3) Confirm no duplicate PKs in Silver for the watermark window.
+
+⚡ [Executing Autonomous Actions]
+   ⚙️ Executing Action: [EXECUTE_SQL] on target: delta:/mnt/bronze/patients/2026/09/24/
+      SQL Query: SELECT COUNT(*) AS cnt, MAX(record_timestamp) AS max_ts FROM delta.`/mnt/bronze/patients/2026/09/24/`;
+   ⚙️ Executing Action: [EXECUTE_SQL] on target: medallion.etl_watermark_control
+      SQL Query: UPDATE medallion.etl_watermark_control
+SET last_watermark = TIMESTAMP '2026-09-24T18:30:00Z', updated_by = 'sentinel-auto-heal', updated_at = CURRENT_TIMESTAMP
+WHERE table_name = 'patients' AND last_watermark = TIMESTAMP '2026-09-23T00:00:00Z';
+   ⚙️ Executing Action: [LOG_AUDIT] on target: sentinel.audit_log
+      Writing audit entry: {"source":"sentinel-auto-heal","incident_id":"sim-run-849204-wm-fail","pipeline":"PL_Master_Healthcare_Pipeline","action":"AUTO_HEAL_WATERMARK"}
+
+🔒 [Audit & Persistence]
+   📝 Incident audit trail recorded in: docs/sentinel_incident_log.json
+
+✅ [Remediation Complete] Incident resolved autonomously without human intervention.
+================================================================================</pre>
+            </div>
+
+            <!-- Section 11.4: Flight Simulator Analogy & Testing -->
+            <div class="section-card">
+                <div class="section-title">✈️ Section 11.4: The Flight Simulator Analogy: How We Test AI Agents Without Modifying Production</div>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
                     When certifying an AI Co-Pilot for a commercial passenger aircraft, you never set fire to an actual Boeing 777 carrying passengers. Instead, you put the AI in a <strong>High-Fidelity Flight Simulator</strong>: the simulator feeds synthetic sensor telemetry (<code>Engine 2 Overheat 1100°C</code>), the AI co-pilot makes real calculated decisions, and safety inspectors verify its reflexes with <strong>zero risk to human lives</strong>. We apply this exact engineering philosophy to the Sentinel Agent.
                 </p>
@@ -2288,10 +2463,10 @@ GO</pre>
                     </table>
                 </div>
 
-                <!-- 4 Step Testing Flow -->
+                <!-- 11.5 Decoupled Testing Flow -->
                 <div style="background: #060911; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 0.75rem;">
-                        🔬 Decoupled Testing Workflow (tests/test_sentinel_agent.py — 4/4 Passed in 56s)
+                        🔬 Section 11.5: Decoupled Testing Workflow (tests/test_sentinel_agent.py — 4/4 Passed in 56s)
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.75rem; font-size: 0.8rem;">
                         <div style="background: var(--bg-card); padding: 0.85rem; border-radius: 6px; border: 1px solid var(--border-color);">
@@ -2314,9 +2489,9 @@ GO</pre>
                 </div>
             </div>
 
-            <!-- Section: 3 Production Operational Patterns -->
+            <!-- Section 11.6: 3 Production Operational Patterns -->
             <div class="section-card">
-                <div class="section-title">⚙️ Three Production Operational Patterns: How the Sentinel Agent Runs Automatically</div>
+                <div class="section-title">⚙️ Section 11.6: Three Production Operational Patterns: How the Sentinel Agent Runs Automatically</div>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
                     In an enterprise hospital environment, engineers never log in to execute manual python commands after every pipeline run. Instead, the Sentinel Agent operates autonomously in the background through one of three production architecture patterns:
                 </p>
@@ -2375,62 +2550,62 @@ GO</pre>
                     </div>
                 </div>
 
-                <!-- Comprehensive Comparison & Requirements Matrix Table -->
-                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem;">
-                    📋 Production Operational Patterns: Detailed Architectural & Requirements Matrix
+                <!-- Exact Detailed Architecture & Requirements Matrix Table -->
+                <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem;">
+                    📋 Detailed Architecture & Requirements Matrix
                 </div>
                 <div class="styled-table-wrapper" style="margin-bottom: 1.5rem;">
                     <table class="styled-table">
                         <thead>
                             <tr>
                                 <th>Operational Dimension</th>
-                                <th>Pattern A: Event-Driven (Event Grid + Azure Function)</th>
-                                <th>Pattern B: Scheduled Daemon (Task Scheduler / Cron)</th>
-                                <th>Pattern C: ADF Canvas "Upon Failure" Callback</th>
+                                <th>Pattern A: Event-Driven Push (Recommended)</th>
+                                <th>Pattern B: Scheduled Daemon</th>
+                                <th>Pattern C: ADF "Upon Failure" Callback</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><strong>Trigger Mechanism</strong></td>
-                                <td>Reactive push notification from Azure Event Grid on pipeline failure event.</td>
-                                <td>Proactive time-based polling (e.g. every 30 mins or post-ETL cron).</td>
-                                <td>Pipeline canvas callback activity attached to failure branch.</td>
+                                <td><strong>How it Operates</strong></td>
+                                <td>ADF emits a failure event to Azure Event Grid. Event Grid triggers an Azure Function running our Python code.</td>
+                                <td>A timer triggers <code>python sentinel_agent.py --monitor</code> periodically to query the ADF REST API.</td>
+                                <td>Master pipeline connects a red "Upon Failure" line to an ADF Web Activity calling a webhook.</td>
                             </tr>
                             <tr>
-                                <td><strong>Response Latency</strong></td>
-                                <td><span class="badge" style="background: rgba(52,211,153,0.15); color: var(--success);">INSTANT (3 - 5 sec)</span></td>
-                                <td><span class="badge" style="background: rgba(251,191,36,0.15); color: var(--warning);">PERIODIC (0 - 30 min)</span></td>
-                                <td><span class="badge" style="background: rgba(52,211,153,0.15); color: var(--success);">INSTANT (Upon abort)</span></td>
+                                <td><strong>Trigger Latency</strong></td>
+                                <td><span class="badge" style="background: rgba(52,211,153,0.15); color: var(--success);">Instant (~3 to 5 seconds after failure)</span></td>
+                                <td><span class="badge" style="background: rgba(251,191,36,0.15); color: var(--warning);">Periodic (0 to 30 minutes lag)</span></td>
+                                <td><span class="badge" style="background: rgba(52,211,153,0.15); color: var(--success);">Instant (Immediately when activity fails)</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Do you need your laptop open?</strong></td>
                                 <td><strong>❌ NO.</strong> Runs 100% serverless in Azure cloud 24/7. Your laptop can be completely shut down.</td>
-                                <td><strong>✔️ YES</strong> (if running locally). <strong>❌ NO</strong> (if hosted on Azure Container App Job).</td>
+                                <td><strong>✔️ YES</strong> (if local Windows Task Scheduler). <strong>❌ NO</strong> (if hosted on Azure Container App Job).</td>
                                 <td><strong>❌ NO.</strong> Hosted in Azure cloud 24/7. Your laptop can be completely shut down.</td>
                             </tr>
                             <tr>
                                 <td><strong>Idle Compute Cost</strong></td>
-                                <td><strong>$0.00 / hour</strong> (Consumption plan charges strictly per second of active execution).</td>
-                                <td>$0.00 if run locally; negligible cents if run on serverless container.</td>
-                                <td><strong>$0.00 / hour</strong> (Billed strictly per webhook HTTP call).</td>
+                                <td><strong>$0.00 / hour</strong> (Consumption plan bills only per millisecond when executed).</td>
+                                <td><strong>$0.00</strong> if local; negligible cents if hosted on Azure Container App Job.</td>
+                                <td><strong>$0.00 / hour</strong> (Billed only per webhook invocation).</td>
                             </tr>
                             <tr>
                                 <td><strong>Azure Services Required</strong></td>
-                                <td>• Azure Event Grid System Topic<br>• Azure Function App (Linux Consumption Python)<br>• Managed Identity (Data Factory Contributor)</td>
-                                <td>• Local Python environment (<code>.venv</code>) OR Azure Container App Job<br>• Azure CLI credentials / Service Principal</td>
-                                <td>• ADF Web Activity<br>• Azure Function or Container endpoint with public/VNet URL</td>
+                                <td>1. Azure Event Grid System Topic<br>2. Azure Function App (Linux Consumption, Python)<br>3. System-Assigned Managed Identity (Data Factory Contributor)</td>
+                                <td>1. Local Python environment (<code>.venv</code>) OR Azure Container App Job<br>2. Azure CLI credentials / Service Principal</td>
+                                <td>1. ADF Web Activity<br>2. Azure Function or Container HTTP endpoint with public/VNet URL</td>
                             </tr>
                             <tr>
                                 <td><strong>Implementation Complexity</strong></td>
-                                <td>Medium (Requires deploying Function code + Event Grid subscription).</td>
+                                <td>Medium (Deploying Function code + Event Grid subscription).</td>
                                 <td><strong>Lowest</strong> (Single Windows Task Scheduler or cron command).</td>
-                                <td>Low (Requires updating ADF canvas + lightweight webhook).</td>
+                                <td>Low (Updating ADF canvas + lightweight webhook).</td>
                             </tr>
                             <tr>
                                 <td><strong>Best Used For</strong></td>
-                                <td><strong>Enterprise Gold Standard</strong>: Mission-critical 24/7 autonomous operations.</td>
-                                <td>Local testing, development, and daily scheduled batch maintenance windows.</td>
-                                <td>Single-pipeline workflows without complex multi-resource monitoring.</td>
+                                <td><strong>Mission-critical 24/7 enterprise production</strong> where immediate self-healing is required.</td>
+                                <td>Development/staging environments and batch processing with fixed off-peak windows.</td>
+                                <td>Single-pipeline setups that do not require central multi-pipeline management.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -2454,7 +2629,7 @@ GO</pre>
                 </div>
             </div>
 
-            <!-- Section: Verified Live Incident Audit Log -->
+            <!-- Section 11.7: Verified Live Incident Audit Log -->
             <div class="section-card">
                 <div class="section-title">🔒 Verified Incident Telemetry & Immutable Audit Trail (HIPAA § 164.312)</div>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.75rem;">
