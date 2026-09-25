@@ -107,6 +107,27 @@ The automated master orchestration pipeline (`PL_Master_Healthcare_Pipeline`) wa
 
 ---
 
+## 🌐 Live Azure Cloud Infrastructure & Resource Inventory
+
+All lakehouse and autonomous operations resources are deployed and actively managed under the production resource group `rg-healthcare-migration-prod`:
+
+![Live Azure Cloud Resource Inventory](docs/images/azure_resources_inventory.png)
+
+| Resource Name | Azure Service Type | Region | Architectural Layer / Operational Role |
+| :--- | :--- | :--- | :--- |
+| **`adf-healthcare-punit01`** | Azure Data Factory (V2) | Central India | Hybrid ETL orchestration, SHIR gateway integration, and Spark Data Flows. |
+| **`sthealthcarelake01`** | Storage Account (ADLS Gen2) | Central India | Hierarchical namespace data lake hosting Medallion containers (`bronze`, `silver`, `gold`). |
+| **`kv-healthcare-sec01`** | Azure Key Vault | East US | Zero-secret credential store protecting on-prem database passwords via Managed Identity. |
+| **`aoai-healthcare-punit01`** | Azure OpenAI Service | East US | Hosts reasoning deployment (`gpt-5-mini`) powering the Sentinel AI Agent. |
+| **`func-sentinel-lakehouse-01`** | Function App (Python 3.11) | East US | Serverless Linux Consumption runtime executing the autonomous self-healing agent. |
+| **`stsentinelfunc01`** | Storage Account | East US | Backing storage for Azure Function runtime state and execution locks. |
+| **`EastUSLinuxDynamicPlan`** | App Service Plan | East US | Dynamic serverless consumption tier ($0.00 idle cost). |
+| **`alert-adf-pipeline-failures`** | Metric Alert Rule | Global | Continuous 1-minute metric monitor detecting `PipelineFailedRuns > 0`. |
+| **`ag-sentinel-ai`** | Action Group | East US | Dual-track dispatcher routing alerts to on-call email and Function App webhook. |
+| **`DefaultWorkspace-...`** | Log Analytics Workspace | East US | Centralized telemetry sink and diagnostic log repository. |
+
+---
+
 ## 🥇 Gold Kimball Star Schema & Serving Layer
 
 The Gold layer structures data into a dimensional Star Schema exposed via **Azure Synapse Serverless SQL** (`healthcare_gold_db`):
@@ -295,6 +316,7 @@ pytest tests/test_sentinel_agent.py -v
 │   ├── project_roadmap.md                      # 7-Phase implementation roadmap
 │   ├── sentinel_incident_log.json              # Immutable HIPAA audit trail for AI remediation
 │   └── images/                                 # Architectural infographics & diagrams
+│       ├── azure_resources_inventory.png       # Live Azure production resource inventory
 │       ├── sentinel_agent_architecture.jpg     # 7-block AI agent engineering architecture
 │       ├── sentinel_flight_simulator_analogy.jpg # Flight Simulator evaluation analogy
 │       └── adf_parameter_levels_diagram.png    # Parameter hierarchy architecture
