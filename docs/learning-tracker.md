@@ -943,3 +943,66 @@ The screenshot below shows the Azure Monitor alert dashboard for `alert-adf-pipe
 The screenshot below shows the real email received from Microsoft Azure (`azure-noreply@microsoft.com`) confirming the metric `PipelineFailedRuns` crossed threshold `0` with value `1` on `adf-healthcare-punit01`.
 
 ![Azure Monitor Email Alert](./images/azure_monitor_email_alert.png)
+
+---
+
+#### ⏰ Real-World Case Study: Scheduled 2:00 AM Run & The "Triggered vs. Resolved" Lifecycle
+
+##### 1. The Incident: What Happened at 2:00 AM Automatically?
+In real clinical operations, daily batch ingestion pipelines run during off-peak hours (e.g. 02:00 AM IST) triggered by `TRG_Daily_Healthcare_ETL`. 
+
+During our automated overnight run:
+1. **At 2:00 AM IST (20:30 UTC):** The daily recurring trigger woke up in Azure Data Factory to extract new hospital records.
+2. **The Failure:** Because our local development machine (`DESKTOP-H5RKB3H`) was asleep/offline, ADF could not reach the **Self-Hosted Integration Runtime (SHIR)** gateway. The extraction timed out and the pipeline run failed.
+3. **Metric Spike:** In that 5-minute window, `PipelineFailedRuns` spiked to **`2`** (crossing our threshold of `0`).
+4. **Email 1 (Orange ⚠️ - Triggered):** Azure Monitor detected the spike at `20:33 UTC (02:03 AM IST)` and immediately emailed an urgent incident notification to `punitgiri74@gmail.com`.
+5. **Email 2 (Green 🟢 - Resolved):** A few minutes later, Azure Monitor sent a second email stating: *"Your Azure Monitor alert was resolved"*.
+
+##### 2. The Smoke Detector Analogy: Why Does It Show "Resolved" If The Pipeline Didn't Rerun?
+A common point of confusion is:
+> *"Why is Azure showing 'Resolved' when the pipeline did not rerun or succeed? Does Azure think the pipeline was fixed?"*
+
+**No! The pipeline is still marked `Failed` in Azure Data Factory.** 
+
+The word **"Resolved"** refers to the **Alert Rule Sensor**, not the database pipeline! This is best understood through the **Kitchen Smoke Detector** analogy:
+
+```text
+       ┌────────────────────────┐
+       │  Toast burns in oven   │  (Pipeline fails at 2:00 AM)
+       └───────────┬────────────┘
+                   │
+                   ▼
+       ┌────────────────────────┐
+       │  Smoke Detector Beeps! │  ──► ⚠️ EMAIL 1: TRIGGERED
+       └───────────┬────────────┘      "Smoke detected in kitchen right now!"
+                   │                   (PipelineFailedRuns = 2 > 0 is TRUE)
+           Smoke clears out
+           after 10 minutes
+                   │
+                   ▼
+       ┌────────────────────────┐
+       │ Smoke Detector Silences│  ──► 🟢 EMAIL 2: RESOLVED
+       └────────────────────────┘      "No new smoke detected in the air"
+                                       (PipelineFailedRuns = 0 > 0 is FALSE)
+```
+
+* **When the toast burns:** Smoke fills the room, so the detector screams loudly (**Email 1: Triggered**).
+* **10 minutes later:** The smoke clears out of the room, and the detector goes silent (**Email 2: Resolved**).
+* **Does the detector going silent mean the burnt toast is magically unburnt?** No! The burnt toast is still sitting on the counter.
+* **Why does the sensor silence?** Because the *current air reading* is back to 0. 
+
+##### 3. Why Cloud Platforms Must Auto-Mitigate (Resetting the Alarm)
+If Azure did **not** automatically deactivate the alert once the failure spike ended:
+1. The alert would remain permanently stuck in a red **"Fired"** state in the portal forever.
+2. If another pipeline failed the next day, Azure **would never notify you**, because the alarm was already ringing from yesterday!
+3. By automatically resolving when the 5-minute sliding window sees 0 new failures, Azure **resets the sensor**, ensuring it is armed and ready to catch future incidents.
+
+---
+
+#### 📸 Real-World Evidence: Automated 2:00 AM Triggered & Resolved Incident Mails
+
+| 1. Triggered Email (⚠️ Incident Raised at 2:03 AM) | 2. Resolved Email (🟢 Sensor Auto-Mitigated) |
+| :---: | :---: |
+| ![Azure Monitor Alert Triggered at 2 AM](./images/azure_monitor_alert_triggered_2am.png) | ![Azure Monitor Alert Auto-Resolved](./images/azure_monitor_alert_resolved.png) |
+| **Alert Activated (Severity 1):** Metric `PipelineFailedRuns` spiked to **`2`** at 20:33 UTC (02:03 AM IST) when scheduled daily ETL could not reach offline SHIR gateway. | **Alert Deactivated:** Condition `PipelineFailedRuns > 0` became false in the subsequent 5-minute window as no new failures occurred, resetting the alert rule. |
+
