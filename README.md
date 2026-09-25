@@ -5,6 +5,9 @@
 [![ADLS Gen2](https://img.shields.io/badge/ADLS%20Gen2-Hierarchical%20Namespace-008272?style=for-the-badge&logo=microsoftazure&logoColor=white)](docs/architecture_spec.md)
 [![Azure Synapse Analytics](https://img.shields.io/badge/Synapse-Serverless%20SQL%20TDS-0078D7?style=for-the-badge&logo=azuredevops&logoColor=white)](sql/)
 [![Power BI PBIP](https://img.shields.io/badge/Power%20BI-PBIP%20%7C%20TMDL-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)](powerbi/)
+[![Azure OpenAI](https://img.shields.io/badge/Azure%20OpenAI-GPT--5--mini-7928CA?style=for-the-badge&logo=openai&logoColor=white)](scripts/sentinel_agent.py)
+[![Autonomous Agent](https://img.shields.io/badge/Autonomous%20Ops-Sentinel%20Agent-blueviolet?style=for-the-badge&logo=robotframework&logoColor=white)](scripts/sentinel_agent.py)
+[![Pytest Suite](https://img.shields.io/badge/Evaluation%20Tests-4%2F4%20Passed%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](tests/test_sentinel_agent.py)
 [![HIPAA Compliance](https://img.shields.io/badge/Security-HIPAA%20Safe%20Harbor%20Masking-success?style=for-the-badge)](docs/architecture_spec.md#hipaa-security--pii-masking)
 
 ---
@@ -21,6 +24,7 @@ The project demonstrates an end-to-end cloud migration lifecycle:
 5. **Kimball Star Schema Modeling**: Transforming clinical encounters and billing claims into dimensional **Gold** marts (`Dim_Patient`, `Dim_Provider`, `Dim_Diagnosis`, `Fact_Encounters`, `Fact_Claims`) with surrogate keys.
 6. **Serverless Serving Layer**: Exposing Gold marts via **Azure Synapse Serverless SQL** views with zero persistent relational storage overhead and $0 idle compute costs.
 7. **Developer-Mode Analytics (PBIP)**: Authoring an interactive executive operations dashboard in **Power BI Desktop Developer Mode (PBIP)** with Git-versioned **TMDL** semantic models and 10 core healthcare DAX KPIs.
+8. **Autonomous Self-Healing AI Operations (Sentinel Agent)**: Deploying an **Azure OpenAI (GPT-5-mini)** cognitive co-pilot that continuously ingests ADF execution telemetry, diagnoses technical failure root causes (Watermark desynchronization, HIPAA PHI leaks, Spark OOM), and executes idempotent self-healing actions with immutable regulatory compliance logging.
 
 ---
 
@@ -64,10 +68,23 @@ graph TD
         Synapse -->|"TDS Direct Cloud Connection"| PBI
     end
 
+    subgraph AIAgent["🤖 AUTONOMOUS LAKEHOUSE SENTINEL AGENT (AI CO-PILOT)"]
+        AgentCore["Sentinel Agent Engine<br>(scripts/sentinel_agent.py)"]
+        AOAI["Azure OpenAI Service<br>(aoai-healthcare-punit01 / gpt-5-mini)"]
+        AuditLog[("HIPAA Audit Ledger<br>docs/sentinel_incident_log.json")]
+        
+        ADF_Master -.->|"1. Telemetry / Error Event"| AgentCore
+        AgentCore <-->|"2. Cognitive Reasoning (JSON Schema)"| AOAI
+        AgentCore -.->|"3a. Idempotent Watermark Heal"| W_Table
+        AgentCore -.->|"3b. PII Quarantine / Rerun"| ADLS_Gen2
+        AgentCore -->|"4. Immutable Audit Record"| AuditLog
+    end
+
     subgraph SourceControl["🐙 ENTERPRISE SOURCE CONTROL"]
         GitRepo["GitHub Repository<br>(punitgiri921/Azure-Healthcare-Data-Migration)"]
         ADF_Master <-->|"Native ADF Git Integration"| GitRepo
         PBI <-->|"TMDL / PBIR Git Versioning"| GitRepo
+        AgentCore <-->|"Agent Code & Tests Versioning"| GitRepo
     end
 ```
 
@@ -151,6 +168,97 @@ The reporting tier is built using **Power BI Desktop Developer Mode (PBIP)**, st
 
 ---
 
+## 🤖 Phase 7: Autonomous Lakehouse Sentinel Agent (Azure OpenAI GPT-5-mini)
+
+### 🚨 The Problem: Why Deterministic Pipelines Fail in Healthcare
+Traditional cloud data pipelines (ADF, Airflow, SSIS) are deterministic: if a network socket times out, a database deadlocks, or an upstream EHR drifts its schema, the pipeline fails, sends an email alert, and halts downstream clinical analytics until a human data engineer investigates at 3:00 AM. In enterprise healthcare operations:
+1. **Watermark Desynchronization**: If Bronze ingestion extracts 1,420 delta patient records into ADLS Gen2 Parquet but fails to update the SQL watermark control table due to a dead-letter timeout, the next scheduled batch re-ingests the same records, causing duplicate primary key collisions in Silver.
+2. **HIPAA PHI / PII Leaks**: If upstream EHR administrators rename columns (`ssn` to `patient_ssn`), standard ADF masking data flows are bypassed, writing unmasked Social Security Numbers into analytical marts.
+3. **Cryptic Spark Failures**: Mapping Data Flow Spark execution errors (`DF-EXPR-010`, OOM, Shuffle Skew) produce hundreds of lines of Java stack traces that take hours to triage manually.
+
+### 🧠 The Sentinel Agent Architecture (`scripts/sentinel_agent.py`)
+
+![Autonomous Sentinel Agent Architecture](docs/images/sentinel_agent_architecture.jpg)
+
+The Sentinel Agent operates as an autonomous cognitive co-pilot built around a 7-block modular architecture across a 4-stage closed loop:
+1. **SENSE (Perception)**: Polls ADF REST APIs via Azure Identity; extracts failed activity run IDs, error codes (e.g. `2100`), duration, and failure stack traces over rolling 24-hour windows.
+2. **REASON (Cognition)**: Feeds error JSON to **Azure OpenAI (`gpt-5-mini`)** using strict Pydantic JSON schemas. It determines technical failure categories (`WATERMARK_DESYNC`, `HIPAA_PII_LEAK`, `SPARK_FAILURE`), evaluates blast radius, and formulates an idempotent remediation plan.
+3. **ACT (Autonomous Healing)**: Executes deterministic self-healing operations:
+   - `EXECUTE_SQL`: Applies atomic conditional updates to `dbo.etl_watermark_control` (`UPDATE ... WHERE last_watermark = previous_value`).
+   - `AZURE_BLOB_MOVE`: Automatically quarantines leaking files into `/quarantine/` before downstream Synapse queries expose raw PHI.
+   - `ADF_RERUN_ACTIVITY`: Selectively re-triggers failed child activities without re-running the entire master DAG.
+4. **VERIFY & AUDIT (Compliance)**: Asserts post-fix database integrity and appends immutable regulatory incident records to `docs/sentinel_incident_log.json` to satisfy HIPAA § 164.312 auditing requirements.
+
+---
+
+### ✈️ The Flight Simulator Analogy: Safe Testing Without Modifying Production
+
+![Flight Simulator Analogy](docs/images/sentinel_flight_simulator_analogy.jpg)
+
+When training an **AI Co-Pilot for a commercial passenger aircraft**, you never set fire to a real Boeing 777 carrying passengers. Instead, you put the AI in a **High-Fidelity Flight Simulator**:
+* The simulator feeds synthetic electrical sensor data (`Engine 2 Overheat 1100°C`).
+* The **AI's brain is 100% real**—it calculates aerodynamics and decides to pull the extinguisher.
+* You verify that the AI made the correct decision **without endangering a real airplane**.
+
+#### The 7-Concept Architectural Mapping
+
+| # | Sentinel Concept | Flight Simulator Analogy | Azure Technical Implementation | Purpose / What It Does |
+| :-: | :--- | :--- | :--- | :--- |
+| **1** | **Client & Env** | Airplane cockpit systems ready | `python-dotenv`, `AzureCliCredential`, ADF client, Azure OpenAI | Authenticated connection to Azure cloud and AI model. |
+| **2** | **Monitoring** | Sensors detect engine/fuel health | Poll ADF pipeline runs and child activities over 24-hr window | Determine whether pipeline is healthy or experiencing failures. |
+| **3** | **AI Decision Engine** | AI co-pilot evaluates issue | Send error telemetry to GPT-5-mini; enforce strict JSON response | Identify technical root cause and choose optimal remediation policy. |
+| **4** | **Remediation** | Co-pilot automatically pulls lever | Execute idempotent SQL, quarantine blobs, or rerun ADF activity | Fix the issue automatically in an idempotent, safe manner. |
+| **5** | **Audit Trail** | Flight recorder (Black Box) | Append incident, diagnosis, and actions to `sentinel_incident_log.json` | Keep an immutable regulatory record for HIPAA compliance. |
+| **6** | **Testing (Chaos)** | Synthetic failure simulations | Simulate `watermark_desync`, `hipaa_leak`, `spark_oom` | Verify agent reflexes across complex failures with zero production risk. |
+| **7** | **CLI Runner** | Pilot uses cockpit controls | Run `python scripts/sentinel_agent.py --monitor` or `--simulate` | Developer interface to run live monitoring or chaos tests. |
+
+#### 🔬 Decoupled Testing Methodology (`tests/test_sentinel_agent.py`)
+
+The automated evaluation suite achieves **100% test coverage** across both Success and Failure paths without altering real lakehouse data:
+* **Step 1: Synthetic Telemetry**: Generates realistic socket timeout error JSON matching actual ADF activity failures.
+* **Step 2: Real GPT-5-mini Call**: Sends the payload to live Azure OpenAI (`aoai-healthcare-punit01`), spending real compute tokens.
+* **Step 3: In-Memory Assertions**: Catches generated SQL before execution; verifies mandatory `WHERE` clauses (`WHERE last_watermark = ...`) and guarantees zero destructive commands (`DROP`, `TRUNCATE`).
+* **Step 4: 100% Production Safety**: All 4 tests pass in **56.78s**, while live Bronze, Silver, and Gold lakehouse tables remain completely untouched.
+
+---
+
+### ⚙️ Three Production Operational Patterns
+
+In enterprise operations, engineers never manually execute scripts after every pipeline run. The Sentinel Agent operates autonomously via three production patterns:
+
+| Operational Dimension | Pattern A: Event-Driven Push *(Recommended)* | Pattern B: Scheduled Daemon | Pattern C: ADF "Upon Failure" Callback |
+| :--- | :--- | :--- | :--- |
+| **How it Operates** | ADF emits a failure event to Azure Event Grid. Event Grid triggers an Azure Function running our Python code. | A timer triggers `python sentinel_agent.py --monitor` periodically to query the ADF REST API. | Master pipeline connects a red "Upon Failure" line to an ADF Web Activity calling a webhook. |
+| **Trigger Latency** | **Instant** (~3 to 5 seconds after failure) | **Periodic** (0 to 30 minutes lag) | **Instant** (Immediately when activity fails) |
+| **Do you need your laptop open?** | ❌ **NO.** Runs 100% serverless in Azure cloud 24/7. Your laptop can be completely shut down. | ✔️ **YES** (if local Windows Task Scheduler). ❌ **NO** (if hosted on Azure Container App Job). | ❌ **NO.** Hosted in Azure cloud 24/7. Your laptop can be completely shut down. |
+| **Idle Compute Cost** | **$0.00 / hour** (Consumption plan bills only per millisecond when executed). | **$0.00** if local; negligible cents if hosted on Azure Container App Job. | **$0.00 / hour** (Billed only per webhook invocation). |
+| **Azure Services Required** | 1. Azure Event Grid System Topic<br>2. Azure Function App (Linux Consumption, Python)<br>3. System-Assigned Managed Identity (`Data Factory Contributor`) | 1. Local Python environment (`.venv`) OR Azure Container App Job<br>2. Azure CLI credentials / Service Principal | 1. ADF Web Activity<br>2. Azure Function or Container HTTP endpoint with public/VNet URL |
+| **Implementation Complexity** | Medium (Deploying Function code + Event Grid subscription). | **Lowest** (Single Windows Task Scheduler or cron command). | Low (Updating ADF canvas + lightweight webhook). |
+| **Best Used For** | **Mission-critical 24/7 enterprise production** where immediate self-healing is required. | Development/staging environments and batch processing with fixed off-peak windows. | Single-pipeline setups that do not require central multi-pipeline management. |
+
+> [!NOTE]
+> **The Hybrid Boundary Nuance**: When deployed via Pattern A, all cloud lakehouse components (ADF, ADLS Gen2, Synapse, Azure OpenAI, Sentinel Agent) run 24/7 inside Microsoft datacenters with zero dependency on a local laptop. In our sandbox setup, the simulated source SQL database and SHIR gateway run on a local machine (`DESKTOP-H5RKB3H`). In a true hospital enterprise, the EHR database and SHIR reside on dedicated on-premises server clusters with 99.99% uptime.
+
+---
+
+### 💻 How to Run the Sentinel Agent
+
+```bash
+# 1. Real-time live pipeline monitoring daemon
+python scripts/sentinel_agent.py --monitor
+
+# 2. Non-destructive chaos simulation (Watermark Desync)
+python scripts/sentinel_agent.py --simulate watermark_desync
+
+# 3. Non-destructive chaos simulation (HIPAA PHI Leak)
+python scripts/sentinel_agent.py --simulate hipaa_leak
+
+# 4. Execute the automated pytest evaluation suite
+pytest tests/test_sentinel_agent.py -v
+```
+
+---
+
 ## 🛠️ Enterprise Engineering Challenges & Resolutions
 
 | Challenge | Root Cause | Engineering Solution |
@@ -161,6 +269,8 @@ The reporting tier is built using **Power BI Desktop Developer Mode (PBIP)**, st
 | **ADF Downstream Dependency Skips** | Multiple incoming arrows in an ADF DAG operate as a logical `AND`. A failure in one Data Flow skipped watermark updates. | Implemented parallel execution branches with strict failure isolation to ensure transactional state consistency across the lakehouse. |
 | **Lakehouse Part-File Accumulation** | Spark re-writes partitioned parquet files on every execution, causing duplicate aggregations in downstream views. | Integrated an idempotent pre-cleanup activity (`DEL_Clear_Gold_Marts`) in `PL_Silver_To_Gold` that purges target Gold directories before Spark commits fresh surrogate-keyed partitions. |
 | **PBIR Encoding Issues in Power BI** | Power BI Desktop failed to parse PBIR JSON definitions with error: `Detected BOM: 'UTF-8'`. | Configured automated encoding sanitization using `System.Text.UTF8Encoding($false)` to eliminate Byte Order Marks (BOM), ensuring strict compliance with Microsoft Fabric PBIR schemas. |
+| **Watermark State Desync (Mid-Stream Timeout)** | Ingestion activity wrote records to Bronze but socket dropped before committing `etl_watermark_control`, threatening duplicate PK collisions. | Implemented the **Sentinel AI Agent (GPT-5-mini)** to diagnose desync and autonomously execute atomic conditional SQL updates with verification assertions. |
+| **Safe AI Testing Without Production Risk** | Testing autonomous remediation agents against real production databases risks accidental data loss or corruption. | Built a **Flight Simulator Chaos Harness** with synthetic telemetry injection and in-memory SQL safety assertions (`tests/test_sentinel_agent.py`), achieving 100% test coverage with zero production disruption. |
 
 ---
 
@@ -181,18 +291,28 @@ The reporting tier is built using **Power BI Desktop Developer Mode (PBIP)**, st
 │       └── PL_Silver_To_Gold.json
 ├── docs/                                       # Technical Specifications & Roadmaps
 │   ├── architecture_spec.md                    # Deep architectural design spec
-│   ├── learning-tracker.md                     # Markdown milestone documentation
-│   └── project_roadmap.md                      # 6-Phase implementation roadmap
+│   ├── learning-tracker.md                     # Markdown milestone documentation (Phases 1-7)
+│   ├── project_roadmap.md                      # 7-Phase implementation roadmap
+│   ├── sentinel_incident_log.json              # Immutable HIPAA audit trail for AI remediation
+│   └── images/                                 # Architectural infographics & diagrams
+│       ├── sentinel_agent_architecture.jpg     # 7-block AI agent engineering architecture
+│       ├── sentinel_flight_simulator_analogy.jpg # Flight Simulator evaluation analogy
+│       └── adf_parameter_levels_diagram.png    # Parameter hierarchy architecture
 ├── powerbi/                                    # Power BI Developer Project (PBIP)
 │   ├── Healthcare-Analytics-Report.pbip        # PBIP Manifest
 │   ├── Healthcare-Analytics-Report.Report/     # PBIR Enhanced Report (11 Visual Containers)
 │   └── Healthcare-Analytics-Report.SemanticModel/ # TMDL Data Models & DAX Measures
+├── scripts/                                    # Autonomous AI Agent Engineering
+│   └── sentinel_agent.py                       # GPT-5-mini Lakehouse Sentinel Agent (Sense, Reason, Act)
+├── tests/                                      # Automated Evaluation Test Suites
+│   └── test_sentinel_agent.py                  # Flight Simulator evaluation suite (4/4 tests passed)
 ├── sql/                                        # SQL Scripts & Synapse DDL
 │   ├── 01_emr_schema_ddl.sql                   # On-prem relational DDL
 │   ├── 02_emr_seed_data.sql                    # Transactional seed data
 │   └── 03_synapse_views.sql                    # Synapse Serverless SQL OPENROWSET views
+├── index.html                                  # Master Interactive Engineering & Learning Tracker
+├── migration_learning_tracker.html             # Master Interactive Engineering & Learning Tracker (Source)
 ├── migration_learning_state.json               # Machine-readable project execution state
-├── migration_learning_tracker.html             # Interactive HTML Executive Progress Dashboard
 └── README.md                                   # Comprehensive Project Showcase
 ```
 
