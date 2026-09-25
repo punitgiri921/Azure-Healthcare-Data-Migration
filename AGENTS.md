@@ -16,18 +16,8 @@ git push origin main
 # ➔ Only code, ADF, SQL, and Markdown will be pushed. Zero HTML files will go to GitHub!
 ```
 
-### 2. How to Save Snapshots / Track Changes to HTML Locally
-* The HTML learning trackers (`index.html`, `migration_learning_tracker.html`) are tracked strictly on your local machine on the dedicated `local-tracker` branch.
-* Whenever updates are made to the HTML files and you want to save a Git version/checkpoint locally:
-```bash
-# 1. Switch to your local tracker branch
-git checkout local-tracker
+### 2. Permanent Workspace Presence for HTML Trackers
+* **Always Keep on Disk**: `index.html` and `migration_learning_tracker.html` MUST ALWAYS remain physically present in the project root directory so you can open, double-click, and view them in your browser at any time.
+* **No Branch Switching Purges**: NEVER switch branches to `local-tracker` during routine work. In Git, switching from a branch where files are tracked (`local-tracker`) back to `main` (where they are untracked) causes Git to automatically delete them from the user's disk.
+* **Automatic Protection via `.gitignore`**: Because `*.html` is in `.gitignore`, Git completely ignores the HTML files on `main`. You can run `git add .`, `git commit`, and `git push origin main` with 100% confidence—the HTML files stay safely on your local hard drive and are NEVER pushed to GitHub.
 
-# 2. Commit your HTML updates
-git add index.html migration_learning_tracker.html
-git commit -m "docs(tracker): update autonomous sentinel agent section"
-
-# 3. Switch back to main
-git checkout main
-```
-* **STRICT ENFORCEMENT**: **NEVER** run `git push origin local-tracker`. The `local-tracker` branch is strictly offline and local-only.

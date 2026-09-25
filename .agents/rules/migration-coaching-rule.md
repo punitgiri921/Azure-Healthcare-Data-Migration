@@ -862,34 +862,16 @@ The project is considered successful when I can **build, troubleshoot, explain, 
 
 ---
 
-# 30. HTML LEARNING TRACKER & GIT REPOSITORY RULES (LOCAL-ONLY TRACKING PATTERN)
+# 30. HTML LEARNING TRACKER & WORKSPACE RETENTION RULES
 
-To ensure the remote GitHub repository remains clean of bulky HTML documents while preserving full Git version history and diff tracking on the local machine, strictly adhere to the **Local-Only Branch Pattern (Pattern 1)**:
+### Rule 30.1: Permanent Local Presence of HTML Trackers
+* **Always Keep HTML Files on Disk**: `index.html` and `migration_learning_tracker.html` MUST ALWAYS remain physically present in the project root directory on the local machine so the user can double-click and open the interactive dashboards in any web browser at all times.
+* **No Branch Switching Purges**: NEVER switch branches to `local-tracker` during routine work. In Git, switching from a branch where files are tracked (`local-tracker`) back to a branch where they are untracked (`main`) causes Git to automatically delete them from the user's hard drive.
+* **`.gitignore` Protection on `main`**: `*.html` is strictly ignored in `.gitignore`. Because of this, Git on `main` completely ignores `index.html` and `migration_learning_tracker.html`. You can run `git add .`, `git commit`, and `git push origin main` safely—the HTML files stay on your disk and will NEVER be pushed to GitHub.
 
-### Rule 30.1: Day-to-Day Development on `main` Branch
-* **Stay on `main` for all regular development**: ADF JSON, SQL scripts, PySpark data flows, DAX/Power BI, Markdown documentation, and Sentinel Agent code.
-* **`.gitignore` Enforcement on `main`**: Ensure `*.html` is strictly ignored in `.gitignore` on the `main` branch.
-* **Pushing Code to GitHub**:
+### Rule 30.2: Pushing Code to GitHub
+* When pushing code, ADF pipelines, SQL, or Markdown documentation to GitHub:
   ```bash
-  # Whenever pushing code, ADF pipelines, or SQL to GitHub:
   git push origin main
   # ➔ Only code, ADF, SQL, and Markdown will be pushed. Zero HTML files will go to GitHub!
   ```
-
-### Rule 30.2: Saving Snapshots / Tracking Changes to HTML Locally
-* **Local-Only Branch (`local-tracker`)**: The branch `local-tracker` exists exclusively on the local machine and must **NEVER be pushed to GitHub** (`git push origin local-tracker` is strictly forbidden).
-* **Workflow to commit HTML tracker updates**:
-  Whenever updates are made to `index.html` or `migration_learning_tracker.html`, save the checkpoint to the local branch:
-  ```bash
-  # 1. Switch to your local tracker branch
-  git checkout local-tracker
-
-  # 2. Commit your HTML updates
-  git add index.html migration_learning_tracker.html
-  git commit -m "docs(tracker): update autonomous sentinel agent section"
-
-  # 3. Switch back to main
-  git checkout main
-  ```
-* **Seamless Branch Switching**: Because the physical HTML files on disk are identical when clean, switching between `local-tracker` and `main` produces zero overwrite errors.
-
