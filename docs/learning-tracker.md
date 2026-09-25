@@ -719,6 +719,53 @@ The automated evaluation suite (`tests/test_sentinel_agent.py`) achieves 100% te
 4. **Step 4: Result (Zero Production Risk)**:
    All 4 tests in the test suite pass with 100% reliability, while your actual Azure Lakehouse (`sthealthcarelake01`, Bronze, Silver, Gold) remains completely safe, green, and intact!
 
+---
+
+### 11.6 Production Operational Patterns: How the Sentinel Agent Runs Automatically
+
+In enterprise operations, engineers never log in to execute manual python commands after every pipeline run. Instead, the Sentinel Agent operates autonomously in the background through one of three production architecture patterns:
+
+```mermaid
+flowchart TD
+    subgraph PatternA ["Pattern A: Event-Driven Push (Enterprise Gold Standard)"]
+        ADF_A["Azure Data Factory<br/>PL_Master_Healthcare_Pipeline"] -->|Pipeline Run Failed| EG["Azure Event Grid<br/>System Topic (Microsoft.DataFactory)"]
+        EG -->|Instant Push Webhook| AF["Azure Function App<br/>(Serverless Python 3.11/3.12)"]
+        AF -->|Invocates in 3 seconds| AI_A["Sentinel Agent Core<br/>(GPT-5-mini Reasoning)"]
+        AI_A -->|Idempotent Remediation| Fix_A["Heal Watermark / Quarantine / Rerun"]
+    end
+
+    subgraph PatternB ["Pattern B: Scheduled Watchdog Daemon (Periodic Poller)"]
+        Cron["Task Scheduler / Cron<br/>(Every 30 mins)"] -->|CLI Execution| Py_B["python sentinel_agent.py --monitor"]
+        Py_B -->|Polls ADF REST API| Query_B{"Any Runs Failed?"}
+        Query_B -->|No Failures| Sleep["Sleeps until next schedule (0 Cost)"]
+        Query_B -->|Failure Detected| AI_B["Sentinel Agent Core<br/>(GPT-5-mini Reasoning)"]
+    end
+
+    subgraph PatternC ["Pattern C: ADF Canvas Failure Hook (Orchestrator Callback)"]
+        ADF_C["ADF Master Pipeline"] -->|Red 'Upon Failure' Arrow| WebAct["ADF Web Activity<br/>(HTTP POST to Agent Webhook)"]
+        WebAct -->|Passes Run ID & Error JSON| AI_C["Sentinel Agent Core<br/>(GPT-5-mini Reasoning)"]
+    end
+```
+
+#### Detailed Comparison & Requirements Matrix:
+
+| Operational Dimension | Pattern A: Event-Driven (Event Grid + Azure Function) | Pattern B: Scheduled Daemon (Task Scheduler / Cron) | Pattern C: ADF "Upon Failure" Callback |
+| :--- | :--- | :--- | :--- |
+| **Trigger Mechanism** | Reactive push notification from Azure Event Grid on failure event. | Proactive time-based polling (e.g. every 30 mins or post-ETL cron). | Pipeline canvas callback activity attached to failure branch. |
+| **Response Latency** | **Instant** (~3 to 5 seconds after failure). | **Periodic** (0 to 30 minutes depending on interval). | **Instant** (Immediately after activity aborts). |
+| **Do you need your laptop open?** | ❌ **NO.** Runs 100% serverless in Azure cloud 24/7. Your laptop can be completely off. | ✔️ **YES** (if running locally). ❌ **NO** (if hosted on a cloud VM/container). | ❌ **NO.** Hosted in Azure cloud 24/7. |
+| **Idle Compute Cost** | **$0.00 / hour** (Consumption plan charges only when triggered). | $0.00 if run locally; small VM cost if hosted on persistent cloud VM. | **$0.00 / hour** (Billed only per webhook HTTP call). |
+| **Azure Services Required** | • Azure Event Grid System Topic<br>• Azure Function App (Linux Consumption)<br>• Managed Identity (Data Factory Contributor) | • Local Python environment (`.venv`) OR Azure Container App Job<br>• Azure CLI credentials | • ADF Web Activity<br>• Azure Function / Container endpoint with public or VNet URL |
+| **Best Used For** | Mission-critical enterprise 24/7 autonomous operations. | Development, staging environments, and daily batch windows. | Simple, single-pipeline architectures without multi-pipeline monitoring. |
+
+#### ⚠️ The Hybrid Boundary Nuance: What happens to on-prem SQL Server if the laptop is shut down?
+* In this portfolio setup, the **hospital EMR SQL Server** and the **SHIR Gateway** (`shir-onprem-gateway-01`) physically run on your local machine (`DESKTOP-H5RKB3H`).
+* If your laptop is powered OFF:
+  1. The **Azure Cloud** (ADF, ADLS Gen2, Synapse, Azure OpenAI) stays 100% online.
+  2. However, ADF cannot extract new patient rows from your laptop because the SHIR gateway is offline while the machine is off.
+* **How Enterprise Hospitals Handle This**:
+  In a production enterprise, the hospital database runs on a dedicated, physical on-premises server rack or VMware cluster with 99.99% uptime, and the SHIR gateway runs as a Windows service on that dedicated host. Therefore, no engineer's personal laptop ever needs to be open!
+
 
 
 
