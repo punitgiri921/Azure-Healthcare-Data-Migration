@@ -83,23 +83,26 @@ def get_openai_client():
 # Proactively polls Azure Data Factory for pipeline execution status,
 # activity failures, and error stack traces.
 
+from azure.mgmt.datafactory.models import RunFilterParameters, RunQueryFilter
+
 def check_pipeline_health(pipeline_name=None, lookback_hours=24):
     """
     Polls Azure Data Factory for recent pipeline runs and extracts detailed telemetry.
     Returns: List of pipeline run objects with status and error metadata.
     """
     client = get_adf_client()
-    end_time = datetime.now(timezone.utc)
+    end_time = datetime.now(timezone.utc) + timedelta(minutes=15)
     start_time = end_time - timedelta(hours=lookback_hours)
 
-    filter_params = {
-        "last_updated_after": start_time,
-        "last_updated_before": end_time,
-    }
+    filters = []
     if pipeline_name:
-        filter_params["filters"] = [
-            {"operand": "PipelineName", "operator": "Equals", "values": [pipeline_name]}
-        ]
+        filters.append(RunQueryFilter(operand="PipelineName", operator="Equals", values=[pipeline_name]))
+
+    filter_params = RunFilterParameters(
+        last_updated_after=start_time,
+        last_updated_before=end_time,
+        filters=filters if filters else None
+    )
 
     runs = client.pipeline_runs.query_by_factory(
         resource_group_name=AZURE_RESOURCE_GROUP,
@@ -108,12 +111,18 @@ def check_pipeline_health(pipeline_name=None, lookback_hours=24):
     )
 
     results = []
-    for run in runs.value:
+    # Sort runs so most recent is first
+    sorted_runs = sorted(runs.value, key=lambda r: r.last_updated or r.run_start, reverse=True)
+    for run in sorted_runs:
+        invoker_name = "Manual"
+        if hasattr(run, "invoked_by") and run.invoked_by:
+            invoker_name = getattr(run.invoked_by, "name", str(run.invoked_by))
+
         run_data = {
             "run_id": run.run_id,
             "pipeline_name": run.pipeline_name,
             "status": run.status,
-            "invoker": run.invoker.name if run.invoker else "Manual",
+            "invoker": invoker_name,
             "start_time": run.run_start.isoformat() if run.run_start else None,
             "end_time": run.run_end.isoformat() if run.run_end else None,
             "duration_ms": run.duration_in_ms,
@@ -126,16 +135,17 @@ def check_pipeline_health(pipeline_name=None, lookback_hours=24):
                 resource_group_name=AZURE_RESOURCE_GROUP,
                 factory_name=AZURE_DATA_FACTORY_NAME,
                 run_id=run.run_id,
-                filter_parameters={"last_updated_after": start_time, "last_updated_before": end_time}
+                filter_parameters=filter_params
             )
             failed_activities = []
             for act in activities.value:
                 if act.status == "Failed":
+                    act_error = act.error if isinstance(act.error, dict) else (act.error.as_dict() if hasattr(act.error, "as_dict") else {})
                     failed_activities.append({
                         "activity_name": act.activity_name,
                         "activity_type": act.activity_type,
-                        "error_code": act.error.get("errorCode", "Unknown") if act.error else "Unknown",
-                        "error_message": act.error.get("message", "No message") if act.error else "No message",
+                        "error_code": act_error.get("errorCode", "Unknown") if isinstance(act_error, dict) else "Unknown",
+                        "error_message": act_error.get("message", str(act_error)) if isinstance(act_error, dict) else str(act_error),
                         "duration_ms": act.duration_in_ms
                     })
             run_data["failed_activities"] = failed_activities

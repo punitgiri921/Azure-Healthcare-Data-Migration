@@ -202,5 +202,198 @@
       }
     ],
     "model_used": "gpt-5-mini"
+  },
+  {
+    "timestamp": "2026-09-25T14:38:53.915915+00:00",
+    "incident_id": "INC-1790347133",
+    "raw_telemetry": {
+      "pipeline_name": "PL_Test_Failure",
+      "run_id": "ca79c034-0b83-4821-bca2-ffc7933c77f6",
+      "status": "Failed",
+      "failed_activities": [
+        {
+          "activity_name": "LKP_Simulate_Fail",
+          "activity_type": "Lookup",
+          "error_code": "SQL_ERROR",
+          "error_message": "Invalid object name 'FakeTableNonExistent_12345'",
+          "duration_ms": 27000
+        }
+      ]
+    },
+    "ai_diagnosis": {
+      "root_cause_category": "SPARK_TRANSFORMATION_ERROR",
+      "severity": "HIGH",
+      "technical_root_cause": "The ADF Lookup activity 'LKP_Simulate_Fail' failed with a SQL_ERROR: 'Invalid object name ''FakeTableNonExistent_12345'''. This indicates the pipeline attempted to query a table that does not exist in the target database (likely due to a misconfiguration: wrong database/schema, a renamed/missing source table, or deployment drift). There is no evidence in the telemetry of data exfiltration or access to protected health information (the error references a non-existent object), so HIPAA/PII leakage is not indicated by this failure alone.",
+      "affected_medallion_layer": "Bronze"
+    },
+    "ai_decision": {
+      "policy_selected": "NOTIFY_AND_HALT",
+      "rationale": "The failure is caused by a missing source object (invalid table name). Auto-remediation (e.g., auto-creating a table) risks creating incorrect or empty data and could mask upstream data integrity issues. Therefore the safest deterministic action is to stop automated progression, create an auditable log, and notify data owners/operators to validate the correct table name, connection, and schema before re-running. After human confirmation and fix, a controlled re-run will be performed.",
+      "remediation_actions": [
+        {
+          "action_type": "LOG_AUDIT",
+          "target": "Pipeline PL_Test_Failure run ca79c034-0b83-4821-bca2-ffc7933c77f6",
+          "command_or_payload": "{\"level\":\"ERROR\",\"message\":\"Lookup activity LKP_Simulate_Fail failed: Invalid object name 'FakeTableNonExistent_12345'. Action: notify data owners, verify connection string/database/schema, and do not auto-create table.\",\"pipeline\":\"PL_Test_Failure\",\"run_id\":\"ca79c034-0b83-4821-bca2-ffc7933c77f6\",\"timestamp\":\"<UTC_NOW>\"}"
+        },
+        {
+          "action_type": "ADF_RERUN_ACTIVITY",
+          "target": "LKP_Simulate_Fail (pipeline: PL_Test_Failure)",
+          "command_or_payload": "az datafactory pipeline create-run --resource-group <RESOURCE_GROUP> --factory-name <DATAFACTORY_NAME> --name PL_Test_Failure --parameters '{}'   # Run this after confirming table existence and fixing connection/schema"
+        }
+      ],
+      "verification_check": "1) Confirm the source table exists: SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'FakeTableNonExistent_12345' AND TABLE_SCHEMA = '<expected_schema>'; 2) After remediation, trigger the pipeline run and verify the new run completes with status = 'Succeeded' and failed_activities = [] (no failed activities). Monitoring query: check ADF pipeline run status for pipeline name PL_Test_Failure returns a successful run and the Lookup activity LKP_Simulate_Fail returned expected rows/metadata."
+    },
+    "execution_results": [
+      {
+        "status": "SUCCESS",
+        "action": "LOG_AUDIT",
+        "detail": "Logged audit"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "ADF_RERUN_ACTIVITY",
+        "detail": "Restarted LKP_Simulate_Fail (pipeline: PL_Test_Failure)"
+      }
+    ],
+    "model_used": "gpt-5-mini"
+  },
+  {
+    "timestamp": "2026-09-25T14:44:15.926734+00:00",
+    "incident_id": "INC-1790347455",
+    "raw_telemetry": {
+      "pipeline_name": "PL_Master_Healthcare_Pipeline",
+      "run_id": "sim-run-849204-wm-fail",
+      "status": "Failed",
+      "failed_activities": [
+        {
+          "activity_name": "EP_Run_Bronze_Ingestion",
+          "activity_type": "ExecutePipeline",
+          "error_code": "2100",
+          "error_message": "Failure occurred while updating etl_watermark_control. Transaction rolled back due to dead-letter socket timeout. 1,420 delta records landed in bronze/patients/2026/09/24/ but control table last_watermark remains at 2026-09-23T00:00:00. Next scheduled run will cause duplicate primary key collisions in Silver.",
+          "duration_ms": 142000
+        }
+      ],
+      "watermark_state": {
+        "table_name": "patients",
+        "control_table_watermark": "2026-09-23T00:00:00Z",
+        "latest_bronze_file_max_ts": "2026-09-24T18:30:00Z",
+        "delta_records_accumulated": 1420
+      }
+    },
+    "ai_diagnosis": {
+      "root_cause_category": "WATERMARK_DESYNC",
+      "severity": "HIGH",
+      "technical_root_cause": "Bronze storage writes for patients (partition 2026-09-24) succeeded and 1,420 delta records landed, but the control-table update to etl_watermark_control rolled back due to a 'dead-letter socket timeout' when writing to the metadata store. The metadata watermark therefore remains at 2026-09-23T00:00:00Z while bronze contains newer records (max ts 2026-09-24T18:30:00Z). This desync will cause the next scheduled run to reprocess the same delta and produce duplicate primary-key collisions in Silver (data integrity failures). The root cause appears to be a transient connectivity/timeout to the metadata database during commit, not a data leakage event.",
+      "affected_medallion_layer": "Silver"
+    },
+    "ai_decision": {
+      "policy_selected": "AUTO_HEAL_WATERMARK",
+      "rationale": "Idempotently bringing the control-table watermark up to the actual max timestamp observed in Bronze prevents automatic re-ingestion of the same delta and avoids duplicate primary-key collisions in Silver. The action is safe if performed only after verifying the bronze files are intact and the bronze count matches telemetry. The update is done with a conditional (WHERE last_watermark < new_value) to ensure idempotency and guard against race conditions. An audit log entry and a controlled rerun of the Silver upsert (merge/dedup) will ensure downstream consistency.",
+      "remediation_actions": [
+        {
+          "action_type": "EXECUTE_SQL",
+          "target": "etl_watermark_control (metadata DB)",
+          "command_or_payload": "BEGIN TRANSACTION; -- idempotent validation and update\n-- verify bronze max timestamp and record count\nDECLARE @expected_max_ts datetimeoffset = '2026-09-24T18:30:00Z';\nDECLARE @bronze_count int = (SELECT COUNT(1) FROM bronze.patients WHERE partition_date = '2026-09-24');\nIF @bronze_count = 1420\nBEGIN\n  -- update watermark only if behind\n  UPDATE etl_watermark_control\n  SET last_watermark = '2026-09-24T18:30:00Z', updated_at = SYSUTCDATETIME()\n  WHERE table_name = 'patients' AND last_watermark < '2026-09-24T18:30:00Z';\nEND\nCOMMIT;"
+        },
+        {
+          "action_type": "LOG_AUDIT",
+          "target": "etl_remediation_audit (metadata DB)",
+          "command_or_payload": "INSERT INTO etl_remediation_audit(run_id, table_name, action, actor, details, created_at)\nVALUES('sim-run-849204-wm-fail','patients','AUTO_HEAL_WATERMARK','sentinel-ai','Updated watermark to 2026-09-24T18:30:00Z after bronze verification. Reason: control-table transaction rollback due to socket timeout.', SYSUTCDATETIME());"
+        },
+        {
+          "action_type": "ADF_RERUN_ACTIVITY",
+          "target": "PL_Run_Silver_Upsert (ADF pipeline/activity)",
+          "command_or_payload": "{\"pipeline\": \"PL_Run_Silver_Upsert\", \"parameters\": {\"table\": \"patients\", \"partition_date\": \"2026-09-24\", \"mode\": \"merge_dedup\"}, \"trigger_source_run_id\": \"sim-run-849204-wm-fail\", \"note\": \"safe rerun after watermark repair; use MERGE to avoid duplicates\" }"
+        }
+      ],
+      "verification_check": "1) SELECT last_watermark FROM etl_watermark_control WHERE table_name = 'patients'; -- should return 2026-09-24T18:30:00Z\n2) SELECT COUNT(1) FROM bronze.patients WHERE partition_date = '2026-09-24'; -- should return 1420\n3) Confirm ADF run for PL_Run_Silver_Upsert (partition 2026-09-24) completes with status = 'Succeeded' and pipeline logs show MERGE/dedup succeeded with 0 primary-key collision errors."
+    },
+    "execution_results": [
+      {
+        "status": "SUCCESS",
+        "action": "EXECUTE_SQL",
+        "detail": "Applied SQL to etl_watermark_control (metadata DB)"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "LOG_AUDIT",
+        "detail": "Logged audit"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "ADF_RERUN_ACTIVITY",
+        "detail": "Restarted PL_Run_Silver_Upsert (ADF pipeline/activity)"
+      }
+    ],
+    "model_used": "gpt-5-mini"
+  },
+  {
+    "timestamp": "2026-09-25T14:57:52.083692+00:00",
+    "incident_id": "INC-1790348272",
+    "raw_telemetry": {
+      "run_id": "2331a775-b8f1-11f1-bdfc-086ac5edd464",
+      "pipeline_name": "PL_Test_Failure",
+      "status": "Failed",
+      "invoker": "Manual",
+      "start_time": "2026-09-25T14:55:26.540002+00:00",
+      "end_time": "2026-09-25T14:55:52.631259+00:00",
+      "duration_ms": 26091,
+      "message": "Operation on target LKP_Simulate_Fails failed: Failure happened on 'Source' side. 'Type=Microsoft.Data.SqlClient.SqlException,Message=Invalid object name 'FakeTableNonExistent_12345'.,Source=Framework Microsoft SqlClient Data Provider,'",
+      "failed_activities": [
+        {
+          "activity_name": "LKP_Simulate_Fails",
+          "activity_type": "Lookup",
+          "error_code": "2100",
+          "error_message": "Failure happened on 'Source' side. 'Type=Microsoft.Data.SqlClient.SqlException,Message=Invalid object name 'FakeTableNonExistent_12345'.,Source=Framework Microsoft SqlClient Data Provider,'",
+          "duration_ms": 17137
+        }
+      ]
+    },
+    "ai_diagnosis": {
+      "root_cause_category": "SPARK_TRANSFORMATION_ERROR",
+      "severity": "HIGH",
+      "technical_root_cause": "The Lookup activity 'LKP_Simulate_Fails' attempted a SQL lookup against object 'FakeTableNonExistent_12345' in the source SQL database. The source returned a SqlException: \"Invalid object name 'FakeTableNonExistent_12345'\" indicating the referenced table/view does not exist (schema/name mismatch or missing deployment). This is a source-side metadata/availability failure causing the lookup to fail immediately (no network timeout or gateway error).",
+      "affected_medallion_layer": "Bronze"
+    },
+    "ai_decision": {
+      "policy_selected": "NOTIFY_AND_HALT",
+      "rationale": "Automatic creation of missing source objects risks masking upstream data/modeling errors and could introduce PHI handling inconsistencies. The safest idempotent action is to halt automated remediation, capture audit evidence, surface the exact missing object to operators, and then retry the activity after an explicit human validation/fix. This prevents accidental creation of placeholder tables that could bypass data contract checks while allowing a controlled retry once the source object is validated or deployed.",
+      "remediation_actions": [
+        {
+          "action_type": "LOG_AUDIT",
+          "target": "Pipeline run 2331a775-b8f1-11f1-bdfc-086ac5edd464 / activity LKP_Simulate_Fails",
+          "command_or_payload": "Write audit entry: { \"run_id\":\"2331a775-b8f1-11f1-bdfc-086ac5edd464\", \"pipeline\":\"PL_Test_Failure\", \"activity\":\"LKP_Simulate_Fails\", \"error_code\":\"2100\", \"error_message\":\"Invalid object name 'FakeTableNonExistent_12345'\", \"timestamp\":\"2026-09-25T14:55:52.631259+00:00\" }"
+        },
+        {
+          "action_type": "EXECUTE_SQL",
+          "target": "Source SQL database (check existence)",
+          "command_or_payload": "SELECT OBJECT_ID('dbo.FakeTableNonExistent_12345','U') AS object_id;"
+        },
+        {
+          "action_type": "ADF_RERUN_ACTIVITY",
+          "target": "PL_Test_Failure -> activity LKP_Simulate_Fails",
+          "command_or_payload": "Invoke ADF rerun after fix: POST https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.DataFactory/factories/{factory}/pipelines/PL_Test_Failure/createRun?api-version=2018-06-01 with body { \"referenceRunId\":\"2331a775-b8f1-11f1-bdfc-086ac5edd464\", \"isRecovery\": true, \"activityName\": \"LKP_Simulate_Fails\" } (execute only after source existence validated)"
+        }
+      ],
+      "verification_check": "1) Run the existence check: SELECT OBJECT_ID('dbo.FakeTableNonExistent_12345','U') AS object_id; \u2014 success is a non-NULL object_id. 2) After human remediation and ADF_RERUN_ACTIVITY, confirm pipeline run returns status 'Succeeded' with 0 failed activities and the activity LKP_Simulate_Fails completes normally. 3) Confirm audit log entry for the original failure is present for traceability."
+    },
+    "execution_results": [
+      {
+        "status": "SUCCESS",
+        "action": "LOG_AUDIT",
+        "detail": "Logged audit"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "EXECUTE_SQL",
+        "detail": "Applied SQL to Source SQL database (check existence)"
+      },
+      {
+        "status": "SUCCESS",
+        "action": "ADF_RERUN_ACTIVITY",
+        "detail": "Restarted PL_Test_Failure -> activity LKP_Simulate_Fails"
+      }
+    ],
+    "model_used": "gpt-5-mini"
   }
 ]
