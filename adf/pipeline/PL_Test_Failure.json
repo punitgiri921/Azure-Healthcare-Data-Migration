@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "LKP_Simulate_Fail",
+				"name": "LKP_Simulate_Fails",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
