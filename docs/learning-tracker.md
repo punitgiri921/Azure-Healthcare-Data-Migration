@@ -788,6 +788,49 @@ The difference is best understood through the **Smoke Alarm vs. Autonomous Firef
 
 ---
 
+#### 🔀 Two Simultaneous Actions in Parallel: Dual-Track Observability Architecture
+
+When pipeline `PL_Test_Failure` failed, Azure Monitor's Action Group (`ag-sentinel-ai`) did not just trigger one response—it triggered **two decoupled actions in parallel**:
+
+```mermaid
+flowchart TD
+    ADF["Azure Data Factory<br/><b>PL_Test_Failure Fails</b> (Value = 1)"] --> MetricAlert["Azure Monitor Metric Alert<br/><b>alert-adf-pipeline-failures</b> (Threshold > 0)"]
+    MetricAlert --> ActionGroup["Azure Action Group<br/><b>ag-sentinel-ai</b>"]
+    
+    subgraph Track1 ["Track 1: Human Interactive Advisory (Microsoft Built-In)"]
+        ActionGroup -->|Action 1: Email Alert| Email["Official Microsoft Alert Email<br/>(Sent to punitgiri74@gmail.com)"]
+        Email -->|User Clicks 'Investigate with agent >'| CopilotChat["Azure Copilot Observability Agent<br/>(In-Portal Interactive Chat UI)<br/>• Analyzes telemetry & IR metrics<br/>• Explains failure & suggests next steps<br/>• <i>Human reads advice & takes manual action</i>"]
+    end
+
+    subgraph Track2 ["Track 2: Autonomous Closed-Loop Self-Healing (Our Custom Engine)"]
+        ActionGroup -->|Action 2: Webhook Push| Webhook["Serverless Webhook Trigger<br/><code>/api/sentinel_trigger</code>"]
+        Webhook --> FunctionApp["Azure Function App<br/><b>func-sentinel-lakehouse-01</b>"]
+        FunctionApp --> CustomAgent["Sentinel AI Agent Core<br/><code>sentinel_agent.py</code> + GPT-5-mini<br/>• Extracts child activity error JSON<br/>• Generates safe, idempotent SQL<br/>• Self-heals watermark table in Delta Lake<br/>• Logs HIPAA § 164.312 immutable audit"]
+    end
+```
+
+---
+
+#### ⚖️ In-Depth Technical Comparison: Azure Copilot Observability Agent vs. Custom Sentinel Agent
+
+| Capability / Dimension | Azure Monitor + Copilot Observability Agent (Microsoft Built-In) | Custom Sentinel AI Agent (`sentinel_agent.py` / Azure Function) |
+| :--- | :--- | :--- |
+| **Detect failed pipeline** | ✅ Yes (Native Azure Monitor metric evaluation) | ✅ Yes (Reads ADF REST API telemetry & alert payload) |
+| **Send email alert** | ✅ Yes (Dispatched via Action Group `ag-sentinel-ai`) | ℹ️ Handled by Action Group (Agent focuses on remediation) |
+| **Investigate failure** | ✅ Yes (Interactive portal chat with Azure Copilot) | ✅ Yes (Autonomous, programmatic JSON analysis) |
+| **Analyze telemetry** | ✅ Yes (Examines ADF metrics and IR queue lengths) | ✅ Yes (Parses nested activity error payloads & stack traces) |
+| **Explain probable cause** | ✅ Yes (Interactive LLM summary in Azure Portal) | ✅ Yes (Structured JSON schema classification) |
+| **Recommend next steps** | ✅ Yes (Advisory text for human operators) | ✅ Yes (Produces concrete execution plans) |
+| **Custom business logic** | ⚠️ Limited / generic cloud instructions | ✅ 100% custom to our Lakehouse & medallion tables |
+| **Execute custom SQL remediation** | ❌ No (Microsoft will never modify your tables) | ✅ **Designed for this** (Atomic SQL updates to watermark control) |
+| **Move / Quarantine Azure Blobs** | ❌ No (Read-only advisory) | ✅ **Designed for this** (Quarantines toxic/unmasked HIPAA PII) |
+| **Custom ADF rerun logic** | ⚠️ Recommends rerunning via UI | ✅ **Designed for this** (Programmatic REST API pipeline rerun) |
+| **Compliance Audit Trail** | ℹ️ Standard Azure Portal Activity Log (90-day retention) | ✅ **HIPAA § 164.312 immutable log** (`docs/sentinel_incident_log.json`) |
+| **Code Ownership & Customization** | ❌ Closed Microsoft SaaS feature | ✅ **Your own Python code** (`scripts/sentinel_agent.py`) |
+
+---
+
+
 #### 🧩 Component Purpose & Architectural Mapping
 
 Every component in our cloud automation serves a specific, decoupled role:
