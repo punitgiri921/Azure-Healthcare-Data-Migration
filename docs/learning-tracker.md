@@ -4,6 +4,95 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 
 ---
 
+<a id="table-of-contents"></a>
+## 📑 Table of Contents
+
+- [**1. Project Health & Progress Matrix**](#1-project-health-progress-matrix)
+- [**2. Final "AHA!" Breakthrough Principles (Rule 26)**](#2-final-aha-breakthrough-principles-rule-26)
+- [**3. "Why We Built This" Enterprise Architecture Matrix (Rule 18 & 9)**](#3-why-we-built-this-enterprise-architecture-matrix-rule-18-9)
+- [**3.1 Two-Stage Implementation Framework: Static Fundamentals vs. Parameterized Automation**](#31-two-stage-implementation-framework-static-fundamentals-vs-parameterized-automation)
+  - [A. Stage A: Static / Individual Table (Crawl Stage)](#a-stage-a-static-individual-table-crawl-stage)
+  - [B. Stage B: Dynamic & Parameterized Framework (Run Stage)](#b-stage-b-dynamic-parameterized-framework-run-stage)
+  - [C. ADF Components & Where Masking & Calculated Columns Happen](#c-adf-components-where-masking-calculated-columns-happen)
+- [**4. Concept Disambiguation Matrix (Rule 11)**](#4-concept-disambiguation-matrix-rule-11)
+- [**5. Architectural Concepts Ledger (CL) — 3-Tier Depth (Rule 5)**](#5-architectural-concepts-ledger-cl-3-tier-depth-rule-5)
+  - [\[CL-01\] ADLS Gen2 Hierarchical Namespace (HNS) vs Flat Blob Storage](#cl-01-adls-gen2-hierarchical-namespace-hns-vs-flat-blob-storage)
+  - [\[CL-02\] Zero-Secret Architecture via Azure System-Assigned Managed Identity (SMI)](#cl-02-zero-secret-architecture-via-azure-system-assigned-managed-identity-smi)
+  - [\[CL-03\] Azure RBAC Data Plane vs Management Plane & Least Privilege](#cl-03-azure-rbac-data-plane-vs-management-plane-least-privilege)
+  - [\[CL-04\] ADF Git Integration & Multi-Branch Enterprise CI/CD](#cl-04-adf-git-integration-multi-branch-enterprise-cicd)
+  - [\[CL-05\] High-Watermark Metadata Pattern & State Management](#cl-05-high-watermark-metadata-pattern-state-management)
+  - [\[CL-06\] Hybrid Cloud Connectivity via Self-Hosted Integration Runtime (SHIR)](#cl-06-hybrid-cloud-connectivity-via-self-hosted-integration-runtime-shir)
+  - [\[CL-07\] Dynamic SQL Expressions & Parameterized Watermark Injection](#cl-07-dynamic-sql-expressions-parameterized-watermark-injection)
+  - [\[CL-08\] Atomic Watermark Advancement via Stored Procedures & Transaction Scope](#cl-08-atomic-watermark-advancement-via-stored-procedures-transaction-scope)
+  - [\[CL-09\] Bronze Lakehouse Storage & Parquet Snappy Compression](#cl-09-bronze-lakehouse-storage-parquet-snappy-compression)
+- [**6. Technical Question & Defense Ledger (TQ) — Evaluated Rubric (Rule 14 & 15)**](#6-technical-question-defense-ledger-tq-evaluated-rubric-rule-14-15)
+  - [\[TQ-01\] Why use System-Assigned Managed Identity over Storage Account Access Keys or SAS tokens in enterprise healthcare migrations?](#tq-01-why-use-system-assigned-managed-identity-over-storage-account-access-keys-or-sas-tokens-in-enterprise-healthcare-migrations)
+  - [\[TQ-02\] Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouse architectures instead of standard Blob Storage?](#tq-02-why-is-hierarchical-namespace-hns-mandatory-for-adls-gen2-in-medallion-lakehouse-architectures-instead-of-standard-blob-storage)
+  - [\[TQ-03\] How does a Self-Hosted Integration Runtime (SHIR) securely bridge on-premise databases without opening inbound firewall ports?](#tq-03-how-does-a-self-hosted-integration-runtime-shir-securely-bridge-on-premise-databases-without-opening-inbound-firewall-ports)
+  - [\[TQ-04\] How do you prevent data loss or duplicate ingestion if an incremental pipeline fails halfway through a run?](#tq-04-how-do-you-prevent-data-loss-or-duplicate-ingestion-if-an-incremental-pipeline-fails-halfway-through-a-run)
+  - [\[TQ-05\] How does the upper watermark boundary enforce snapshot isolation if new rows arrive during an active Copy Activity?](#tq-05-how-does-the-upper-watermark-boundary-enforce-snapshot-isolation-if-new-rows-arrive-during-an-active-copy-activity)
+  - [\[TQ-06\] Where does compute and data serialization occur during on-premise to cloud data ingestion via SHIR?](#tq-06-where-does-compute-and-data-serialization-occur-during-on-premise-to-cloud-data-ingestion-via-shir)
+- [**7. Failure Engineering & Resilience Scenarios (Rule 19)**](#7-failure-engineering-resilience-scenarios-rule-19)
+- [**8. Lab Evidence & Configuration Artifacts**](#8-lab-evidence-configuration-artifacts)
+  - [Phase 1 Provisioned Resources (Active Cloud Topology)](#phase-1-provisioned-resources-active-cloud-topology)
+  - [Phase 2 Provisioned Local Source Artifacts](#phase-2-provisioned-local-source-artifacts)
+  - [Phase 3 Provisioned Lakehouse Ingestion Artifacts](#phase-3-provisioned-lakehouse-ingestion-artifacts)
+- [**9. Azure Synapse Serverless SQL Serving Layer & Master Script Breakdown (Phase 5)**](#9-azure-synapse-serverless-sql-serving-layer-master-script-breakdown-phase-5)
+  - [9.1 Why Did We Build Azure Synapse Serverless SQL? (The Business & Technical Purpose)](#91-why-did-we-build-azure-synapse-serverless-sql-the-business-technical-purpose)
+  - [9.2 Complete Script Section: T-SQL Master Setup & Deep Block-by-Block Explanation](#92-complete-script-section-t-sql-master-setup-deep-block-by-block-explanation)
+  - [9.3 In-Depth Block-by-Block Technical Explanation](#93-in-depth-block-by-block-technical-explanation)
+    - [Block 1: Database Creation & Collation Optimization](#block-1-database-creation-collation-optimization)
+    - [Block 2: Medallion Schema Namespace (`gold`)](#block-2-medallion-schema-namespace-gold)
+    - [Block 3: External Data Source Definition (`gold_lakehouse`)](#block-3-external-data-source-definition-goldlakehouse)
+    - [Blocks 4 Through 8: Serving Views via `OPENROWSET`](#blocks-4-through-8-serving-views-via-openrowset)
+    - [Physical Storage vs. Serverless Ephemeral Query Execution (Key Engineering Mental Model)](#physical-storage-vs-serverless-ephemeral-query-execution-key-engineering-mental-model)
+  - [9.4 Verified Master Orchestration Run Evidence](#94-verified-master-orchestration-run-evidence)
+- [**10. Phase 6: Power BI Semantic Modeling & Executive Clinical Reporting (Active)**](#10-phase-6-power-bi-semantic-modeling-executive-clinical-reporting-active)
+  - [10.1 Power BI Star Schema Model Architecture](#101-power-bi-star-schema-model-architecture)
+  - [10.2 Dedicated `_Measures` Table & Healthcare DAX KPIs](#102-dedicated-measures-table-healthcare-dax-kpis)
+  - [10.3 Power BI Project (PBIP) & Developer Mode Architecture](#103-power-bi-project-pbip-developer-mode-architecture)
+  - [10.4 Gotcha & Engineering Resolution: UTF-8 BOM Encoding in PBIR](#104-gotcha-engineering-resolution-utf-8-bom-encoding-in-pbir)
+- [**11. Phase 7: Autonomous Lakehouse Sentinel Agent (Self-Monitoring, GPT-5-mini Reasoning & Auto-Remediation)**](#11-phase-7-autonomous-lakehouse-sentinel-agent-self-monitoring-gpt-5-mini-reasoning-auto-remediation)
+  - [11.1 The Enterprise Problem: Why Deterministic Pipelines Are Not Enough](#111-the-enterprise-problem-why-deterministic-pipelines-are-not-enough)
+  - [11.2 The Sentinel Agent Architecture & Code Blocks (`scripts/sentinel_agent.py`)](#112-the-sentinel-agent-architecture-code-blocks-scriptssentinelagentpy)
+    - [Detailed Breakdown of Each Code Block:](#detailed-breakdown-of-each-code-block)
+  - [11.3 Verified Live Execution Telemetry (Watermark Desync Incident)](#113-verified-live-execution-telemetry-watermark-desync-incident)
+  - [11.4 The Flight Simulator Analogy: How We Test AI Agents Without Modifying Production](#114-the-flight-simulator-analogy-how-we-test-ai-agents-without-modifying-production)
+    - [The Intuition: Why Flight Simulators?](#the-intuition-why-flight-simulators)
+    - [The 7-Concept Architectural Mapping:](#the-7-concept-architectural-mapping)
+  - [11.5 How We Test the Agent (Zero Real Pipeline Modification)](#115-how-we-test-the-agent-zero-real-pipeline-modification)
+  - [11.6 Production Operational Patterns: How the Sentinel Agent Runs Automatically](#116-production-operational-patterns-how-the-sentinel-agent-runs-automatically)
+      - [Pattern A: Event-Driven Push (Enterprise Gold Standard)](#pattern-a-event-driven-push-enterprise-gold-standard)
+      - [Pattern B: Scheduled Watchdog Daemon (Periodic Poller)](#pattern-b-scheduled-watchdog-daemon-periodic-poller)
+      - [Pattern C: ADF Canvas Failure Hook (Orchestrator Callback)](#pattern-c-adf-canvas-failure-hook-orchestrator-callback)
+    - [Detailed Comparison & Requirements Matrix:](#detailed-comparison-requirements-matrix)
+    - [⚠️ The Hybrid Boundary Nuance: What happens to on-prem SQL Server if the laptop is shut down?](#the-hybrid-boundary-nuance-what-happens-to-on-prem-sql-server-if-the-laptop-is-shut-down)
+  - [11.7 Live Cloud Operational Implementation: Azure Monitor Alert, Action Group & Serverless Function](#117-live-cloud-operational-implementation-azure-monitor-alert-action-group-serverless-function)
+    - [❓ Critical Clarification: Why Not Just Use Simple Failure Alerts? What Is the Agent Actually Doing?](#critical-clarification-why-not-just-use-simple-failure-alerts-what-is-the-agent-actually-doing)
+    - [🔀 Two Simultaneous Actions in Parallel: Dual-Track Observability Architecture](#two-simultaneous-actions-in-parallel-dual-track-observability-architecture)
+    - [⚖️ In-Depth Technical Comparison: Azure Copilot Observability Agent vs. Custom Sentinel Agent](#in-depth-technical-comparison-azure-copilot-observability-agent-vs-custom-sentinel-agent)
+    - [🧩 Component Purpose & Architectural Mapping](#component-purpose-architectural-mapping)
+    - [🛠️ Step-by-Step Implementation Walkthrough](#step-by-step-implementation-walkthrough)
+      - [Step 1: Register Cloud Resource Providers](#step-1-register-cloud-resource-providers)
+      - [Step 2: Provision Dedicated Serverless Storage](#step-2-provision-dedicated-serverless-storage)
+      - [Step 3: Deploy the Serverless Function App](#step-3-deploy-the-serverless-function-app)
+      - [Step 4: Configure App Settings & Environment Secrets](#step-4-configure-app-settings-environment-secrets)
+      - [Step 5: Configure Azure Monitor Metric Alert Rule](#step-5-configure-azure-monitor-metric-alert-rule)
+      - [Step 6: Configure Action Group (`ag-sentinel-ai`)](#step-6-configure-action-group-ag-sentinel-ai)
+    - [🧪 Live Pipeline Failure Verification: What Happened During the Test](#live-pipeline-failure-verification-what-happened-during-the-test)
+    - [📸 Live Production Evidence & Verification Screenshots](#live-production-evidence-verification-screenshots)
+      - [1. Azure Portal: Metric Alert Fired on ADF Pipeline Failure](#1-azure-portal-metric-alert-fired-on-adf-pipeline-failure)
+      - [2. Microsoft Azure Notification: Incident Email Dispatched](#2-microsoft-azure-notification-incident-email-dispatched)
+    - [⏰ Real-World Case Study: Scheduled 2:00 AM Run & The "Triggered vs. Resolved" Lifecycle](#real-world-case-study-scheduled-200-am-run-the-triggered-vs-resolved-lifecycle)
+      - [1. The Incident: What Happened at 2:00 AM Automatically?](#1-the-incident-what-happened-at-200-am-automatically)
+      - [2. The Smoke Detector Analogy: Why Does It Show "Resolved" If The Pipeline Didn't Rerun?](#2-the-smoke-detector-analogy-why-does-it-show-resolved-if-the-pipeline-didnt-rerun)
+      - [3. Why Cloud Platforms Must Auto-Mitigate (Resetting the Alarm)](#3-why-cloud-platforms-must-auto-mitigate-resetting-the-alarm)
+    - [📸 Real-World Evidence: Automated 2:00 AM Triggered & Resolved Incident Mails](#real-world-evidence-automated-200-am-triggered-resolved-incident-mails)
+
+---
+
+
+<a id="1-project-health-progress-matrix"></a>
 ## 1. Project Health & Progress Matrix
 
 | Phase ID | Phase Name | Status | Tasks Complete | Phase Gate Stage (11 Steps) | Score |
@@ -21,8 +110,12 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 [All 6 Phases 100% Completed & Verified End-to-End] -> 10. PHASE COMPLETE
 ```
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="2-final-aha-breakthrough-principles-rule-26"></a>
 ## 2. Final "AHA!" Breakthrough Principles (Rule 26)
 
 1. **SHIR is the secure bridge** between my private SQL Server and Azure. It polls outbound on port 443; no ports are ever opened inbound.
@@ -31,8 +124,12 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 4. **Managed Identity lets Azure talk to Azure** without storing passwords or storage access keys in code or pipeline JSON.
 5. **Git tracks pipeline definitions and code changes**, while data-history mechanisms (Watermarks / CDC) track changes to the actual healthcare data rows.
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="3-why-we-built-this-enterprise-architecture-matrix-rule-18-9"></a>
 ## 3. "Why We Built This" Enterprise Architecture Matrix (Rule 18 & 9)
 
 | Component | Real-World Problem | Why We Need It | What It Technically Does | What Happens Without It? (Negative Analysis) |
@@ -49,14 +146,19 @@ Welcome to the authoritative engineering ledger for the **Azure Healthcare Data 
 | **Gold Container** | Normalized 3NF relational schemas result in slow, complex analytical queries in BI. | Deliver high-speed Star Schema dimensional models for executive reporting. | Houses `Fact_Clinical_Encounters` and conforming dimension tables. | ❌ Power BI reports must execute complex multi-table joins across raw layers, stalling dashboards. |
 | **GitHub Integration** | Pipeline changes made directly in cloud UI risk untracked outages or collisions. | Infrastructure-as-Code (IaC), peer review, and automated CI/CD deployment. | Commits pipeline JSONs to `main` and exports ARM templates to `adf_publish`. | ❌ No version history, no rollback capability, accidental edits deployed immediately to prod. |
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="31-two-stage-implementation-framework-static-fundamentals-vs-parameterized-automation"></a>
 ## 3.1 Two-Stage Implementation Framework: Static Fundamentals vs. Parameterized Automation
 
 ![Azure Data Factory - Complete Flow Diagram](./images/adf_complete_flow_diagram.png)
 
 To guarantee total mastery without cognitive overload, we enforce a two-stage pedagogical framework:
 
+<a id="a-stage-a-static-individual-table-crawl-stage"></a>
 ### A. Stage A: Static / Individual Table (Crawl Stage)
 Every schema, connection, transformation, and storage path is hardcoded and 100% visible. No parameter expressions (`@dataset()...` or `@pipeline()...`) are used.
 
@@ -70,6 +172,7 @@ Every schema, connection, transformation, and storage path is hardcoded and 100%
 | **`ds_adls_gold_dim_patient_static`**| Dedicated sink dataset for Kimball Star Schema `Dim_Patient` | Linked Service: `ls_adls_healthcarelake01`<br>Path: `gold/dim_patient/` | Business intelligence tools must query unindexed raw/silver data. |
 | **`df_patients_silver_to_gold`** | Spark Data Flow generating Surrogate Key & analytical attributes | • `surrogateKey('patient_sk')`<br>• Derived age from `dob`<br>• Select analytical attributes | Lakehouse analytics remain tightly coupled to OLTP source database integer keys. |
 
+<a id="b-stage-b-dynamic-parameterized-framework-run-stage"></a>
 ### B. Stage B: Dynamic & Parameterized Framework (Run Stage)
 Once Stage A is verified end-to-end, we generalize across all 5 tables (`patients`, `providers`, `encounters`, `diagnoses`, `claims`):
 
@@ -80,6 +183,7 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
 | **`dbo.etl_watermark_control`** | State ledger maintaining high-watermarks for all tables | Columns: `table_name`, `watermark_col`, `last_watermark`, `status` | Allows dynamic incremental delta loads without hardcoded date filters. |
 | **Master Ingestion Pipeline** | 1 pipeline that iterates over all tables automatically | `Lookup (Get Tables)` ➔ `ForEach` ➔ `ExecutePipeline` | Scales to 100+ tables with zero new pipeline code. |
 
+<a id="c-adf-components-where-masking-calculated-columns-happen"></a>
 ### C. ADF Components & Where Masking & Calculated Columns Happen
 
 ![Azure Data Factory - Components and Where You Can Do Masking & Calculated Columns](./images/adf_components_and_transformations.png)
@@ -91,8 +195,12 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
 > * **Power Query:** Alternative M-code transformation engine (ideal for ad-hoc analysts familiar with Excel/Power BI Power Query).
 > * **CDC (Change Data Capture):** Native engine to capture row-level delta mutations without full database scans.
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="4-concept-disambiguation-matrix-rule-11"></a>
 ## 4. Concept Disambiguation Matrix (Rule 11)
 
 | Construct | Primary Responsibility | What It NEVER Does |
@@ -102,20 +210,27 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
 | **CDC / Change Tracking** | Logs **row-level DML mutations** (INSERT, UPDATE, DELETE) inside the SQL database engine. | Does not orchestrate data movement or move files to the cloud. |
 | **Bronze / Silver / Gold** | Progressive **cleansing, de-identification (HIPAA), and dimensional modeling** of analytical data. | Does not replace source transactional OLTP databases. |
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="5-architectural-concepts-ledger-cl-3-tier-depth-rule-5"></a>
 ## 5. Architectural Concepts Ledger (CL) — 3-Tier Depth (Rule 5)
 
+<a id="cl-01-adls-gen2-hierarchical-namespace-hns-vs-flat-blob-storage"></a>
 ### [CL-01] ADLS Gen2 Hierarchical Namespace (HNS) vs Flat Blob Storage
 - **Level 1 — Simple Intuition**: Flat storage pretends folders exist by putting slashes in file names. HNS creates real physical file cabinets and directories.
 - **Level 2 — Technical Mechanics**: ADLS Gen2 HNS implements POSIX-compliant directory trees. Renaming a directory updates an internal inode pointer in constant time $O(1)$ rather than copying thousands of individual blobs ($O(N)$).
 - **Level 3 — Senior Enterprise Architecture**: Critical for Spark/Data Flow partition commits (`year=yyyy/month=MM/`). Without HNS, distributed writes experience massive latency and partial file write risks during folder commit phases. Enables POSIX-compliant ACLs down to directory and file levels in addition to Azure RBAC.
 
+<a id="cl-02-zero-secret-architecture-via-azure-system-assigned-managed-identity-smi"></a>
 ### [CL-02] Zero-Secret Architecture via Azure System-Assigned Managed Identity (SMI)
 - **Level 1 — Simple Intuition**: Instead of giving ADF a physical password or API key to Azure Storage, Azure recognizes ADF by its own facial recognition / passport.
 - **Level 2 — Technical Mechanics**: Enabling SMI on Azure Data Factory (`adf-healthcare-punit01`) creates a corresponding Service Principal inside Microsoft Entra ID (Azure AD). Azure handles the underlying identity token lifecycle, automatic 4-hour key rotation, and cryptographic verification invisibly behind the scenes.
 - **Level 3 — Senior Enterprise Architecture**: Complies with HIPAA § 164.312(d). Eliminates credential exposure risks, credential stuffing vulnerabilities, and accidental Git leaks of storage keys. Logs individual service principal IDs in Azure Monitor for non-repudiation audits.
 
+<a id="cl-03-azure-rbac-data-plane-vs-management-plane-least-privilege"></a>
 ### [CL-03] Azure RBAC Data Plane vs Management Plane & Least Privilege
 - **Level 1 — Simple Intuition**: Separating the keys to the front door of the building (management) from the keys to read documents in the filing cabinet (data plane).
 - **Level 2 — Technical Mechanics**: 
@@ -123,16 +238,19 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
   - `Key Vault Secrets User`: Grants ADF permission to read secret values (`secrets/get`, `secrets/list`) without allowing creation, editing, or deletion of keys and certificates.
 - **Level 3 — Senior Enterprise Architecture**: Adheres to zero-trust least-privilege architecture. Even if an ADF pipeline identity is somehow hijacked, the attacker cannot delete the storage account or change firewall rules.
 
+<a id="cl-04-adf-git-integration-multi-branch-enterprise-cicd"></a>
 ### [CL-04] ADF Git Integration & Multi-Branch Enterprise CI/CD
 - **Level 1 — Simple Intuition**: A shared notebook where developers make rough drafts on one page, and an editor only prints the clean final version to the official book when approved.
 - **Level 2 — Technical Mechanics**: Linking ADF Studio to GitHub repo with collaboration branch (`main`), root directory (`/adf`), and automated ARM template publishing branch (`adf_publish`).
 - **Level 3 — Senior Enterprise Architecture**: Enables pull request reviews, feature branching, code history rollbacks, and automated deployment pipelines via GitHub Actions or Azure DevOps without manual portal configuration in production environments.
 
+<a id="cl-05-high-watermark-metadata-pattern-state-management"></a>
 ### [CL-05] High-Watermark Metadata Pattern & State Management
 - **Level 1 — Simple Intuition**: Bookmarking where you stopped reading so tomorrow you only read new pages instead of starting from page 1 every single morning.
 - **Level 2 — Technical Mechanics**: Dedicated control table `etl_watermark_control` tracks `table_name`, `watermark_column`, `last_watermark_value`. Pipeline extracts rows `WHERE updated_at > LastWatermark AND updated_at <= MaxSourceTimestamp` and updates the watermark only upon successful Copy completion.
 - **Level 3 — Senior Enterprise Architecture**: Guarantees pipeline idempotency. If network drops mid-stream during a 50GB extract, the watermark never updates. The next run gracefully retries the exact same window with zero silent record drop.
 
+<a id="cl-06-hybrid-cloud-connectivity-via-self-hosted-integration-runtime-shir"></a>
 ### [CL-06] Hybrid Cloud Connectivity via Self-Hosted Integration Runtime (SHIR)
 - **Level 1 — Simple Intuition**: Instead of letting outsiders knock on your hospital door, a dedicated courier inside steps outside to check the cloud mailbox for work orders.
 - **Level 2 — Technical Mechanics**: Windows daemon `DIAHostService` initiates outbound HTTPS calls on TCP port 443 over TLS 1.3 to ADF service bus queues. It pulls the query instruction, queries `localhost:1433`, compresses data into Parquet, and streams it straight to ADLS Gen2.
@@ -149,26 +267,34 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
 > 5. **Direct Lakehouse Ingestion (Step 5):** SHIR compresses clinical rows into Snappy Parquet and streams them directly to ADLS Gen2 (`sthealthcarelake01/bronze`) over outbound HTTPS.
 
 
+<a id="cl-07-dynamic-sql-expressions-parameterized-watermark-injection"></a>
 ### [CL-07] Dynamic SQL Expressions & Parameterized Watermark Injection
 - **Level 1 — Simple Intuition**: Generating a customized search instruction on the fly using exact start and stop timestamps so only the new batch is pulled.
 - **Level 2 — Technical Mechanics**: ADF Copy Activity uses string interpolation:
   `@concat('SELECT * FROM dbo.encounters WHERE updated_at > ''', activity('LookupOldWatermark').output.firstRow.last_watermark_value, ''' AND updated_at <= ''', activity('LookupNewWatermark').output.firstRow.new_watermark, '''')`.
 - **Level 3 — Senior Enterprise Architecture**: Evaluates dynamic bounds entirely in-memory within ADF orchestration, preventing hardcoded dates in pipelines. Ensures strict boundary isolation where late-arriving records during active copy executions are deferred to subsequent schedules.
 
+<a id="cl-08-atomic-watermark-advancement-via-stored-procedures-transaction-scope"></a>
 ### [CL-08] Atomic Watermark Advancement via Stored Procedures & Transaction Scope
 - **Level 1 — Simple Intuition**: Moving the bookmark forward only AFTER you close the book and put it back on the shelf, never while reading.
 - **Level 2 — Technical Mechanics**: Stored Procedure `dbo.usp_update_watermark` is triggered conditionally upon `CopyIncrementalEncounters` returning status `Succeeded`. It updates `last_watermark_value` and `last_run_timestamp` in a single ACID transaction.
 - **Level 3 — Senior Enterprise Architecture**: Solves distributed two-phase commit risks. If ADF loses connectivity to Azure Data Lake midway through blob writes, the stored procedure is never reached, guaranteeing that pipeline retries cleanly re-extract the identical batch without silent data loss.
 
+<a id="cl-09-bronze-lakehouse-storage-parquet-snappy-compression"></a>
 ### [CL-09] Bronze Lakehouse Storage & Parquet Snappy Compression
 - **Level 1 — Simple Intuition**: Storing medical notes in a locked filing cabinet in their original handwriting, but zipped up tight to save drawer space.
 - **Level 2 — Technical Mechanics**: Relational rows are serialized into Apache Parquet with Snappy compression directly on the SHIR agent node and streamed to `sthealthcarelake01/bronze/`.
 - **Level 3 — Senior Enterprise Architecture**: Columnar storage enables dictionary encoding, run-length compression, and fast column pruning for downstream Spark engines. Parquet preserves raw data types (dates, decimals, strings) without CSV parsing errors or floating-point truncation.
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="6-technical-question-defense-ledger-tq-evaluated-rubric-rule-14-15"></a>
 ## 6. Technical Question & Defense Ledger (TQ) — Evaluated Rubric (Rule 14 & 15)
 
+<a id="tq-01-why-use-system-assigned-managed-identity-over-storage-account-access-keys-or-sas-tokens-in-enterprise-healthcare-migrations"></a>
 ### [TQ-01] Why use System-Assigned Managed Identity over Storage Account Access Keys or SAS tokens in enterprise healthcare migrations?
 - **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
@@ -176,6 +302,7 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
   > 
   > *By configuring Azure Data Factory with a System-Assigned Managed Identity (SMI) and assigning the `Storage Blob Data Contributor` RBAC role, we implement a true Zero-Secret architecture. Entra ID manages token acquisition, rotation, and lifecycle tied directly to the resource itself. Every single data access request is attributed to the ADF service principal in Azure Monitor and diagnostic audit logs, satisfying HIPAA auditability requirements."*
 
+<a id="tq-02-why-is-hierarchical-namespace-hns-mandatory-for-adls-gen2-in-medallion-lakehouse-architectures-instead-of-standard-blob-storage"></a>
 ### [TQ-02] Why is Hierarchical Namespace (HNS) mandatory for ADLS Gen2 in Medallion Lakehouse architectures instead of standard Blob Storage?
 - **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
@@ -183,6 +310,7 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
   > 
   > *ADLS Gen2 with Hierarchical Namespace (HNS) provides a true POSIX filesystem. Directory renames are atomic metadata updates executed in $O(1)$ constant time, drastically reducing pipeline duration and compute costs. Furthermore, HNS allows fine-grained POSIX access control lists (ACLs) to be inherited down folder hierarchies, enabling defense-in-depth access governance."*
 
+<a id="tq-03-how-does-a-self-hosted-integration-runtime-shir-securely-bridge-on-premise-databases-without-opening-inbound-firewall-ports"></a>
 ### [TQ-03] How does a Self-Hosted Integration Runtime (SHIR) securely bridge on-premise databases without opening inbound firewall ports?
 - **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
@@ -190,6 +318,7 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
   > 
   > *The SHIR daemon initiates outbound HTTPS connections on port 443 over TLS 1.3 to Azure Data Factory. When a pipeline runs, ADF posts an execution payload to a private control queue. The on-premise agent pulls the task, queries the internal SQL Server over local LAN, packages the payload into Parquet, and streams it directly to ADLS Gen2 over outbound HTTPS. At no point is the local network reachable from the public internet."*
 
+<a id="tq-04-how-do-you-prevent-data-loss-or-duplicate-ingestion-if-an-incremental-pipeline-fails-halfway-through-a-run"></a>
 ### [TQ-04] How do you prevent data loss or duplicate ingestion if an incremental pipeline fails halfway through a run?
 - **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
@@ -197,6 +326,7 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
   > 
   > *Crucially, the stored procedure that updates `etl_watermark_control` runs **only upon successful completion** of the Copy Activity. If the pipeline crashes mid-stream, the watermark in the database remains unchanged. The subsequent run re-evaluates the same delta window, avoiding silent data loss. Any overlapping records are seamlessly deduplicated in the Silver transformation layer."*
 
+<a id="tq-05-how-does-the-upper-watermark-boundary-enforce-snapshot-isolation-if-new-rows-arrive-during-an-active-copy-activity"></a>
 ### [TQ-05] How does the upper watermark boundary enforce snapshot isolation if new rows arrive during an active Copy Activity?
 - **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
@@ -204,6 +334,7 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
   > 
   > *On the subsequent pipeline run, the lower bound becomes `updated_at > OldWatermark` (which equals the previous `NewWatermark`), ensuring that all records inserted during or after that execution window are seamlessly captured without data loss or race conditions."*
 
+<a id="tq-06-where-does-compute-and-data-serialization-occur-during-on-premise-to-cloud-data-ingestion-via-shir"></a>
 ### [TQ-06] Where does compute and data serialization occur during on-premise to cloud data ingestion via SHIR?
 - **Rating**: 🟢 **Correct** (Senior Architect Level)
 - **Candidate Defense**:
@@ -211,8 +342,12 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
   > 
   > *This distinction is critical because it preserves the internal security boundary: SQL Server remains completely unexposed to the public internet, no inbound firewall ports are opened, and CPU-intensive Parquet compression is distributed to the edge."*
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="7-failure-engineering-resilience-scenarios-rule-19"></a>
 ## 7. Failure Engineering & Resilience Scenarios (Rule 19)
 
 | Scenario | What Detects It? | What Fails? | What Data Is Affected? | Recovery Blueprint |
@@ -222,10 +357,15 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
 | **Database Password Rotated on SQL Server** | SHIR throws SQL Login Failed (Error 18456) when testing Linked Service. | All pipelines referencing `ls_sqlserver_onprem`. | Ingestion halts; source data remains intact in SQL Server. | Add new version of secret `sql-onprem-password` in Key Vault. Zero ADF pipeline code change required! |
 | **Watermark Table Set Ahead of Source Data (e.g. Year 2099)** | Pipeline runs succeed in 2 seconds but 0 rows read / 0 rows written. | Silent delta ingestion gap; new clinical encounters are ignored. | Bronze stops receiving any updates. | Execute manual `UPDATE dbo.etl_watermark_control` to reset timestamp back to last verified load date. |
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="8-lab-evidence-configuration-artifacts"></a>
 ## 8. Lab Evidence & Configuration Artifacts
 
+<a id="phase-1-provisioned-resources-active-cloud-topology"></a>
 ### Phase 1 Provisioned Resources (Active Cloud Topology)
 - **Subscription**: Azure Free Trial / Sponsorship
 - **Resource Group**: `rg-healthcare-migration-prod` (Central India)
@@ -238,6 +378,7 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
   - Role Assignment 2: `Key Vault Secrets User` on `kv-healthcare-sec01`
   - Git Integration: Connected to `punitgiri921/Azure-Healthcare-Data-Migration` (Root: `/adf`, Collaboration Branch: `main`, Publish Branch: `adf_publish`)
 
+<a id="phase-2-provisioned-local-source-artifacts"></a>
 ### Phase 2 Provisioned Local Source Artifacts
 - **Database Engine**: Microsoft SQL Server 2022 Express (`.\SQLEXPRESS`)
 - **Database Name**: `healthcare_emr_source`
@@ -254,6 +395,7 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
   - `ls_keyvault_healthcare`: Connected to `kv-healthcare-sec01`
   - `ls_sqlserver_onprem`: Connected to `healthcare_emr_source` via SHIR using password from Key Vault
 
+<a id="phase-3-provisioned-lakehouse-ingestion-artifacts"></a>
 ### Phase 3 Provisioned Lakehouse Ingestion Artifacts
 - **ADLS Gen2 Linked Service**: `ls_adls_healthcare` (Authentication: System-Assigned Managed Identity)
 - **ADF Datasets Created**:
@@ -267,10 +409,15 @@ Once Stage A is verified end-to-end, we generalize across all 5 tables (`patient
 - **Architectural Reference Blueprint**: [docs/phase3_watermark_architecture.drawio](file:///d:/01_Ex_Files_Intermediate_SQL_for_Data_Scientists/Goodly%20PowerBi/Azure-Healthcare-Data-Migration/docs/phase3_watermark_architecture.drawio)
 - **Technical Walkthrough**: [docs/phase3_walkthrough.md](file:///d:/01_Ex_Files_Intermediate_SQL_for_Data_Scientists/Goodly%20PowerBi/Azure-Healthcare-Data-Migration/docs/phase3_walkthrough.md)
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="9-azure-synapse-serverless-sql-serving-layer-master-script-breakdown-phase-5"></a>
 ## 9. Azure Synapse Serverless SQL Serving Layer & Master Script Breakdown (Phase 5)
 
+<a id="91-why-did-we-build-azure-synapse-serverless-sql-the-business-technical-purpose"></a>
 ### 9.1 Why Did We Build Azure Synapse Serverless SQL? (The Business & Technical Purpose)
 
 In our Medallion Lakehouse, Azure Data Factory writes conformed Star Schema datasets as binary Snappy Parquet files into `sthealthcarelake01/gold/`. However, business analysts, clinical researchers, and reporting tools (like Power BI) cannot connect directly to raw file paths over standard database ports, nor do they want to write Apache Spark or Python code for basic SQL analytics.
@@ -306,6 +453,7 @@ Azure Synapse Serverless SQL acts as the **Semantic & Query Serving Layer (The S
 
 ---
 
+<a id="92-complete-script-section-t-sql-master-setup-deep-block-by-block-explanation"></a>
 ### 9.2 Complete Script Section: T-SQL Master Setup & Deep Block-by-Block Explanation
 
 Below is the master provisioning script executed in Synapse Studio (`Built-in` pool) followed by the engineering purpose of each line:
@@ -408,8 +556,10 @@ GO
 
 ---
 
+<a id="93-in-depth-block-by-block-technical-explanation"></a>
 ### 9.3 In-Depth Block-by-Block Technical Explanation
 
+<a id="block-1-database-creation-collation-optimization"></a>
 #### Block 1: Database Creation & Collation Optimization
 * `CREATE DATABASE healthcare_gold_db COLLATE Latin1_General_100_BIN2_UTF8;`:
   - **Why UTF-8 Collation?**: Parquet encodes strings natively in UTF-8. Standard SQL databases default to non-UTF8 collations (such as `SQL_Latin1_General_CP1_CI_AS`). When querying Parquet files, a non-UTF8 database must convert every string column from UTF-8 to UTF-16 in memory on every query, causing CPU bottlenecks and collation mismatch errors during `JOIN` or `WHERE` operations.
@@ -418,16 +568,19 @@ GO
 * `USE healthcare_gold_db;`:
   - Sets the active database execution context for the subsequent DDL commands. Serverless SQL scripts execute against the `master` database by default; explicit switching guarantees that the `gold` schema, external data sources, and views are scoped exclusively to `healthcare_gold_db`.
 
+<a id="block-2-medallion-schema-namespace-gold"></a>
 #### Block 2: Medallion Schema Namespace (`gold`)
 * `EXEC('CREATE SCHEMA gold');`:
   - Enforces logical segregation. Rather than placing all objects into `dbo`, the `gold` schema clearly designates conformed dimensional marts. If internal audit tables or silver reconciliation views are added later, they can use `silver.` or `audit.` schemas without collision.
 
+<a id="block-3-external-data-source-definition-goldlakehouse"></a>
 #### Block 3: External Data Source Definition (`gold_lakehouse`)
 * `CREATE EXTERNAL DATA SOURCE gold_lakehouse WITH (LOCATION = 'https://sthealthcarelake01.dfs.core.windows.net/gold/');`:
   - **DRY Principle**: Avoids hardcoding the full DFS URL in every single view definition.
   - **Single Point of Maintenance**: If the storage account name or container ever changes, updating this single data source updates all downstream views instantly.
   - **Zero-Secret Identity**: Connects via the Synapse System-Assigned Managed Identity (`syn-healthcare-punit01`) using Entra ID OAuth tokens without requiring storage keys, SAS tokens, or passwords in the SQL code.
 
+<a id="blocks-4-through-8-serving-views-via-openrowset"></a>
 #### Blocks 4 Through 8: Serving Views via `OPENROWSET`
 * `CREATE OR ALTER VIEW`: Idempotent DDL; creates the view or updates it without dropping existing object permissions.
 * `OPENROWSET(...)`: The distributed table-valued function in Serverless SQL that reads remote cloud files.
@@ -436,6 +589,7 @@ GO
 * `FORMAT = 'PARQUET'`: Tells the engine to use the vectorized columnar Parquet reader. Because Parquet includes embedded metadata schemas (column names and data types), Synapse discovers columns automatically without manual column type mapping.
 * `AS [rows]`: Standard SQL syntax requirement for table-valued expressions.
 
+<a id="physical-storage-vs-serverless-ephemeral-query-execution-key-engineering-mental-model"></a>
 #### Physical Storage vs. Serverless Ephemeral Query Execution (Key Engineering Mental Model)
 * **Physical Data Resides in ADLS Gen2 Storage Only**: Synapse Serverless SQL does **NOT** duplicate, copy, or ingest data into persistent relational storage tables (`.mdf`/`.ldf` files). The Parquet files remain purely in the `gold/` container of `sthealthcarelake01`.
 * **Temporary In-Memory Execution Structures**: When a user or Power BI runs a `SELECT` query against `gold.dim_patient`, Synapse Serverless dynamically pulls the columnar Parquet blocks from ADLS Gen2 over the Azure backbone network into temporary in-memory data structures, processes aggregations and filters on-the-fly, streams tabular rows back over Port 1433 (TDS protocol), and immediately releases memory once the query completes.
@@ -443,6 +597,7 @@ GO
 
 ---
 
+<a id="94-verified-master-orchestration-run-evidence"></a>
 ### 9.4 Verified Master Orchestration Run Evidence
 * **Pipeline Name**: `PL_Master_Healthcare_Pipeline`
 * **Pipeline Run ID**: `4c16ba7b-2782-4ed5-9890-d3ab16b48013`
@@ -453,10 +608,15 @@ GO
   3. `EP_Run_Gold_Star_Schema`: 🟢 **Succeeded** (Duration: 1m 8s) — Pre-cleared gold directories (`DEL_Clear_Gold_Marts`) and rebuilt fresh conformed dimension and fact tables with 0 duplicate part files.
 * **Automation Trigger**: `TRG_Daily_Healthcare_ETL` scheduled for daily recurring pipeline execution.
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="10-phase-6-power-bi-semantic-modeling-executive-clinical-reporting-active"></a>
 ## 10. Phase 6: Power BI Semantic Modeling & Executive Clinical Reporting (Active)
 
+<a id="101-power-bi-star-schema-model-architecture"></a>
 ### 10.1 Power BI Star Schema Model Architecture
 * **Endpoint**: `syn-healthcare-punit01-ondemand.sql.azuresynapse.net` (Port: 1433 TDS)
 * **Database**: `healthcare_gold_db`
@@ -473,6 +633,7 @@ GO
   - `gold.dim_provider [provider_sk]` (1) $\rightarrow$ `gold.fact_encounters [provider_sk]` (*) — **Active**, Single Cross-Filter
   - `gold.fact_encounters [encounter_id]` (1) $\rightarrow$ `gold.fact_claims [encounter_id]` (*) — **Active**, Single Cross-Filter
 
+<a id="102-dedicated-measures-table-healthcare-dax-kpis"></a>
 ### 10.2 Dedicated `_Measures` Table & Healthcare DAX KPIs
 All core business calculations are centralized within a dedicated `_Measures` table:
 
@@ -521,6 +682,7 @@ All core business calculations are centralized within a dedicated `_Measures` ta
     Avg Billed per Encounter = DIVIDE([Total Billed], [Total Encounters], 0)
     ```
 
+<a id="103-power-bi-project-pbip-developer-mode-architecture"></a>
 ### 10.3 Power BI Project (PBIP) & Developer Mode Architecture
 * **Directory Structure**: All report and semantic model source code is stored under `powerbi/`:
   - `Healthcare-Analytics-Report.pbip`: Top-level project manifest.
@@ -539,21 +701,28 @@ All core business calculations are centralized within a dedicated `_Measures` ta
   10. Bar Chart: Denials by `denial_reason`
   11. Interactive Slicer: Filter by Provider `specialty`
 
+<a id="104-gotcha-engineering-resolution-utf-8-bom-encoding-in-pbir"></a>
 ### 10.4 Gotcha & Engineering Resolution: UTF-8 BOM Encoding in PBIR
 * **Issue Encountered**: Power BI Desktop displayed: *"A formatting issue was found in report definition file... Only text with UTF8 encoding without BOM (byte order marks) is supported. Detected BOM: 'UTF-8'"*.
 * **Root Cause**: Windows PowerShell `[System.Text.Encoding]::UTF8` defaults to writing the 3-byte Byte Order Mark (`0xEF, 0xBB, 0xBF`). Microsoft Fabric's PBIR JSON parser strictly enforces clean UTF-8 without BOM.
 * **Resolution**: Re-encoded all `.json` files using `New-Object System.Text.UTF8Encoding($false)`, eliminating the preamble and restoring full native compatibility with Power BI Desktop.
 
+
+[▲ Back to Top](#table-of-contents)
+
 ---
 
+<a id="11-phase-7-autonomous-lakehouse-sentinel-agent-self-monitoring-gpt-5-mini-reasoning-auto-remediation"></a>
 ## 11. Phase 7: Autonomous Lakehouse Sentinel Agent (Self-Monitoring, GPT-5-mini Reasoning & Auto-Remediation)
 
+<a id="111-the-enterprise-problem-why-deterministic-pipelines-are-not-enough"></a>
 ### 11.1 The Enterprise Problem: Why Deterministic Pipelines Are Not Enough
 Traditional ETL pipelines (like ADF, Airflow, or SSIS) are deterministic: if a database connection times out or upstream EMR schemas drift, the pipeline fails, triggers an email alert, and halts downstream data serving. In enterprise healthcare operations:
 1. **Watermark Desynchronization**: If Bronze ingestion extracts 1,420 delta patient records into ADLS Gen2 Parquet but fails to update the SQL watermark control table due to a socket timeout, the next scheduled run re-ingests the same records, causing duplicate primary key collisions in Silver.
 2. **HIPAA PHI / PII Leaks**: If upstream hospital EMR systems rename columns (`ssn` to `patient_ssn`), cryptographic SHA-256 masking data flows are bypassed, exposing raw social security numbers in analytical views.
 3. **Cryptic Spark Failures**: ADF Mapping Data Flow Spark execution errors (`DF-EXPR-010`, OOM, Shuffle Skew) require deep engineer triage, taking hours of downtime.
 
+<a id="112-the-sentinel-agent-architecture-code-blocks-scriptssentinelagentpy"></a>
 ### 11.2 The Sentinel Agent Architecture & Code Blocks (`scripts/sentinel_agent.py`)
 
 ![Azure Healthcare Lakehouse - Sentinel Agent (GPT-5-mini) Architecture](./images/sentinel_agent_architecture.jpg)
@@ -590,6 +759,7 @@ flowchart TD
     end
 ```
 
+<a id="detailed-breakdown-of-each-code-block"></a>
 #### Detailed Breakdown of Each Code Block:
 
 * **Block 1: Authenticated Cloud Clients & Environment Initialization**
@@ -617,6 +787,7 @@ flowchart TD
 * **Block 7: Execution Loop & CLI Controller**
   - Supports `--monitor` for real-time live ADF polling and `--simulate <scenario>` for instant chaos engineering evaluations.
 
+<a id="113-verified-live-execution-telemetry-watermark-desync-incident"></a>
 ### 11.3 Verified Live Execution Telemetry (Watermark Desync Incident)
 
 ```text
@@ -667,16 +838,19 @@ WHERE table_name = 'patients' AND last_watermark = TIMESTAMP '2026-09-23T00:00:0
 
 ---
 
+<a id="114-the-flight-simulator-analogy-how-we-test-ai-agents-without-modifying-production"></a>
 ### 11.4 The Flight Simulator Analogy: How We Test AI Agents Without Modifying Production
 
 ![Flight Simulator to Sentinel Agent Analogy](./images/sentinel_flight_simulator_analogy.jpg)
 
+<a id="the-intuition-why-flight-simulators"></a>
 #### The Intuition: Why Flight Simulators?
 When training or certifying an **AI Co-Pilot for a commercial airplane**, you would never set fire to a real Boeing 777 carrying passengers just to see if the auto-pilot pulls the fire extinguisher. Instead, you put the AI in a **High-Fidelity Flight Simulator**:
 * The simulator feeds the AI the exact electrical sensor data of an engine fire (`Engine 2 Overheat 1100°C`).
 * The **AI's brain is 100% real**—it calculates the aerodynamics and decides to pull the extinguisher.
 * You verify that the AI made the correct decision **without endangering a real airplane**.
 
+<a id="the-7-concept-architectural-mapping"></a>
 #### The 7-Concept Architectural Mapping:
 
 | # | Sentinel Concept | Flight Analogy (Simple Language) | Azure Technical Implementation | Purpose / What It Does |
@@ -691,6 +865,7 @@ When training or certifying an **AI Co-Pilot for a commercial airplane**, you wo
 
 ---
 
+<a id="115-how-we-test-the-agent-zero-real-pipeline-modification"></a>
 ### 11.5 How We Test the Agent (Zero Real Pipeline Modification)
 
 The automated evaluation suite (`tests/test_sentinel_agent.py`) achieves 100% test coverage across both **Success** and **Failure** paths through a 4-step decoupled testing workflow:
@@ -721,32 +896,41 @@ The automated evaluation suite (`tests/test_sentinel_agent.py`) achieves 100% te
 
 ---
 
+<a id="116-production-operational-patterns-how-the-sentinel-agent-runs-automatically"></a>
 ### 11.6 Production Operational Patterns: How the Sentinel Agent Runs Automatically
 
 In enterprise operations, engineers never log in to execute manual python commands after every pipeline run. Instead, the Sentinel Agent operates autonomously in the background through one of three production architecture patterns:
 
+<a id="pattern-a-event-driven-push-enterprise-gold-standard"></a>
+##### Pattern A: Event-Driven Push (Enterprise Gold Standard)
 ```mermaid
-flowchart TD
-    subgraph PatternA ["Pattern A: Event-Driven Push (Enterprise Gold Standard)"]
-        ADF_A["Azure Data Factory<br/>PL_Master_Healthcare_Pipeline"] -->|Pipeline Run Failed| EG["Azure Event Grid<br/>System Topic (Microsoft.DataFactory)"]
-        EG -->|Instant Push Webhook| AF["Azure Function App<br/>(Serverless Python 3.11/3.12)"]
-        AF -->|Invocates in 3 seconds| AI_A["Sentinel Agent Core<br/>(GPT-5-mini Reasoning)"]
-        AI_A -->|Idempotent Remediation| Fix_A["Heal Watermark / Quarantine / Rerun"]
-    end
-
-    subgraph PatternB ["Pattern B: Scheduled Watchdog Daemon (Periodic Poller)"]
-        Cron["Task Scheduler / Cron<br/>(Every 30 mins)"] -->|CLI Execution| Py_B["python sentinel_agent.py --monitor"]
-        Py_B -->|Polls ADF REST API| Query_B{"Any Runs Failed?"}
-        Query_B -->|No Failures| Sleep["Sleeps until next schedule (0 Cost)"]
-        Query_B -->|Failure Detected| AI_B["Sentinel Agent Core<br/>(GPT-5-mini Reasoning)"]
-    end
-
-    subgraph PatternC ["Pattern C: ADF Canvas Failure Hook (Orchestrator Callback)"]
-        ADF_C["ADF Master Pipeline"] -->|Red 'Upon Failure' Arrow| WebAct["ADF Web Activity<br/>(HTTP POST to Agent Webhook)"]
-        WebAct -->|Passes Run ID & Error JSON| AI_C["Sentinel Agent Core<br/>(GPT-5-mini Reasoning)"]
-    end
+flowchart LR
+    ADF_A["Azure Data Factory<br/><b>PL_Master_Healthcare_Pipeline</b>"] -->|Pipeline Run Failed| EG["Azure Event Grid<br/><b>System Topic</b>"]
+    EG -->|Instant Push Webhook| AF["Azure Function App<br/><b>func-sentinel-lakehouse-01</b>"]
+    AF -->|Invokes in ~2s| AI_A["Sentinel AI Agent Core<br/><b>GPT-5-mini Reasoning</b>"]
+    AI_A -->|Idempotent Action| Fix_A["<b>Heal Watermark / Quarantine / Rerun</b>"]
 ```
 
+<a id="pattern-b-scheduled-watchdog-daemon-periodic-poller"></a>
+##### Pattern B: Scheduled Watchdog Daemon (Periodic Poller)
+```mermaid
+flowchart LR
+    Cron["Task Scheduler / Cron<br/><b>(Every 30 mins)</b>"] -->|CLI Execution| Py_B["<code>python sentinel_agent.py --monitor</code>"]
+    Py_B -->|Polls ADF REST API| Query_B{"Any Runs<br/>Failed?"}
+    Query_B -->|No Failures| Sleep["Sleeps until next schedule<br/><b>($0.00 Cost)</b>"]
+    Query_B -->|Failure Detected| AI_B["Sentinel AI Agent Core<br/><b>GPT-5-mini Reasoning</b>"]
+```
+
+<a id="pattern-c-adf-canvas-failure-hook-orchestrator-callback"></a>
+##### Pattern C: ADF Canvas Failure Hook (Orchestrator Callback)
+```mermaid
+flowchart LR
+    ADF_C["ADF Master Pipeline<br/><b>Ingestion Activity</b>"] -->|Red 'Upon Failure' Arrow| WebAct["ADF Web Activity<br/><b>(HTTP POST to Agent Webhook)</b>"]
+    WebAct -->|Passes Run ID & Error JSON| AI_C["Sentinel AI Agent Core<br/><b>GPT-5-mini Reasoning</b>"]
+```
+
+
+<a id="detailed-comparison-requirements-matrix"></a>
 #### Detailed Comparison & Requirements Matrix:
 
 | Operational Dimension | Pattern A: Event-Driven (Event Grid + Azure Function) | Pattern B: Scheduled Daemon (Task Scheduler / Cron) | Pattern C: ADF "Upon Failure" Callback |
@@ -758,6 +942,7 @@ flowchart TD
 | **Azure Services Required** | • Azure Event Grid System Topic<br>• Azure Function App (Linux Consumption)<br>• Managed Identity (Data Factory Contributor) | • Local Python environment (`.venv`) OR Azure Container App Job<br>• Azure CLI credentials | • ADF Web Activity<br>• Azure Function / Container endpoint with public or VNet URL |
 | **Best Used For** | Mission-critical enterprise 24/7 autonomous operations. | Development, staging environments, and daily batch windows. | Simple, single-pipeline architectures without multi-pipeline monitoring. |
 
+<a id="the-hybrid-boundary-nuance-what-happens-to-on-prem-sql-server-if-the-laptop-is-shut-down"></a>
 #### ⚠️ The Hybrid Boundary Nuance: What happens to on-prem SQL Server if the laptop is shut down?
 * In this portfolio setup, the **hospital EMR SQL Server** and the **SHIR Gateway** (`shir-onprem-gateway-01`) physically run on your local machine (`DESKTOP-H5RKB3H`).
 * If your laptop is powered OFF:
@@ -768,8 +953,10 @@ flowchart TD
 
 ---
 
+<a id="117-live-cloud-operational-implementation-azure-monitor-alert-action-group-serverless-function"></a>
 ### 11.7 Live Cloud Operational Implementation: Azure Monitor Alert, Action Group & Serverless Function
 
+<a id="critical-clarification-why-not-just-use-simple-failure-alerts-what-is-the-agent-actually-doing"></a>
 #### ❓ Critical Clarification: Why Not Just Use Simple Failure Alerts? What Is the Agent Actually Doing?
 
 A common question in enterprise cloud engineering is:
@@ -788,6 +975,7 @@ The difference is best understood through the **Smoke Alarm vs. Autonomous Firef
 
 ---
 
+<a id="two-simultaneous-actions-in-parallel-dual-track-observability-architecture"></a>
 #### 🔀 Two Simultaneous Actions in Parallel: Dual-Track Observability Architecture
 
 When pipeline `PL_Test_Failure` failed, Azure Monitor's Action Group (`ag-sentinel-ai`) did not just trigger one response—it triggered **two decoupled actions in parallel**:
@@ -811,6 +999,7 @@ flowchart TD
 
 ---
 
+<a id="in-depth-technical-comparison-azure-copilot-observability-agent-vs-custom-sentinel-agent"></a>
 #### ⚖️ In-Depth Technical Comparison: Azure Copilot Observability Agent vs. Custom Sentinel Agent
 
 | Capability / Dimension | Azure Monitor + Copilot Observability Agent (Microsoft Built-In) | Custom Sentinel AI Agent (`sentinel_agent.py` / Azure Function) |
@@ -831,6 +1020,7 @@ flowchart TD
 ---
 
 
+<a id="component-purpose-architectural-mapping"></a>
 #### 🧩 Component Purpose & Architectural Mapping
 
 Every component in our cloud automation serves a specific, decoupled role:
@@ -847,8 +1037,10 @@ Every component in our cloud automation serves a specific, decoupled role:
 
 ---
 
+<a id="step-by-step-implementation-walkthrough"></a>
 #### 🛠️ Step-by-Step Implementation Walkthrough
 
+<a id="step-1-register-cloud-resource-providers"></a>
 ##### Step 1: Register Cloud Resource Providers
 We ensured the target Azure subscription had both serverless compute and event routing registered:
 ```bash
@@ -856,6 +1048,7 @@ az provider register --namespace Microsoft.Web
 az provider register --namespace Microsoft.EventGrid
 ```
 
+<a id="step-2-provision-dedicated-serverless-storage"></a>
 ##### Step 2: Provision Dedicated Serverless Storage
 Azure Function App requires a backing storage account for state and execution keys:
 ```bash
@@ -866,6 +1059,7 @@ az storage account create \
   --sku Standard_LRS
 ```
 
+<a id="step-3-deploy-the-serverless-function-app"></a>
 ##### Step 3: Deploy the Serverless Function App
 Created a Linux Serverless Consumption Python 3.11 Function App ($0.00 idle cost):
 ```bash
@@ -880,6 +1074,7 @@ az functionapp create \
   --os-type Linux
 ```
 
+<a id="step-4-configure-app-settings-environment-secrets"></a>
 ##### Step 4: Configure App Settings & Environment Secrets
 Injected Azure OpenAI keys and ADF target parameters directly into Function App configuration:
 ```bash
@@ -896,6 +1091,7 @@ az functionapp config appsettings set \
     AZURE_SUBSCRIPTION_ID="a1502668-4f5b-4896-9321-c0d559d3230e"
 ```
 
+<a id="step-5-configure-azure-monitor-metric-alert-rule"></a>
 ##### Step 5: Configure Azure Monitor Metric Alert Rule
 Created metric alert rule on Data Factory `adf-healthcare-punit01`:
 * **Target Resource**: `adf-healthcare-punit01` (Microsoft.DataFactory/factories)
@@ -906,6 +1102,7 @@ Created metric alert rule on Data Factory `adf-healthcare-punit01`:
 * **Evaluation Frequency**: Every 1 minute (Lookback: 5 minutes)
 * **Severity**: 1 - Error
 
+<a id="step-6-configure-action-group-ag-sentinel-ai"></a>
 ##### Step 6: Configure Action Group (`ag-sentinel-ai`)
 Added two receivers:
 1. **Email Receiver**: `punitgiri74@gmail.com` for human visibility.
@@ -913,6 +1110,7 @@ Added two receivers:
 
 ---
 
+<a id="live-pipeline-failure-verification-what-happened-during-the-test"></a>
 #### 🧪 Live Pipeline Failure Verification: What Happened During the Test
 
 To prove the end-to-end autonomous chain in real cloud production, we initiated a deliberate failure test:
@@ -932,13 +1130,16 @@ To prove the end-to-end autonomous chain in real cloud production, we initiated 
 
 ---
 
+<a id="live-production-evidence-verification-screenshots"></a>
 #### 📸 Live Production Evidence & Verification Screenshots
 
+<a id="1-azure-portal-metric-alert-fired-on-adf-pipeline-failure"></a>
 ##### 1. Azure Portal: Metric Alert Fired on ADF Pipeline Failure
 The screenshot below shows the Azure Monitor alert dashboard for `alert-adf-pipeline-failures`. The metric graph shows the exact spike from 0 to 1 as `PL_Test_Failure` failed, triggering Severity 1 - Error.
 
 ![Azure Monitor Alert Fired in Portal](./images/azure_monitor_alert_fired.png)
 
+<a id="2-microsoft-azure-notification-incident-email-dispatched"></a>
 ##### 2. Microsoft Azure Notification: Incident Email Dispatched
 The screenshot below shows the real email received from Microsoft Azure (`azure-noreply@microsoft.com`) confirming the metric `PipelineFailedRuns` crossed threshold `0` with value `1` on `adf-healthcare-punit01`.
 
@@ -946,8 +1147,10 @@ The screenshot below shows the real email received from Microsoft Azure (`azure-
 
 ---
 
+<a id="real-world-case-study-scheduled-200-am-run-the-triggered-vs-resolved-lifecycle"></a>
 #### ⏰ Real-World Case Study: Scheduled 2:00 AM Run & The "Triggered vs. Resolved" Lifecycle
 
+<a id="1-the-incident-what-happened-at-200-am-automatically"></a>
 ##### 1. The Incident: What Happened at 2:00 AM Automatically?
 In real clinical operations, daily batch ingestion pipelines run during off-peak hours (e.g. 02:00 AM IST) triggered by `TRG_Daily_Healthcare_ETL`. 
 
@@ -958,6 +1161,7 @@ During our automated overnight run:
 4. **Email 1 (Orange ⚠️ - Triggered):** Azure Monitor detected the spike at `20:33 UTC (02:03 AM IST)` and immediately emailed an urgent incident notification to `punitgiri74@gmail.com`.
 5. **Email 2 (Green 🟢 - Resolved):** A few minutes later, Azure Monitor sent a second email stating: *"Your Azure Monitor alert was resolved"*.
 
+<a id="2-the-smoke-detector-analogy-why-does-it-show-resolved-if-the-pipeline-didnt-rerun"></a>
 ##### 2. The Smoke Detector Analogy: Why Does It Show "Resolved" If The Pipeline Didn't Rerun?
 A common point of confusion is:
 > *"Why is Azure showing 'Resolved' when the pipeline did not rerun or succeed? Does Azure think the pipeline was fixed?"*
@@ -991,6 +1195,7 @@ The word **"Resolved"** refers to the **Alert Rule Sensor**, not the database pi
 * **Does the detector going silent mean the burnt toast is magically unburnt?** No! The burnt toast is still sitting on the counter.
 * **Why does the sensor silence?** Because the *current air reading* is back to 0. 
 
+<a id="3-why-cloud-platforms-must-auto-mitigate-resetting-the-alarm"></a>
 ##### 3. Why Cloud Platforms Must Auto-Mitigate (Resetting the Alarm)
 If Azure did **not** automatically deactivate the alert once the failure spike ended:
 1. The alert would remain permanently stuck in a red **"Fired"** state in the portal forever.
@@ -999,6 +1204,7 @@ If Azure did **not** automatically deactivate the alert once the failure spike e
 
 ---
 
+<a id="real-world-evidence-automated-200-am-triggered-resolved-incident-mails"></a>
 #### 📸 Real-World Evidence: Automated 2:00 AM Triggered & Resolved Incident Mails
 
 | 1. Triggered Email (⚠️ Incident Raised at 2:03 AM) | 2. Resolved Email (🟢 Sensor Auto-Mitigated) |
@@ -1006,3 +1212,6 @@ If Azure did **not** automatically deactivate the alert once the failure spike e
 | ![Azure Monitor Alert Triggered at 2 AM](./images/azure_monitor_alert_triggered_2am.png) | ![Azure Monitor Alert Auto-Resolved](./images/azure_monitor_alert_resolved.png) |
 | **Alert Activated (Severity 1):** Metric `PipelineFailedRuns` spiked to **`2`** at 20:33 UTC (02:03 AM IST) when scheduled daily ETL could not reach offline SHIR gateway. | **Alert Deactivated:** Condition `PipelineFailedRuns > 0` became false in the subsequent 5-minute window as no new failures occurred, resetting the alert rule. |
 
+
+
+[▲ Back to Top](#table-of-contents)

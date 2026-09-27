@@ -2,6 +2,7 @@
 *.tmp
 .DS_Store
 Thumbs.db
+desktop.ini
 *.html
 .env
 .venv/
